@@ -51,6 +51,7 @@ export interface TransportStation {
   type: "train" | "bus" | "subway";
   dailyPassengers: number;
   lines: string[];
+  ward?: string;
 }
 
 export interface ZoningArea {

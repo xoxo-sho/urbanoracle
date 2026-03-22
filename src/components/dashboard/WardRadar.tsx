@@ -14,6 +14,7 @@ import { CHART_COLORS } from "@/lib/chart-theme";
 
 interface WardRadarProps {
   profiles: WardProfile[];
+  selectedWard?: string | null;
 }
 
 const AXIS_LABELS: Record<string, string> = {
@@ -33,7 +34,7 @@ const WARD_COLORS = [
   "oklch(0.6 0.18 200)",
 ];
 
-export default function WardRadar({ profiles }: WardRadarProps) {
+export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
   const axes = ["population", "landPrice", "accessibility", "safety", "greenRatio"] as const;
   const radarData = axes.map((axis) => {
     const row: Record<string, string | number> = { axis: AXIS_LABELS[axis] };
@@ -46,7 +47,7 @@ export default function WardRadar({ profiles }: WardRadarProps) {
   return (
     <div className="chart-section">
       <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        区別総合比較
+        {selectedWard ? `${selectedWard} vs 23区平均` : "区別総合比較"}
       </h4>
       <ResponsiveContainer width="100%" height={260}>
         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">

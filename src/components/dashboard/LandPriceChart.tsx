@@ -17,11 +17,15 @@ import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS } from "@/lib/cha
 
 interface LandPriceChartProps {
   prices: LandPriceSummary[];
+  allPrices: LandPriceSummary[];
   demographics: DemographicsData[];
+  selectedWard: string | null;
 }
 
-export default function LandPriceChart({ prices, demographics }: LandPriceChartProps) {
-  const sorted = [...prices].sort((a, b) => b.avgPrice - a.avgPrice).slice(0, 10);
+export default function LandPriceChart({ prices, allPrices, demographics, selectedWard }: LandPriceChartProps) {
+  // When a ward is selected, show it in context of all prices
+  const displayPrices = selectedWard ? allPrices : prices;
+  const sorted = [...displayPrices].sort((a, b) => b.avgPrice - a.avgPrice).slice(0, 10);
   const top = sorted[0];
   const bottom = sorted[sorted.length - 1];
   const ratio = top && bottom ? Math.round(top.avgPrice / bottom.avgPrice) : 0;
@@ -57,8 +61,11 @@ export default function LandPriceChart({ prices, demographics }: LandPriceChartP
               formatter={(v) => typeof v === "number" ? `${(v / 10000).toFixed(1)}万円/m²` : v}
             />
             <Bar dataKey="avgPrice" radius={[3, 3, 0, 0]}>
-              {sorted.map((_, i) => (
-                <Cell key={i} fill={CHART_COLORS.warning} opacity={1 - i * 0.07} />
+              {sorted.map((entry, i) => (
+                <Cell key={i}
+                  fill={selectedWard && entry.region === selectedWard ? CHART_COLORS.primary : CHART_COLORS.warning}
+                  opacity={selectedWard ? (entry.region === selectedWard ? 1 : 0.3) : 1 - i * 0.07}
+                />
               ))}
             </Bar>
           </BarChart>

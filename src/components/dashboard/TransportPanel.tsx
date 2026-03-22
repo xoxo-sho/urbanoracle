@@ -16,9 +16,10 @@ import { Train } from "lucide-react";
 interface TransportPanelProps {
   stations: TransportStation[];
   trends: TransportTrend[];
+  selectedWard: string | null;
 }
 
-export default function TransportPanel({ stations, trends }: TransportPanelProps) {
+export default function TransportPanel({ stations, trends, selectedWard }: TransportPanelProps) {
   const sorted = [...stations].sort((a, b) => b.dailyPassengers - a.dailyPassengers);
   const maxPassengers = sorted[0]?.dailyPassengers ?? 1;
 

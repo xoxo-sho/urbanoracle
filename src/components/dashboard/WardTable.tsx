@@ -5,6 +5,7 @@ import type { DemographicsData, LandPriceSummary } from "@/types";
 interface WardTableProps {
   demographics: DemographicsData[];
   landPrices: LandPriceSummary[];
+  onSelectWard: (ward: string) => void;
 }
 
 function heatColor(value: number, min: number, max: number, hue: number): string {
@@ -18,12 +19,10 @@ function miniBar(value: number, max: number, color: string): string {
   return `linear-gradient(90deg, ${color} ${pct}%, transparent ${pct}%)`;
 }
 
-export default function WardTable({ demographics, landPrices }: WardTableProps) {
+export default function WardTable({ demographics, landPrices, onSelectWard }: WardTableProps) {
   const sorted = [...demographics].sort((a, b) => b.population - a.population).slice(0, 12);
   const maxPop = Math.max(...sorted.map((d) => d.population));
-  const maxDensity = Math.max(...sorted.map((d) => d.density));
   const prices = new Map(landPrices.map((p) => [p.region, p]));
-  const maxPrice = Math.max(...landPrices.map((p) => p.avgPrice));
 
   return (
     <div className="chart-section overflow-x-auto">
@@ -48,10 +47,11 @@ export default function WardTable({ demographics, landPrices }: WardTableProps) 
             return (
               <tr
                 key={d.region}
-                className="border-b border-border/30 transition-colors hover:bg-accent/30 animate-fade-in-up"
+                className="border-b border-border/30 transition-colors hover:bg-accent/30 cursor-pointer animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.03}s`, opacity: 0 }}
+                onClick={() => onSelectWard(d.region)}
               >
-                <td className="py-1.5 pr-2 font-medium text-foreground">{d.region.replace("区", "")}</td>
+                <td className="py-1.5 pr-2 font-medium text-primary hover:underline">{d.region.replace("区", "")}</td>
                 <td className="text-right py-1.5 px-2 tabular-nums">{(d.population / 10000).toFixed(1)}万</td>
                 <td className="text-right py-1.5 px-2 tabular-nums">
                   <span style={{ color: heatColor(d.density, 5000, 24000, 250) }}>
@@ -72,10 +72,7 @@ export default function WardTable({ demographics, landPrices }: WardTableProps) 
                   {price ? `${(price.avgPrice / 10000).toFixed(0)}万` : "—"}
                 </td>
                 <td className="py-1.5 pl-2">
-                  <div
-                    className="h-1.5 rounded-full"
-                    style={{ background: miniBar(d.population, maxPop, "oklch(0.55 0.12 250)") }}
-                  />
+                  <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "oklch(0.55 0.12 250)") }} />
                 </td>
               </tr>
             );

@@ -30,9 +30,10 @@ const levelConfig: Record<number, { bg: string; text: string; bar: string }> = {
 interface DisasterRiskPanelProps {
   risks: DisasterRisk[];
   zoning: ZoningArea[];
+  selectedWard: string | null;
 }
 
-export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelProps) {
+export default function DisasterRiskPanel({ risks, zoning, selectedWard }: DisasterRiskPanelProps) {
   // Pie: risk type distribution
   const riskByType = risks.reduce<Record<string, number>>((acc, r) => {
     acc[r.type] = (acc[r.type] ?? 0) + 1;

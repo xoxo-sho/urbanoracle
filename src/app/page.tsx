@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LayerSelector from "@/components/dashboard/LayerSelector";
 import StatsBar from "@/components/dashboard/StatsBar";
+import WardSelector from "@/components/dashboard/WardSelector";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import DisasterRiskPanel from "@/components/dashboard/DisasterRiskPanel";
@@ -80,6 +81,7 @@ function useApiData<T>(endpoint: string, fallback: T): DataState<T> {
 
 export default function Home() {
   const [layers, setLayers] = useState<DataLayer[]>(dataLayers);
+  const [selectedWard, setSelectedWard] = useState<string | null>(null);
 
   const landPrices = useApiData<LandPricePoint[]>("/api/land-prices", sampleLandPrices);
   const demographics = useApiData<DemographicsData[]>("/api/demographics", sampleDemographics);
@@ -90,10 +92,56 @@ export default function Home() {
     setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l)));
   };
 
-  // Key metrics derived from data
-  const topGrowth = [...demographics.data].sort((a, b) => b.growthRate - a.growthRate)[0];
-  const highRiskCount = disasterRisks.data.filter((r) => r.level >= 4).length;
-  const totalPassengers = transport.data.reduce((sum, s) => sum + s.dailyPassengers, 0);
+  // Filtered data based on selectedWard
+  const filteredLandPrices = useMemo(() => {
+    if (!selectedWard) return landPrices.data;
+    return landPrices.data.filter((p) => p.address.includes(selectedWard.replace("区", "")));
+  }, [selectedWard, landPrices.data]);
+
+  const filteredDemographics = useMemo(() => {
+    if (!selectedWard) return demographics.data;
+    return demographics.data.filter((d) => d.region === selectedWard);
+  }, [selectedWard, demographics.data]);
+
+  const filteredRisks = useMemo(() => {
+    if (!selectedWard) return disasterRisks.data;
+    return disasterRisks.data.filter((r) => r.region === selectedWard);
+  }, [selectedWard, disasterRisks.data]);
+
+  const filteredStations = useMemo(() => {
+    if (!selectedWard) return transport.data;
+    return transport.data.filter((s) => s.ward === selectedWard);
+  }, [selectedWard, transport.data]);
+
+  const filteredPriceSummary = useMemo(() => {
+    if (!selectedWard) return sampleLandPriceSummary;
+    return sampleLandPriceSummary.filter((p) => p.region === selectedWard);
+  }, [selectedWard]);
+
+  const filteredProfiles = useMemo(() => {
+    if (!selectedWard) return sampleWardProfiles;
+    const selected = sampleWardProfiles.find((p) => p.region === selectedWard);
+    if (!selected) return sampleWardProfiles;
+    // Show selected ward + average for comparison
+    const avg = {
+      region: "23区平均",
+      population: Math.round(sampleWardProfiles.reduce((s, p) => s + p.population, 0) / sampleWardProfiles.length),
+      landPrice: Math.round(sampleWardProfiles.reduce((s, p) => s + p.landPrice, 0) / sampleWardProfiles.length),
+      accessibility: Math.round(sampleWardProfiles.reduce((s, p) => s + p.accessibility, 0) / sampleWardProfiles.length),
+      safety: Math.round(sampleWardProfiles.reduce((s, p) => s + p.safety, 0) / sampleWardProfiles.length),
+      greenRatio: Math.round(sampleWardProfiles.reduce((s, p) => s + p.greenRatio, 0) / sampleWardProfiles.length),
+    };
+    return [selected, avg];
+  }, [selectedWard]);
+
+  // Key metrics — responsive to ward selection
+  const metricsData = selectedWard ? filteredDemographics : demographics.data;
+  const metricsRisks = selectedWard ? filteredRisks : disasterRisks.data;
+  const metricsStations = selectedWard ? filteredStations : transport.data;
+
+  const topGrowth = [...metricsData].sort((a, b) => b.growthRate - a.growthRate)[0];
+  const highRiskCount = metricsRisks.filter((r) => r.level >= 4).length;
+  const totalPassengers = metricsStations.reduce((sum, s) => sum + s.dailyPassengers, 0);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ height: "100dvh" }}>
@@ -113,14 +161,20 @@ export default function Home() {
               </div>
             </div>
             <div className="h-6 w-px bg-border/50" />
+            <WardSelector
+              wards={demographics.data}
+              selectedWard={selectedWard}
+              onSelect={setSelectedWard}
+            />
+            <div className="h-6 w-px bg-border/50" />
             <LayerSelector layers={layers} onToggle={toggleLayer} />
           </div>
           <div className="flex items-center gap-2">
             <StatsBar
-              landPriceCount={landPrices.data.length}
-              demographicsCount={demographics.data.length}
-              disasterRiskCount={disasterRisks.data.length}
-              transportCount={transport.data.length}
+              landPriceCount={filteredLandPrices.length}
+              demographicsCount={filteredDemographics.length}
+              disasterRiskCount={filteredRisks.length}
+              transportCount={filteredStations.length}
             />
             <ThemeToggle />
           </div>
@@ -134,10 +188,10 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
             {/* Map */}
             <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/30" style={{ minHeight: "320px", flex: "1 1 320px" }}>
-              <MapView landPrices={landPrices.data} />
+              <MapView landPrices={filteredLandPrices} />
               <div className="absolute top-3 left-3 z-10">
                 <div className="glass rounded-lg px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
-                  {landPrices.data.length}地点
+                  {selectedWard ?? "全エリア"}: {filteredLandPrices.length}地点
                   {!landPrices.isLive && !landPrices.isLoading && (
                     <span className="text-amber-400">sample</span>
                   )}
@@ -145,32 +199,42 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3 Key Metrics — different from StatsBar, these show *insights* */}
+            {/* 3 Key Metrics */}
             <div className="grid grid-cols-3 gap-2 animate-fade-in-up" style={{ animationDelay: "0.1s", opacity: 0 }}>
               <div className="key-metric">
                 <TrendingUp className="h-4 w-4 text-emerald-400" />
-                <span className="text-xl font-bold tabular-nums">+{topGrowth?.growthRate ?? 0}%</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">成長率1位<br />{topGrowth?.region}</span>
+                <span className="text-xl font-bold tabular-nums">
+                  {topGrowth ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate}%` : "—"}
+                </span>
+                <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                  {selectedWard ? "成長率" : "成長率1位"}
+                  {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
+                </span>
               </div>
               <div className="key-metric">
                 <Shield className="h-4 w-4 text-amber-400" />
                 <span className="text-xl font-bold tabular-nums">{highRiskCount}</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">高リスク<br />地域</span>
+                <span className="text-[9px] text-muted-foreground text-center leading-tight">高リスク<br />{selectedWard ? "該当" : "地域"}</span>
               </div>
               <div className="key-metric">
                 <Users className="h-4 w-4 text-blue-400" />
-                <span className="text-xl font-bold tabular-nums">{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></span>
+                <span className="text-xl font-bold tabular-nums">
+                  {totalPassengers > 0 ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : "—"}
+                </span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
               </div>
             </div>
 
-            {/* Ward Radar — compact */}
+            {/* Ward Radar */}
             <div className="shrink-0 animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0 }}>
-              <WardRadar profiles={sampleWardProfiles} />
+              <WardRadar
+                profiles={filteredProfiles}
+                selectedWard={selectedWard}
+              />
             </div>
           </div>
 
-          {/* Right column: 3 tabs (FIX #1: reduced from 5) */}
+          {/* Right column: 3 tabs */}
           <div className="col-span-12 lg:col-span-7 flex flex-col animate-fade-in-up" style={{ animationDelay: "0.05s", opacity: 0 }}>
             <Tabs defaultValue="population" className="flex flex-col h-full">
               <TabsList className="shrink-0 w-full bg-secondary/50 rounded-xl p-1">
@@ -185,37 +249,43 @@ export default function Home() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Tab 1: Population & Land Price combined */}
               <TabsContent value="population" className="mt-4 flex-1 overflow-y-auto">
                 <div className="space-y-4">
                   <DemographicsChart
-                    data={demographics.data}
+                    data={selectedWard ? filteredDemographics : demographics.data}
+                    allData={demographics.data}
                     populationTrends={samplePopulationTrends}
+                    selectedWard={selectedWard}
                   />
-                  <WardTable
-                    demographics={demographics.data}
-                    landPrices={sampleLandPriceSummary}
-                  />
+                  {!selectedWard && (
+                    <WardTable
+                      demographics={demographics.data}
+                      landPrices={sampleLandPriceSummary}
+                      onSelectWard={setSelectedWard}
+                    />
+                  )}
                   <LandPriceChart
-                    prices={sampleLandPriceSummary}
+                    prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
+                    allPrices={sampleLandPriceSummary}
                     demographics={demographics.data}
+                    selectedWard={selectedWard}
                   />
                 </div>
               </TabsContent>
 
-              {/* Tab 2: Disaster & Safety */}
               <TabsContent value="safety" className="mt-4 flex-1 overflow-y-auto">
                 <DisasterRiskPanel
-                  risks={disasterRisks.data}
+                  risks={filteredRisks}
                   zoning={sampleZoning}
+                  selectedWard={selectedWard}
                 />
               </TabsContent>
 
-              {/* Tab 3: Transport */}
               <TabsContent value="transport" className="mt-4 flex-1 overflow-y-auto">
                 <TransportPanel
-                  stations={transport.data}
+                  stations={filteredStations}
                   trends={sampleTransportTrends}
+                  selectedWard={selectedWard}
                 />
               </TabsContent>
             </Tabs>
