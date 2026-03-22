@@ -32,6 +32,7 @@ import type {
   DisasterRisk,
   TransportStation,
 } from "@/types";
+import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
 
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -92,26 +93,33 @@ export default function Home() {
     setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l)));
   };
 
-  // Filtered data based on selectedWard
+  // Helper to check if a layer is enabled
+  const isLayerEnabled = (id: string) => layers.find((l) => l.id === id)?.enabled ?? false;
+
+  // Filtered data based on selectedWard + layer visibility
   const filteredLandPrices = useMemo(() => {
+    if (!isLayerEnabled("land-price")) return [];
     if (!selectedWard) return landPrices.data;
     return landPrices.data.filter((p) => p.address.includes(selectedWard.replace("区", "")));
-  }, [selectedWard, landPrices.data]);
+  }, [selectedWard, landPrices.data, layers]);
 
   const filteredDemographics = useMemo(() => {
+    if (!isLayerEnabled("demographics")) return [];
     if (!selectedWard) return demographics.data;
     return demographics.data.filter((d) => d.region === selectedWard);
-  }, [selectedWard, demographics.data]);
+  }, [selectedWard, demographics.data, layers]);
 
   const filteredRisks = useMemo(() => {
+    if (!isLayerEnabled("disaster-risk")) return [];
     if (!selectedWard) return disasterRisks.data;
     return disasterRisks.data.filter((r) => r.region === selectedWard);
-  }, [selectedWard, disasterRisks.data]);
+  }, [selectedWard, disasterRisks.data, layers]);
 
   const filteredStations = useMemo(() => {
+    if (!isLayerEnabled("transportation")) return [];
     if (!selectedWard) return transport.data;
     return transport.data.filter((s) => s.ward === selectedWard);
-  }, [selectedWard, transport.data]);
+  }, [selectedWard, transport.data, layers]);
 
   const filteredPriceSummary = useMemo(() => {
     if (!selectedWard) return sampleLandPriceSummary;
@@ -188,15 +196,19 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
             {/* Map */}
             <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/30" style={{ minHeight: "320px", flex: "1 1 320px" }}>
-              <MapView landPrices={filteredLandPrices} selectedWard={selectedWard} />
+              <MapView
+                landPrices={filteredLandPrices}
+                selectedWard={selectedWard}
+                onSelectWard={setSelectedWard}
+                layers={layers}
+                stations={transport.data}
+              />
               <div className="absolute top-3 left-3 z-10">
                 <div className="glass rounded-lg px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
-                  {selectedWard ?? "全エリア"}: {filteredLandPrices.length}地点
-                  {!landPrices.isLive && !landPrices.isLoading && (
-                    <span className="text-amber-400">sample</span>
-                  )}
+                  {selectedWard ?? "全エリア"}
                 </div>
               </div>
+              <MapLegend layers={layers} />
             </div>
 
             {/* 3 Key Metrics */}
@@ -251,47 +263,70 @@ export default function Home() {
 
               <TabsContent value="population" className="mt-4 flex-1 overflow-y-auto">
                 <div className="space-y-4">
-                  <DemographicsChart
-                    data={selectedWard ? filteredDemographics : demographics.data}
-                    allData={demographics.data}
-                    populationTrends={samplePopulationTrends}
-                    selectedWard={selectedWard}
-                  />
-                  {!selectedWard && (
+                  {(isLayerEnabled("demographics") || !layers.some((l) => l.enabled)) && (
+                    <DemographicsChart
+                      data={selectedWard ? (demographics.data.filter((d) => d.region === selectedWard)) : demographics.data}
+                      allData={demographics.data}
+                      populationTrends={samplePopulationTrends}
+                      selectedWard={selectedWard}
+                    />
+                  )}
+                  {!selectedWard && (isLayerEnabled("demographics") || isLayerEnabled("land-price")) && (
                     <WardTable
                       demographics={demographics.data}
                       landPrices={sampleLandPriceSummary}
                       onSelectWard={setSelectedWard}
                     />
                   )}
-                  <LandPriceChart
-                    prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
-                    allPrices={sampleLandPriceSummary}
-                    demographics={demographics.data}
-                    selectedWard={selectedWard}
-                  />
+                  {(isLayerEnabled("land-price") || !layers.some((l) => l.enabled)) && (
+                    <LandPriceChart
+                      prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
+                      allPrices={sampleLandPriceSummary}
+                      demographics={demographics.data}
+                      selectedWard={selectedWard}
+                    />
+                  )}
+                  {!isLayerEnabled("demographics") && !isLayerEnabled("land-price") && layers.some((l) => l.enabled) && (
+                    <EmptyState message="人口統計または地価レイヤーを有効にしてください" />
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="safety" className="mt-4 flex-1 overflow-y-auto">
+                {!isLayerEnabled("disaster-risk") && layers.some((l) => l.enabled) ? (
+                  <EmptyState message="災害リスクレイヤーを有効にしてください" />
+                ) : (
                 <DisasterRiskPanel
-                  risks={filteredRisks}
+                  risks={isLayerEnabled("disaster-risk") ? (selectedWard ? disasterRisks.data.filter((r) => r.region === selectedWard) : disasterRisks.data) : disasterRisks.data}
                   zoning={sampleZoning}
                   selectedWard={selectedWard}
                 />
+                )}
               </TabsContent>
 
               <TabsContent value="transport" className="mt-4 flex-1 overflow-y-auto">
-                <TransportPanel
-                  stations={filteredStations}
-                  trends={sampleTransportTrends}
-                  selectedWard={selectedWard}
-                />
+                {!isLayerEnabled("transportation") && layers.some((l) => l.enabled) ? (
+                  <EmptyState message="交通レイヤーを有効にしてください" />
+                ) : (
+                  <TransportPanel
+                    stations={isLayerEnabled("transportation") ? (selectedWard ? transport.data.filter((s) => s.ward === selectedWard) : transport.data) : transport.data}
+                    trends={sampleTransportTrends}
+                    selectedWard={selectedWard}
+                  />
+                )}
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+      {message}
     </div>
   );
 }
