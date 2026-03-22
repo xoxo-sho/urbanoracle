@@ -29,7 +29,7 @@ UrbanOracle is a Japanese urban data visualization dashboard. It aggregates open
 
 ### Layout
 
-The app uses a split-panel layout: a full-height MapLibre map on the left, and a scrollable side panel (480px) on the right with stats cards and tabbed data panels (demographics, disaster risk, transportation).
+The app uses a dashboard-first grid layout (12 columns). The map is one data panel among others, not the main focus. Left column (5/12): map card + transport ranking. Right column (7/12): tabbed panels for demographics and disaster risk. Header contains logo, layer selector, and stats bar.
 
 ### Key Patterns
 
