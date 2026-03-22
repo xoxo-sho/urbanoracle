@@ -4,9 +4,11 @@ import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { LandPricePoint } from "@/types";
+import { WARD_BOUNDARIES } from "@/data/ward-boundaries";
 
 interface MapViewProps {
   landPrices: LandPricePoint[];
+  selectedWard: string | null;
 }
 
 function formatPrice(price: number): string {
@@ -26,14 +28,8 @@ function isDarkMode(): boolean {
 
 function getTileStyle(dark: boolean): maplibregl.StyleSpecification {
   const tiles = dark
-    ? [
-        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-      ]
-    : [
-        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-      ];
+    ? ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png", "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"]
+    : ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png", "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"];
 
   return {
     version: 8,
@@ -46,15 +42,20 @@ function getTileStyle(dark: boolean): maplibregl.StyleSpecification {
   };
 }
 
-export default function MapView({ landPrices }: MapViewProps) {
+const DEFAULT_CENTER: [number, number] = [139.745, 35.678];
+const DEFAULT_ZOOM = 11.8;
+
+export default function MapView({ landPrices, selectedWard }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
+  const prevWard = useRef<string | null>(null);
 
   const addMarkers = useCallback((m: maplibregl.Map) => {
-    // Clear existing
     for (const marker of markers.current) marker.remove();
     markers.current = [];
+
+    if (landPrices.length === 0) return;
 
     const prices = landPrices.map((p) => p.price);
     const minPrice = Math.min(...prices);
@@ -97,6 +98,66 @@ export default function MapView({ landPrices }: MapViewProps) {
     }
   }, [landPrices]);
 
+  const updateWardBoundary = useCallback((m: maplibregl.Map, ward: string | null) => {
+    // Remove existing boundary layer/source
+    if (m.getLayer("ward-boundary-fill")) m.removeLayer("ward-boundary-fill");
+    if (m.getLayer("ward-boundary-line")) m.removeLayer("ward-boundary-line");
+    if (m.getSource("ward-boundary")) m.removeSource("ward-boundary");
+
+    if (!ward) {
+      // Fly back to default view
+      m.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, duration: 800 });
+      return;
+    }
+
+    const bounds = WARD_BOUNDARIES[ward];
+    if (!bounds) return;
+
+    // Add polygon source
+    m.addSource("ward-boundary", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        properties: { name: ward },
+        geometry: {
+          type: "Polygon",
+          coordinates: [bounds.polygon],
+        },
+      },
+    });
+
+    // Fill layer (subtle highlight)
+    m.addLayer({
+      id: "ward-boundary-fill",
+      type: "fill",
+      source: "ward-boundary",
+      paint: {
+        "fill-color": "#4f7cf7",
+        "fill-opacity": isDarkMode() ? 0.15 : 0.1,
+      },
+    });
+
+    // Border line
+    m.addLayer({
+      id: "ward-boundary-line",
+      type: "line",
+      source: "ward-boundary",
+      paint: {
+        "line-color": "#5b8af9",
+        "line-width": 2.5,
+        "line-opacity": 0.85,
+      },
+    });
+
+    // Fly to the ward bounds
+    m.fitBounds(bounds.bbox as [[number, number], [number, number]], {
+      padding: 40,
+      duration: 1000,
+      maxZoom: 14.5,
+    });
+  }, []);
+
+  // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -104,8 +165,8 @@ export default function MapView({ landPrices }: MapViewProps) {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: getTileStyle(dark),
-      center: [139.745, 35.678],
-      zoom: 11.8,
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
     });
 
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
@@ -113,17 +174,24 @@ export default function MapView({ landPrices }: MapViewProps) {
     map.current.on("load", () => {
       map.current?.resize();
       addMarkers(map.current!);
+      if (selectedWard) {
+        updateWardBoundary(map.current!, selectedWard);
+      }
     });
 
     const ro = new ResizeObserver(() => map.current?.resize());
     ro.observe(mapContainer.current);
 
-    // Watch for theme changes
+    // Theme change watcher
     const observer = new MutationObserver(() => {
       const nowDark = isDarkMode();
       map.current?.setStyle(getTileStyle(nowDark));
-      // Re-add markers after style change
-      map.current?.once("styledata", () => addMarkers(map.current!));
+      map.current?.once("styledata", () => {
+        addMarkers(map.current!);
+        if (prevWard.current) {
+          updateWardBoundary(map.current!, prevWard.current);
+        }
+      });
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
@@ -133,7 +201,25 @@ export default function MapView({ landPrices }: MapViewProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [addMarkers]);
+  }, [addMarkers, selectedWard, updateWardBoundary]);
+
+  // React to ward selection changes
+  useEffect(() => {
+    if (!map.current) return;
+    if (prevWard.current === selectedWard) return;
+    prevWard.current = selectedWard;
+
+    // Wait for map to be loaded
+    if (!map.current.isStyleLoaded()) {
+      map.current.once("styledata", () => {
+        updateWardBoundary(map.current!, selectedWard);
+        addMarkers(map.current!);
+      });
+    } else {
+      updateWardBoundary(map.current, selectedWard);
+      addMarkers(map.current);
+    }
+  }, [selectedWard, updateWardBoundary, addMarkers]);
 
   return (
     <div ref={mapContainer} className="absolute inset-0 rounded-2xl" style={{ width: "100%", height: "100%" }} />

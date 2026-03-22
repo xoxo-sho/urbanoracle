@@ -188,7 +188,7 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
             {/* Map */}
             <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/30" style={{ minHeight: "320px", flex: "1 1 320px" }}>
-              <MapView landPrices={filteredLandPrices} />
+              <MapView landPrices={filteredLandPrices} selectedWard={selectedWard} />
               <div className="absolute top-3 left-3 z-10">
                 <div className="glass rounded-lg px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
                   {selectedWard ?? "全エリア"}: {filteredLandPrices.length}地点
