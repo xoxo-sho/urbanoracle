@@ -32,7 +32,7 @@ export default function WardTable({ demographics, landPrices }: WardTableProps) 
       </h4>
       <table className="w-full text-[11px]">
         <thead>
-          <tr className="text-muted-foreground border-b border-white/5">
+          <tr className="text-muted-foreground border-b border-border/50">
             <th className="text-left py-1.5 pr-2 font-medium">区</th>
             <th className="text-right py-1.5 px-2 font-medium">人口</th>
             <th className="text-right py-1.5 px-2 font-medium">密度</th>
@@ -48,7 +48,7 @@ export default function WardTable({ demographics, landPrices }: WardTableProps) 
             return (
               <tr
                 key={d.region}
-                className="border-b border-white/3 transition-colors hover:bg-white/[0.03] animate-fade-in-up"
+                className="border-b border-border/30 transition-colors hover:bg-accent/30 animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.03}s`, opacity: 0 }}
               >
                 <td className="py-1.5 pr-2 font-medium text-foreground">{d.region.replace("区", "")}</td>

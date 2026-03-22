@@ -23,11 +23,11 @@ export default function StatsBar({
   ] as const;
 
   return (
-    <div className="glass-strong flex items-center gap-1 rounded-2xl p-1.5 shadow-lg shadow-black/20">
+    <div className="glass-strong flex items-center gap-1 rounded-2xl p-1.5 shadow-lg shadow-black/10 dark:shadow-black/20">
       {stats.map((stat, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 rounded-xl px-3 py-2 transition-colors hover:bg-white/5 animate-count-up"
+          className="flex items-center gap-2 rounded-xl px-3 py-2 transition-colors hover:bg-accent animate-count-up"
           style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}
         >
           <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />

@@ -48,7 +48,62 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ─── Light mode (default) ─── */
 :root {
+  --background: oklch(0.98 0.005 265);
+  --foreground: oklch(0.15 0.01 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 265);
+  --primary: oklch(0.55 0.22 250);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.95 0.005 265);
+  --secondary-foreground: oklch(0.25 0.01 265);
+  --muted: oklch(0.95 0.005 265);
+  --muted-foreground: oklch(0.48 0 0);
+  --accent: oklch(0.95 0.008 265);
+  --accent-foreground: oklch(0.15 0.01 265);
+  --destructive: oklch(0.55 0.22 25);
+  --border: oklch(0 0 0 / 8%);
+  --input: oklch(0 0 0 / 8%);
+  --ring: oklch(0.55 0.22 250);
+  --chart-1: oklch(0.55 0.22 250);
+  --chart-2: oklch(0.55 0.18 160);
+  --chart-3: oklch(0.6 0.2 30);
+  --chart-4: oklch(0.55 0.18 310);
+  --chart-5: oklch(0.6 0.16 80);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.97 0.005 265);
+  --sidebar-foreground: oklch(0.15 0.01 265);
+  --sidebar-primary: oklch(0.55 0.22 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.95 0.008 265);
+  --sidebar-accent-foreground: oklch(0.15 0.01 265);
+  --sidebar-border: oklch(0 0 0 / 8%);
+  --sidebar-ring: oklch(0.55 0.22 250);
+
+  /* Glass tokens — light */
+  --glass-bg: oklch(1 0 0 / 72%);
+  --glass-border: oklch(0 0 0 / 8%);
+  --glass-highlight: oklch(0 0 0 / 3%);
+
+  /* Chart tokens — light */
+  --tooltip-bg: oklch(1 0 0 / 97%);
+  --tooltip-border: oklch(0 0 0 / 8%);
+  --tooltip-radius: 12px;
+  --tooltip-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --tooltip-color: oklch(0.15 0 0);
+  --axis-tick: oklch(0.45 0 0);
+  --axis-tick-muted: oklch(0.6 0 0);
+  --grid-line: oklch(0 0 0 / 6%);
+  --chart-section-bg: oklch(0 0 0 / 2%);
+  --chart-section-border: oklch(0 0 0 / 6%);
+  --cursor-fill: oklch(0 0 0 / 4%);
+}
+
+/* ─── Dark mode ─── */
+.dark {
   --background: oklch(0.11 0.015 265);
   --foreground: oklch(0.95 0 0);
   --card: oklch(0.14 0.012 265);
@@ -72,7 +127,6 @@
   --chart-3: oklch(0.72 0.18 30);
   --chart-4: oklch(0.72 0.18 310);
   --chart-5: oklch(0.78 0.14 80);
-  --radius: 0.75rem;
   --sidebar: oklch(0.14 0.012 265);
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.72 0.19 250);
@@ -82,10 +136,22 @@
   --sidebar-border: oklch(1 0 0 / 7%);
   --sidebar-ring: oklch(0.72 0.19 250);
 
-  /* Glass tokens */
+  /* Glass tokens — dark */
   --glass-bg: oklch(0.12 0.015 265 / 72%);
   --glass-border: oklch(1 0 0 / 8%);
   --glass-highlight: oklch(1 0 0 / 4%);
+
+  /* Chart tokens — dark */
+  --tooltip-bg: oklch(0.14 0.012 265 / 95%);
+  --tooltip-border: oklch(1 0 0 / 10%);
+  --tooltip-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --tooltip-color: oklch(0.95 0 0);
+  --axis-tick: oklch(0.45 0 0);
+  --axis-tick-muted: oklch(0.35 0 0);
+  --grid-line: oklch(1 0 0 / 5%);
+  --chart-section-bg: oklch(1 0 0 / 2%);
+  --chart-section-border: oklch(1 0 0 / 5%);
+  --cursor-fill: oklch(1 0 0 / 3%);
 }
 
 @layer base {
@@ -109,13 +175,13 @@
 }
 
 .glass-strong {
-  background: oklch(0.12 0.015 265 / 85%);
+  background: var(--glass-bg);
   backdrop-filter: blur(32px) saturate(1.5);
   -webkit-backdrop-filter: blur(32px) saturate(1.5);
-  border: 1px solid oklch(1 0 0 / 10%);
+  border: 1px solid var(--glass-border);
 }
 
-/* ─── Animated counter ─── */
+/* ─── Animations ─── */
 @keyframes countUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -124,41 +190,21 @@
   animation: countUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ─── Pulse ring for map markers ─── */
 @keyframes pulseRing {
   0% { transform: scale(1); opacity: 0.6; }
   100% { transform: scale(2.8); opacity: 0; }
 }
-.marker-pulse::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: inherit;
-  animation: pulseRing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
 
-/* ─── Shimmer for loading ─── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .shimmer {
-  background: linear-gradient(90deg, transparent 25%, oklch(1 0 0 / 4%) 50%, transparent 75%);
+  background: linear-gradient(90deg, transparent 25%, var(--glass-highlight) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
 
-/* ─── Slide in from right ─── */
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.animate-slide-in {
-  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ─── Fade in up ─── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -169,17 +215,17 @@
 
 /* ─── Map overrides ─── */
 .maplibregl-popup-content {
-  background: oklch(0.14 0.012 265 / 92%) !important;
+  background: var(--tooltip-bg) !important;
   backdrop-filter: blur(20px) !important;
-  color: oklch(0.95 0 0) !important;
-  border: 1px solid oklch(1 0 0 / 10%) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--tooltip-border) !important;
   border-radius: 16px !important;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px oklch(1 0 0 / 5%) !important;
+  box-shadow: var(--tooltip-shadow) !important;
   padding: 14px 18px !important;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: oklch(0.14 0.012 265 / 92%) !important;
+  border-top-color: var(--card) !important;
 }
 
 .maplibregl-popup-close-button {
@@ -187,9 +233,9 @@
 }
 
 .maplibregl-ctrl-group {
-  background: oklch(0.14 0.012 265 / 80%) !important;
+  background: var(--glass-bg) !important;
   backdrop-filter: blur(12px) !important;
-  border: 1px solid oklch(1 0 0 / 8%) !important;
+  border: 1px solid var(--glass-border) !important;
   border-radius: 12px !important;
   overflow: hidden;
 }
@@ -200,67 +246,49 @@
 }
 
 .maplibregl-ctrl-group button + button {
-  border-top: 1px solid oklch(1 0 0 / 6%) !important;
+  border-top: 1px solid var(--glass-border) !important;
 }
 
-.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
   filter: invert(1) !important;
   opacity: 0.7;
 }
 
-.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon {
+.dark .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon {
   opacity: 1;
 }
 
 .maplibregl-ctrl-attrib {
   background: transparent !important;
-  color: oklch(0.4 0 0) !important;
+  color: var(--muted-foreground) !important;
   font-size: 10px !important;
 }
 .maplibregl-ctrl-attrib a {
-  color: oklch(0.45 0 0) !important;
+  color: var(--muted-foreground) !important;
 }
 
-/* ─── Side panel scrollbar ─── */
-.side-panel::-webkit-scrollbar {
-  width: 4px;
-}
-.side-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-.side-panel::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 8%);
-  border-radius: 2px;
-}
-.side-panel::-webkit-scrollbar-thumb:hover {
-  background: oklch(1 0 0 / 16%);
-}
+/* ─── Scrollbar ─── */
+.side-panel::-webkit-scrollbar { width: 4px; }
+.side-panel::-webkit-scrollbar-track { background: transparent; }
+.side-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
 
-/* ─── Recharts dark theme overrides ─── */
+/* ─── Recharts overrides ─── */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: oklch(1 0 0 / 5%) !important;
+  stroke: var(--grid-line) !important;
 }
 .recharts-tooltip-wrapper {
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
-
-/* ─── Shared chart tooltip ─── */
-:root {
-  --tooltip-bg: oklch(0.14 0.012 265 / 95%);
-  --tooltip-border: oklch(1 0 0 / 10%);
-  --tooltip-radius: 12px;
-  --tooltip-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --axis-tick: oklch(0.45 0 0);
-  --axis-tick-muted: oklch(0.35 0 0);
-  --grid-line: oklch(1 0 0 / 5%);
+.dark .recharts-tooltip-wrapper {
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
 }
 
 /* ─── Chart section card ─── */
 .chart-section {
   border-radius: var(--radius-xl);
-  border: 1px solid oklch(1 0 0 / 5%);
-  background: oklch(1 0 0 / 2%);
+  border: 1px solid var(--chart-section-border);
+  background: var(--chart-section-bg);
   padding: 14px;
 }
 
@@ -272,6 +300,6 @@
   gap: 2px;
   padding: 12px 8px;
   border-radius: var(--radius-lg);
-  border: 1px solid oklch(1 0 0 / 5%);
-  background: oklch(1 0 0 / 2%);
+  border: 1px solid var(--chart-section-border);
+  background: var(--chart-section-bg);
 }

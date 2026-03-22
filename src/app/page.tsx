@@ -11,6 +11,7 @@ import DisasterRiskPanel from "@/components/dashboard/DisasterRiskPanel";
 import TransportPanel from "@/components/dashboard/TransportPanel";
 import WardRadar from "@/components/dashboard/WardRadar";
 import WardTable from "@/components/dashboard/WardTable";
+import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import {
   dataLayers,
   sampleLandPrices,
@@ -114,12 +115,15 @@ export default function Home() {
             <div className="h-6 w-px bg-border/50" />
             <LayerSelector layers={layers} onToggle={toggleLayer} />
           </div>
-          <StatsBar
-            landPriceCount={landPrices.data.length}
-            demographicsCount={demographics.data.length}
-            disasterRiskCount={disasterRisks.data.length}
-            transportCount={transport.data.length}
-          />
+          <div className="flex items-center gap-2">
+            <StatsBar
+              landPriceCount={landPrices.data.length}
+              demographicsCount={demographics.data.length}
+              disasterRiskCount={disasterRisks.data.length}
+              transportCount={transport.data.length}
+            />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -169,7 +173,7 @@ export default function Home() {
           {/* Right column: 3 tabs (FIX #1: reduced from 5) */}
           <div className="col-span-12 lg:col-span-7 flex flex-col animate-fade-in-up" style={{ animationDelay: "0.05s", opacity: 0 }}>
             <Tabs defaultValue="population" className="flex flex-col h-full">
-              <TabsList className="shrink-0 w-full bg-white/5 rounded-xl p-1">
+              <TabsList className="shrink-0 w-full bg-secondary/50 rounded-xl p-1">
                 <TabsTrigger value="population" className="flex-1 cursor-pointer rounded-lg text-xs">
                   人口・地価
                 </TabsTrigger>

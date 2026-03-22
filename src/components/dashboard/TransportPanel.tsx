@@ -57,13 +57,13 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
           const isFirst = i === 0;
           return (
             <div key={station.id}
-              className="group relative rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden transition-colors hover:bg-white/[0.04] animate-fade-in-up"
+              className="group relative rounded-xl border border-border/50 bg-card/30 overflow-hidden transition-colors hover:bg-accent/50 animate-fade-in-up"
               style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}
             >
               <div className="absolute inset-y-0 left-0 bg-emerald-500/8" style={{ width: `${ratio * 100}%` }} />
               <div className="relative flex items-center gap-3 px-3 py-2.5">
                 <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
-                  isFirst ? "bg-emerald-500/20 text-emerald-300" : "bg-white/5 text-muted-foreground"
+                  isFirst ? "bg-emerald-500/20 text-emerald-300" : "bg-secondary text-muted-foreground"
                 }`}>{i + 1}</span>
                 <Train className={`h-3.5 w-3.5 shrink-0 ${isFirst ? "text-emerald-400" : "text-muted-foreground"}`} />
                 <div className="min-w-0 flex-1">
@@ -73,10 +73,10 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {station.lines.slice(0, 3).map((line) => (
-                      <span key={line} className="rounded-md bg-white/5 px-1.5 py-0.5 text-[9px] text-muted-foreground">{line}</span>
+                      <span key={line} className="rounded-md bg-secondary px-1.5 py-0.5 text-[9px] text-muted-foreground">{line}</span>
                     ))}
                     {station.lines.length > 3 && (
-                      <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[9px] text-muted-foreground">+{station.lines.length - 3}</span>
+                      <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[9px] text-muted-foreground">+{station.lines.length - 3}</span>
                     )}
                   </div>
                 </div>

@@ -14,7 +14,7 @@ export default function LayerSelector({ layers, onToggle }: LayerSelectorProps) 
         <button
           key={layer.id}
           onClick={() => onToggle(layer.id)}
-          className="group relative flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer hover:bg-white/6"
+          className="group relative flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer hover:bg-accent/50"
           style={{
             backgroundColor: layer.enabled ? `${layer.color}15` : undefined,
           }}

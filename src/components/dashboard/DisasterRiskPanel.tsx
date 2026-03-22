@@ -107,7 +107,7 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
             const config = levelConfig[risk.level];
             return (
               <div key={risk.id}
-                className="group rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04] animate-fade-in-up"
+                className="group rounded-xl border border-border/50 bg-card/30 p-3 transition-colors hover:bg-accent/50 animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}
               >
                 <div className="flex items-start gap-3">
@@ -124,7 +124,7 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((level) => (
                           <div key={level}
-                            className={`h-1 w-4 rounded-full ${level <= risk.level ? config.bar : "bg-white/5"}`}
+                            className={`h-1 w-4 rounded-full ${level <= risk.level ? config.bar : "bg-secondary"}`}
                             style={{ opacity: level <= risk.level ? 0.8 : 0.3 }}
                           />
                         ))}
