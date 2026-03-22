@@ -49,72 +49,43 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  --background: oklch(0.11 0.015 265);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.14 0.012 265);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0.012 265);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.72 0.19 250);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.19 0.012 265);
+  --secondary-foreground: oklch(0.85 0 0);
+  --muted: oklch(0.19 0.012 265);
+  --muted-foreground: oklch(0.58 0 0);
+  --accent: oklch(0.19 0.018 265);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.65 0.22 25);
+  --border: oklch(1 0 0 / 7%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.72 0.19 250);
+  --chart-1: oklch(0.72 0.19 250);
+  --chart-2: oklch(0.72 0.17 160);
+  --chart-3: oklch(0.72 0.18 30);
+  --chart-4: oklch(0.72 0.18 310);
+  --chart-5: oklch(0.78 0.14 80);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.14 0.012 265);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.72 0.19 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.19 0.018 265);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(1 0 0 / 7%);
+  --sidebar-ring: oklch(0.72 0.19 250);
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Glass tokens */
+  --glass-bg: oklch(0.12 0.015 265 / 72%);
+  --glass-border: oklch(1 0 0 / 8%);
+  --glass-highlight: oklch(1 0 0 / 4%);
 }
 
 @layer base {
@@ -127,4 +98,149 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ─── Glass utility ─── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: oklch(0.12 0.015 265 / 85%);
+  backdrop-filter: blur(32px) saturate(1.5);
+  -webkit-backdrop-filter: blur(32px) saturate(1.5);
+  border: 1px solid oklch(1 0 0 / 10%);
+}
+
+/* ─── Animated counter ─── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up {
+  animation: countUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Pulse ring for map markers ─── */
+@keyframes pulseRing {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+.marker-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulseRing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* ─── Shimmer for loading ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 25%, oklch(1 0 0 / 4%) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ─── Slide in from right ─── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Fade in up ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Map overrides ─── */
+.maplibregl-popup-content {
+  background: oklch(0.14 0.012 265 / 92%) !important;
+  backdrop-filter: blur(20px) !important;
+  color: oklch(0.95 0 0) !important;
+  border: 1px solid oklch(1 0 0 / 10%) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px oklch(1 0 0 / 5%) !important;
+  padding: 14px 18px !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: oklch(0.14 0.012 265 / 92%) !important;
+}
+
+.maplibregl-popup-close-button {
+  display: none !important;
+}
+
+.maplibregl-ctrl-group {
+  background: oklch(0.14 0.012 265 / 80%) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid oklch(1 0 0 / 8%) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid oklch(1 0 0 / 6%) !important;
+}
+
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) !important;
+  opacity: 0.7;
+}
+
+.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon {
+  opacity: 1;
+}
+
+.maplibregl-ctrl-attrib {
+  background: transparent !important;
+  color: oklch(0.4 0 0) !important;
+  font-size: 10px !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: oklch(0.45 0 0) !important;
+}
+
+/* ─── Side panel scrollbar ─── */
+.side-panel::-webkit-scrollbar {
+  width: 4px;
+}
+.side-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.side-panel::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 8%);
+  border-radius: 2px;
+}
+.side-panel::-webkit-scrollbar-thumb:hover {
+  background: oklch(1 0 0 / 16%);
+}
+
+/* ─── Recharts dark theme overrides ─── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: oklch(1 0 0 / 5%) !important;
+}
+.recharts-tooltip-wrapper {
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
 }
