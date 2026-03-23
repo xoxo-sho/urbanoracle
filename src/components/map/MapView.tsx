@@ -4,7 +4,8 @@ import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { LandPricePoint, DataLayer, TransportStation } from "@/types";
-import { buildWardGeoJSON, getWardBounds, buildStationGeoJSON } from "@/data/ward-boundaries";
+import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
+import type { WardFeatureCollection } from "@/data/ward-boundaries";
 
 interface MapViewProps {
   landPrices: LandPricePoint[];
@@ -33,6 +34,13 @@ const DEFAULT_CENTER: [number, number] = [139.745, 35.695];
 const DEFAULT_ZOOM = 11.2;
 const TOKYO_BOUNDS: [[number, number], [number, number]] = [[139.55, 35.50], [139.95, 35.85]];
 
+function flyToWard(m: maplibregl.Map, wardName: string) {
+  const center = getWardCenter(wardName);
+  if (center) {
+    m.flyTo({ center, zoom: 13.5, duration: 800 });
+  }
+}
+
 function isLayerEnabled(layers: DataLayer[], id: string): boolean {
   return layers.find((l) => l.id === id)?.enabled ?? false;
 }
@@ -43,6 +51,7 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
   const popup = useRef<maplibregl.Popup | null>(null);
   const hoveredWard = useRef<number | null>(null);
   const initialized = useRef(false);
+  const wardGeoJSON = useRef<WardFeatureCollection | null>(null);
 
   const setupLayers = useCallback((m: maplibregl.Map) => {
     // Remove existing custom layers/sources
@@ -53,8 +62,10 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
       if (m.getSource(id)) m.removeSource(id);
     }
 
-    // Add ward polygons source
-    m.addSource("wards", { type: "geojson", data: buildWardGeoJSON(), promoteId: "name" });
+    if (!wardGeoJSON.current) return;
+
+    // Add ward polygons source from real GeoJSON
+    m.addSource("wards", { type: "geojson", data: wardGeoJSON.current, promoteId: "name" });
 
     // Determine which property to color by
     const landEnabled = isLayerEnabled(layers, "land-price");
@@ -176,6 +187,7 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
+    let cancelled = false;
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -192,13 +204,13 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
 
     m.on("load", () => {
       m.resize();
-      setupLayers(m);
-      initialized.current = true;
-
-      if (selectedWard) {
-        const bounds = getWardBounds(selectedWard);
-        if (bounds) m.fitBounds(bounds, { padding: 40, duration: 800, maxZoom: 14.5 });
-      }
+      loadWardGeoJSON().then((data) => {
+        if (cancelled || !map.current) return;
+        wardGeoJSON.current = data;
+        setupLayers(m);
+        initialized.current = true;
+        if (selectedWard) flyToWard(m, selectedWard);
+      });
     });
 
     // Hover: highlight ward polygon
@@ -285,14 +297,25 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
 
     // Theme watcher
     const observer = new MutationObserver(() => {
+      if (cancelled || !map.current) return;
       m.setStyle(getTileStyle(isDarkMode()));
       m.once("styledata", () => {
-        if (initialized.current) setupLayers(m);
+        if (cancelled || !map.current || !initialized.current) return;
+        if (!wardGeoJSON.current) {
+          loadWardGeoJSON().then((data) => {
+            if (cancelled || !map.current) return;
+            wardGeoJSON.current = data;
+            setupLayers(m);
+          });
+        } else {
+          setupLayers(m);
+        }
       });
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     return () => {
+      cancelled = true;
       observer.disconnect();
       ro.disconnect();
       popup.current?.remove();
@@ -315,8 +338,7 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
 
     // Fly to ward or reset
     if (selectedWard) {
-      const bounds = getWardBounds(selectedWard);
-      if (bounds) m.fitBounds(bounds, { padding: 40, duration: 800, maxZoom: 14.5 });
+      flyToWard(m, selectedWard);
     } else {
       m.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, duration: 800 });
     }
