@@ -234,13 +234,18 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
     if (!mapContainer.current || map.current) return;
     let cancelled = false;
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: getTileStyle(isDarkMode()),
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
-      maxBounds: TOKYO_BOUNDS,
-    });
+    try {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: getTileStyle(isDarkMode()),
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        maxBounds: TOKYO_BOUNDS,
+      });
+    } catch {
+      // WebGL not available (e.g. headless browser in tests)
+      return;
+    }
 
     const m = map.current;
     popup.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12 });
