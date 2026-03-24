@@ -55,10 +55,12 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
 
   const setupLayers = useCallback((m: maplibregl.Map) => {
     // Remove existing custom layers/sources
-    for (const id of ["ward-fill", "ward-line", "ward-highlight-line", "station-circles", "station-labels"]) {
+    const layerIds = ["ward-fill", "ward-line", "ward-highlight-line", "station-circles", "station-labels", "hazard-flood", "hazard-tsunami", "hazard-landslide"];
+    for (const id of layerIds) {
       if (m.getLayer(id)) m.removeLayer(id);
     }
-    for (const id of ["wards", "stations"]) {
+    const sourceIds = ["wards", "stations", "hazard-flood", "hazard-tsunami", "hazard-landslide"];
+    for (const id of sourceIds) {
       if (m.getSource(id)) m.removeSource(id);
     }
 
@@ -180,6 +182,49 @@ export default function MapView({ landPrices, selectedWard, onSelectWard, layers
           "text-halo-color": isDarkMode() ? "#000000" : "#ffffff",
           "text-halo-width": 1.5,
         },
+      });
+    }
+
+    // Hazard map tile overlays (disaster-risk layer)
+    if (isLayerEnabled(layers, "disaster-risk")) {
+      // Flood inundation areas (想定最大規模)
+      m.addSource("hazard-flood", {
+        type: "raster",
+        tiles: ["https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png"],
+        tileSize: 256,
+        attribution: "ハザードマップポータルサイト（国土交通省）",
+      });
+      m.addLayer({
+        id: "hazard-flood",
+        type: "raster",
+        source: "hazard-flood",
+        paint: { "raster-opacity": 0.5 },
+      });
+
+      // Tsunami inundation areas
+      m.addSource("hazard-tsunami", {
+        type: "raster",
+        tiles: ["https://disaportaldata.gsi.go.jp/raster/04_tsunami_newlegend_data/{z}/{x}/{y}.png"],
+        tileSize: 256,
+      });
+      m.addLayer({
+        id: "hazard-tsunami",
+        type: "raster",
+        source: "hazard-tsunami",
+        paint: { "raster-opacity": 0.45 },
+      });
+
+      // Landslide hazard areas
+      m.addSource("hazard-landslide", {
+        type: "raster",
+        tiles: ["https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png"],
+        tileSize: 256,
+      });
+      m.addLayer({
+        id: "hazard-landslide",
+        type: "raster",
+        source: "hazard-landslide",
+        paint: { "raster-opacity": 0.45 },
       });
     }
   }, [layers, selectedWard, stations]);

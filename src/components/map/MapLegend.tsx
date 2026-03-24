@@ -24,11 +24,11 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
     ],
   },
   "disaster-risk": {
-    label: "災害リスク",
+    label: "ハザードマップ（実データ）",
     stops: [
-      { color: "#22c55e", label: "低" },
-      { color: "#f59e0b", label: "中" },
-      { color: "#dc2626", label: "高" },
+      { color: "#ffffb2", label: "浅い" },
+      { color: "#fd8d3c", label: "浸水" },
+      { color: "#bd0026", label: "深い" },
     ],
   },
   transportation: {
