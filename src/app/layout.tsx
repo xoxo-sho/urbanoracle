@@ -15,7 +15,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UrbanOracle - 都市データ可視化ダッシュボード",
   description:
-    "地価・人口統計・災害リスク・交通・用途地域などのオープンデータを可視化するWebアプリ",
+    "東京23区の地価・人口統計・災害リスク・交通・用途地域などのオープンデータを可視化するWebダッシュボード",
+  keywords: ["都市データ", "東京23区", "地価", "人口統計", "災害リスク", "オープンデータ", "ダッシュボード"],
+  openGraph: {
+    title: "UrbanOracle - 都市データ可視化ダッシュボード",
+    description: "東京23区のオープンデータを地図とチャートで可視化",
+    type: "website",
+    locale: "ja_JP",
+    siteName: "UrbanOracle",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "UrbanOracle",
+    description: "東京23区の都市データ可視化ダッシュボード",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -27,6 +44,7 @@ export default function RootLayout({
     <html
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      suppressHydrationWarning
     >
       <body className="bg-background text-foreground">{children}</body>
     </html>

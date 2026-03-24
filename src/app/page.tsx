@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LayerSelector from "@/components/dashboard/LayerSelector";
 import StatsBar from "@/components/dashboard/StatsBar";
 import WardSelector from "@/components/dashboard/WardSelector";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
@@ -31,6 +30,7 @@ import type {
   DemographicsData,
   DisasterRisk,
   TransportStation,
+  DataCategory,
 } from "@/types";
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
@@ -80,8 +80,17 @@ function useApiData<T>(endpoint: string, fallback: T): DataState<T> {
   return state;
 }
 
+// Map tab values to layer IDs for map choropleth
+const TAB_TO_LAYER: Record<string, DataCategory> = {
+  "land-price": "land-price",
+  demographics: "demographics",
+  disaster: "disaster-risk",
+  transport: "transportation",
+  zoning: "zoning",
+};
+
 export default function Home() {
-  const [layers, setLayers] = useState<DataLayer[]>(dataLayers);
+  const [activeTab, setActiveTab] = useState("land-price");
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
 
   const landPrices = useApiData<LandPricePoint[]>("/api/land-prices", sampleLandPrices);
@@ -89,37 +98,32 @@ export default function Home() {
   const disasterRisks = useApiData<DisasterRisk[]>("/api/disaster-risks", sampleDisasterRisks);
   const transport = useApiData<TransportStation[]>("/api/transport", sampleTransportStations);
 
-  const toggleLayer = (id: string) => {
-    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l)));
-  };
+  // Build layers state from active tab — only the active tab's layer is enabled
+  const layers: DataLayer[] = useMemo(() => {
+    const activeLayerId = TAB_TO_LAYER[activeTab];
+    return dataLayers.map((l) => ({ ...l, enabled: l.id === activeLayerId }));
+  }, [activeTab]);
 
-  // Helper to check if a layer is enabled
-  const isLayerEnabled = (id: string) => layers.find((l) => l.id === id)?.enabled ?? false;
-
-  // Filtered data based on selectedWard + layer visibility
+  // Filtered data based on selectedWard
   const filteredLandPrices = useMemo(() => {
-    if (!isLayerEnabled("land-price")) return [];
     if (!selectedWard) return landPrices.data;
     return landPrices.data.filter((p) => p.address.includes(selectedWard.replace("区", "")));
-  }, [selectedWard, landPrices.data, layers]);
+  }, [selectedWard, landPrices.data]);
 
   const filteredDemographics = useMemo(() => {
-    if (!isLayerEnabled("demographics")) return [];
     if (!selectedWard) return demographics.data;
     return demographics.data.filter((d) => d.region === selectedWard);
-  }, [selectedWard, demographics.data, layers]);
+  }, [selectedWard, demographics.data]);
 
   const filteredRisks = useMemo(() => {
-    if (!isLayerEnabled("disaster-risk")) return [];
     if (!selectedWard) return disasterRisks.data;
     return disasterRisks.data.filter((r) => r.region === selectedWard);
-  }, [selectedWard, disasterRisks.data, layers]);
+  }, [selectedWard, disasterRisks.data]);
 
   const filteredStations = useMemo(() => {
-    if (!isLayerEnabled("transportation")) return [];
     if (!selectedWard) return transport.data;
     return transport.data.filter((s) => s.ward === selectedWard);
-  }, [selectedWard, transport.data, layers]);
+  }, [selectedWard, transport.data]);
 
   const filteredPriceSummary = useMemo(() => {
     if (!selectedWard) return sampleLandPriceSummary;
@@ -130,7 +134,6 @@ export default function Home() {
     if (!selectedWard) return sampleWardProfiles;
     const selected = sampleWardProfiles.find((p) => p.region === selectedWard);
     if (!selected) return sampleWardProfiles;
-    // Show selected ward + average for comparison
     const avg = {
       region: "23区平均",
       population: Math.round(sampleWardProfiles.reduce((s, p) => s + p.population, 0) / sampleWardProfiles.length),
@@ -142,12 +145,12 @@ export default function Home() {
     return [selected, avg];
   }, [selectedWard]);
 
-  // Key metrics — responsive to ward selection
-  const metricsData = selectedWard ? filteredDemographics : demographics.data;
+  // Key metrics
+  const metricsDemo = selectedWard ? filteredDemographics : demographics.data;
   const metricsRisks = selectedWard ? filteredRisks : disasterRisks.data;
   const metricsStations = selectedWard ? filteredStations : transport.data;
 
-  const topGrowth = [...metricsData].sort((a, b) => b.growthRate - a.growthRate)[0];
+  const topGrowth = [...metricsDemo].sort((a, b) => b.growthRate - a.growthRate)[0];
   const highRiskCount = metricsRisks.filter((r) => r.level >= 4).length;
   const totalPassengers = metricsStations.reduce((sum, s) => sum + s.dailyPassengers, 0);
 
@@ -174,15 +177,13 @@ export default function Home() {
               selectedWard={selectedWard}
               onSelect={setSelectedWard}
             />
-            <div className="h-6 w-px bg-border/50" />
-            <LayerSelector layers={layers} onToggle={toggleLayer} />
           </div>
           <div className="flex items-center gap-2">
             <StatsBar
-              landPriceCount={filteredLandPrices.length}
-              demographicsCount={filteredDemographics.length}
-              disasterRiskCount={filteredRisks.length}
-              transportCount={filteredStations.length}
+              landPriceCount={landPrices.data.length}
+              demographicsCount={demographics.data.length}
+              disasterRiskCount={disasterRisks.data.length}
+              transportCount={transport.data.length}
             />
             <ThemeToggle />
           </div>
@@ -239,94 +240,142 @@ export default function Home() {
 
             {/* Ward Radar */}
             <div className="shrink-0 animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0 }}>
-              <WardRadar
-                profiles={filteredProfiles}
-                selectedWard={selectedWard}
-              />
+              <WardRadar profiles={filteredProfiles} selectedWard={selectedWard} />
             </div>
           </div>
 
-          {/* Right column: 3 tabs */}
+          {/* Right column: 5 tabs — tab switch controls map choropleth */}
           <div className="col-span-12 lg:col-span-7 flex flex-col animate-fade-in-up" style={{ animationDelay: "0.05s", opacity: 0 }}>
-            <Tabs defaultValue="population" className="flex flex-col h-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
               <TabsList className="shrink-0 w-full bg-secondary/50 rounded-xl p-1">
-                <TabsTrigger value="population" className="flex-1 cursor-pointer rounded-lg text-xs">
-                  人口・地価
+                <TabsTrigger value="land-price" className="flex-1 cursor-pointer rounded-lg text-xs">
+                  地価
                 </TabsTrigger>
-                <TabsTrigger value="safety" className="flex-1 cursor-pointer rounded-lg text-xs">
-                  災害・安全
+                <TabsTrigger value="demographics" className="flex-1 cursor-pointer rounded-lg text-xs">
+                  人口
+                </TabsTrigger>
+                <TabsTrigger value="disaster" className="flex-1 cursor-pointer rounded-lg text-xs">
+                  災害
                 </TabsTrigger>
                 <TabsTrigger value="transport" className="flex-1 cursor-pointer rounded-lg text-xs">
                   交通
                 </TabsTrigger>
+                <TabsTrigger value="zoning" className="flex-1 cursor-pointer rounded-lg text-xs">
+                  用途地域
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="population" className="mt-4 flex-1 overflow-y-auto">
+              {/* Land Price */}
+              <TabsContent value="land-price" className="mt-4 flex-1 overflow-y-auto">
                 <div className="space-y-4">
-                  {(isLayerEnabled("demographics") || !layers.some((l) => l.enabled)) && (
-                    <DemographicsChart
-                      data={selectedWard ? (demographics.data.filter((d) => d.region === selectedWard)) : demographics.data}
-                      allData={demographics.data}
-                      populationTrends={samplePopulationTrends}
-                      selectedWard={selectedWard}
-                    />
-                  )}
-                  {!selectedWard && (isLayerEnabled("demographics") || isLayerEnabled("land-price")) && (
+                  <LandPriceChart
+                    prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
+                    allPrices={sampleLandPriceSummary}
+                    demographics={demographics.data}
+                    selectedWard={selectedWard}
+                  />
+                  {!selectedWard && (
                     <WardTable
                       demographics={demographics.data}
                       landPrices={sampleLandPriceSummary}
                       onSelectWard={setSelectedWard}
                     />
                   )}
-                  {(isLayerEnabled("land-price") || !layers.some((l) => l.enabled)) && (
-                    <LandPriceChart
-                      prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
-                      allPrices={sampleLandPriceSummary}
-                      demographics={demographics.data}
-                      selectedWard={selectedWard}
-                    />
-                  )}
-                  {!isLayerEnabled("demographics") && !isLayerEnabled("land-price") && layers.some((l) => l.enabled) && (
-                    <EmptyState message="人口統計または地価レイヤーを有効にしてください" />
-                  )}
                 </div>
               </TabsContent>
 
-              <TabsContent value="safety" className="mt-4 flex-1 overflow-y-auto">
-                {!isLayerEnabled("disaster-risk") && layers.some((l) => l.enabled) ? (
-                  <EmptyState message="災害リスクレイヤーを有効にしてください" />
-                ) : (
+              {/* Demographics */}
+              <TabsContent value="demographics" className="mt-4 flex-1 overflow-y-auto">
+                <DemographicsChart
+                  data={selectedWard ? filteredDemographics : demographics.data}
+                  allData={demographics.data}
+                  populationTrends={samplePopulationTrends}
+                  selectedWard={selectedWard}
+                />
+              </TabsContent>
+
+              {/* Disaster */}
+              <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto">
                 <DisasterRiskPanel
-                  risks={isLayerEnabled("disaster-risk") ? (selectedWard ? disasterRisks.data.filter((r) => r.region === selectedWard) : disasterRisks.data) : disasterRisks.data}
+                  risks={selectedWard ? filteredRisks : disasterRisks.data}
                   zoning={sampleZoning}
                   selectedWard={selectedWard}
                 />
-                )}
               </TabsContent>
 
+              {/* Transport */}
               <TabsContent value="transport" className="mt-4 flex-1 overflow-y-auto">
-                {!isLayerEnabled("transportation") && layers.some((l) => l.enabled) ? (
-                  <EmptyState message="交通レイヤーを有効にしてください" />
-                ) : (
-                  <TransportPanel
-                    stations={isLayerEnabled("transportation") ? (selectedWard ? transport.data.filter((s) => s.ward === selectedWard) : transport.data) : transport.data}
-                    trends={sampleTransportTrends}
-                    selectedWard={selectedWard}
-                  />
-                )}
+                <TransportPanel
+                  stations={selectedWard ? filteredStations : transport.data}
+                  trends={sampleTransportTrends}
+                  selectedWard={selectedWard}
+                />
+              </TabsContent>
+
+              {/* Zoning */}
+              <TabsContent value="zoning" className="mt-4 flex-1 overflow-y-auto">
+                <div className="space-y-4">
+                  <div className="chart-section">
+                    <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      用途地域 面積構成
+                    </h4>
+                    <div className="flex h-5 rounded-full overflow-hidden">
+                      {sampleZoning.map((z) => (
+                        <div key={z.id} style={{ width: `${z.areaPct}%`, background: z.color }} title={`${z.label}: ${z.areaPct}%`} />
+                      ))}
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {sampleZoning.map((z) => (
+                        <div key={z.id} className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: z.color }} />
+                          <span className="text-[11px] text-muted-foreground truncate flex-1">{z.label}</span>
+                          <span className="text-[11px] tabular-nums text-foreground">{z.areaPct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="chart-section">
+                    <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      容積率・建蔽率
+                    </h4>
+                    <div className="space-y-2">
+                      {sampleZoning.map((z) => (
+                        <div key={z.id} className="flex items-center gap-3">
+                          <span className="w-16 text-[10px] text-muted-foreground truncate">{z.label.replace("第一種", "一種")}</span>
+                          <div className="flex-1 flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full rounded-full" style={{ width: `${(z.maxFloorAreaRatio / 800) * 100}%`, background: z.color }} />
+                            </div>
+                            <span className="text-[10px] tabular-nums w-10 text-right">{z.maxFloorAreaRatio}%</span>
+                          </div>
+                          <div className="flex-1 flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full rounded-full opacity-60" style={{ width: `${z.maxBuildingCoverage}%`, background: z.color }} />
+                            </div>
+                            <span className="text-[10px] tabular-nums w-10 text-right">{z.maxBuildingCoverage}%</span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-3 text-[9px] text-muted-foreground mt-1">
+                        <span className="w-16" />
+                        <span className="flex-1 text-center">容積率</span>
+                        <span className="flex-1 text-center">建蔽率</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
 
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-      {message}
+      {/* Attribution footer */}
+      <footer className="shrink-0 border-t border-border/50 px-6 py-2">
+        <p className="text-[9px] text-muted-foreground text-center">
+          出典: 国土数値情報（国土交通省）、e-Stat（総務省統計局）、不動産情報ライブラリ（国土交通省）、OpenStreetMap contributors、CARTO
+        </p>
+      </footer>
     </div>
   );
 }
