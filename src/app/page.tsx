@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StatsBar from "@/components/dashboard/StatsBar";
 import WardSelector from "@/components/dashboard/WardSelector";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
@@ -175,17 +174,7 @@ export default function Home() {
               onSelect={setSelectedWard}
             />
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="hidden md:block">
-              <StatsBar
-                landPriceCount={landPrices.data.length}
-                demographicsCount={demographics.data.length}
-                disasterRiskCount={disasterRisks.data.length}
-                transportCount={transport.data.length}
-              />
-            </div>
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
         </div>
       </header>
 
