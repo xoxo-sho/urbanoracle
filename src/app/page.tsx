@@ -7,6 +7,7 @@ import WardSelector from "@/components/dashboard/WardSelector";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import DisasterRiskPanel from "@/components/dashboard/DisasterRiskPanel";
+import DisasterShieldPanel from "@/components/dashboard/DisasterShieldPanel";
 import TransportPanel from "@/components/dashboard/TransportPanel";
 import WardRadar from "@/components/dashboard/WardRadar";
 import WardTable from "@/components/dashboard/WardTable";
@@ -283,12 +284,18 @@ export default function Home() {
               </TabsContent>
 
               {/* Disaster */}
-              <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto">
+              <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto space-y-6">
                 <DisasterRiskPanel
                   risks={selectedWard ? filteredRisks : disasterRisks.data}
                   zoning={sampleZoning}
                   selectedWard={selectedWard}
                 />
+                <div className="border-t border-white/10 pt-6">
+                  <DisasterShieldPanel
+                    landPrices={landPrices.data}
+                    selectedWard={selectedWard}
+                  />
+                </div>
               </TabsContent>
 
               {/* Transport */}
