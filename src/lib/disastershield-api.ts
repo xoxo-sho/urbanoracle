@@ -56,16 +56,17 @@ export type DisasterShieldScore = {
   cached?: boolean;
 };
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_DISASTER_API_BASE ??
-  "https://disastershield-staging-backend-tnjzbzaz3a-an.a.run.app";
+// 2026-06-13: backend を直接叩かず、同一オリジンの server-side proxy
+// (/api/disaster-proxy/score) を経由する。DisasterShield API key は proxy が
+// サーバ側でのみ保持し、ブラウザには露出しない (NEXT_PUBLIC_ を使わない)。
+const PROXY_BASE = "/api/disaster-proxy";
 
 export async function fetchDisasterShieldScore(
   lat: number,
   lng: number,
   options: { signal?: AbortSignal } = {}
 ): Promise<DisasterShieldScore> {
-  const url = `${API_BASE}/api/v1/disaster/score?lat=${lat}&lng=${lng}`;
+  const url = `${PROXY_BASE}/score?lat=${lat}&lng=${lng}`;
   const res = await fetch(url, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
