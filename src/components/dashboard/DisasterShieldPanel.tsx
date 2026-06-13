@@ -23,16 +23,23 @@ import {
 } from "lucide-react";
 import {
   fetchDisasterShieldScore,
+  fetchDisasterShieldPml,
   getRiskLabel,
   getScoreColorClass,
   type DisasterShieldScore,
+  type DisasterShieldPml,
 } from "@/lib/disastershield-api";
 import type { LandPricePoint } from "@/types";
 
 type State =
   | { status: "idle" }
   | { status: "loading"; lat: number; lng: number; label: string }
-  | { status: "success"; score: DisasterShieldScore; label: string }
+  | {
+      status: "success";
+      score: DisasterShieldScore;
+      pml: DisasterShieldPml | null;
+      label: string;
+    }
   | { status: "error"; message: string };
 
 interface DisasterShieldPanelProps {
@@ -86,8 +93,12 @@ export default function DisasterShieldPanel({
       label: point.address,
     });
     try {
-      const score = await fetchDisasterShieldScore(point.lat, point.lng);
-      setState({ status: "success", score, label: point.address });
+      // score (必須) + PML (任意、null 許容) を並列取得
+      const [score, pml] = await Promise.all([
+        fetchDisasterShieldScore(point.lat, point.lng),
+        fetchDisasterShieldPml(point.lat, point.lng),
+      ]);
+      setState({ status: "success", score, pml, label: point.address });
     } catch (err) {
       setState({
         status: "error",
@@ -234,6 +245,32 @@ export default function DisasterShieldPanel({
               </div>
               <p className="text-[10px] text-zinc-500 mt-1.5">
                 ⚠️ 統計的指標です。個別事案の結果を保証するものではありません。
+              </p>
+            </div>
+          )}
+
+          {/* F6-07 PML (475 年再現期間) */}
+          {state.pml && (
+            <div className="rounded-md bg-red-500/5 border border-red-500/30 p-3 text-sm">
+              <div className="text-[10px] text-red-300 uppercase tracking-wider mb-1.5">
+                PML — 475 年再現期間地震の想定損失率 (再調達価格比)
+              </div>
+              <div
+                className={`text-2xl font-bold leading-none ${getScoreColorClass(
+                  state.pml.pml_pct
+                )}`}
+              >
+                {state.pml.pml_pct.toFixed(1)}%
+              </div>
+              {state.pml.provenance && (
+                <div className="text-[10px] text-zinc-500 mt-1.5">
+                  震度 {state.pml.provenance.seismic_intensity?.toFixed(1)} · 構造{" "}
+                  {state.pml.provenance.structure_type} · 再現期間{" "}
+                  {state.pml.provenance.return_period_years} 年
+                </div>
+              )}
+              <p className="text-[10px] text-zinc-500 mt-1">
+                ⚠️ JBDPA fragility 想定値。耐震診断の代替ではありません。
               </p>
             </div>
           )}

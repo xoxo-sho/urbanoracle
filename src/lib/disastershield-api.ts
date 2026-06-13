@@ -81,6 +81,42 @@ export async function fetchDisasterShieldScore(
   return (await res.json()) as DisasterShieldScore;
 }
 
+export type DisasterShieldPml = {
+  pml_pct: number;
+  pml_jpy?: number | null;
+  replacement_cost_jpy?: number | null;
+  damage_rank_probabilities?: Record<string, number>;
+  provenance?: {
+    return_period_years?: number;
+    seismic_intensity?: number;
+    structure_type?: string;
+    seismic_generation?: string;
+    assumptions?: string[];
+  };
+};
+
+/** F6-07 単一物件 PML を proxy 経由で取得。失敗時は null (score 表示は継続)。 */
+export async function fetchDisasterShieldPml(
+  lat: number,
+  lng: number,
+  replacementCostJpy?: number,
+  options: { signal?: AbortSignal } = {}
+): Promise<DisasterShieldPml | null> {
+  const cost =
+    replacementCostJpy != null ? `&replacement_cost_jpy=${replacementCostJpy}` : "";
+  try {
+    const res = await fetch(`${PROXY_BASE}/pml?lat=${lat}&lng=${lng}${cost}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal: options.signal,
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as DisasterShieldPml;
+  } catch {
+    return null;
+  }
+}
+
 export function getRiskLabel(score: number): "低" | "中" | "高" | "最高" {
   if (score < 25) return "低";
   if (score < 50) return "中";
