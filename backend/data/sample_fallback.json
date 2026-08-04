@@ -1,0 +1,576 @@
+{
+  "sampleLandPrices": [
+    {
+      "id": "lp-1",
+      "lat": 35.6812,
+      "lng": 139.7671,
+      "price": 5300000,
+      "year": 2025,
+      "address": "東京都千代田区丸の内一丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-2",
+      "lat": 35.6895,
+      "lng": 139.6917,
+      "price": 4120000,
+      "year": 2025,
+      "address": "東京都新宿区西新宿二丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-3",
+      "lat": 35.6585,
+      "lng": 139.7454,
+      "price": 3850000,
+      "year": 2025,
+      "address": "東京都港区六本木六丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-4",
+      "lat": 35.7296,
+      "lng": 139.7109,
+      "price": 1280000,
+      "year": 2025,
+      "address": "東京都豊島区東池袋一丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-5",
+      "lat": 35.6622,
+      "lng": 139.7038,
+      "price": 2950000,
+      "year": 2025,
+      "address": "東京都渋谷区道玄坂一丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-6",
+      "lat": 35.671,
+      "lng": 139.7636,
+      "price": 4600000,
+      "year": 2025,
+      "address": "東京都中央区銀座四丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-7",
+      "lat": 35.6284,
+      "lng": 139.7387,
+      "price": 1850000,
+      "year": 2025,
+      "address": "東京都品川区北品川一丁目",
+      "landUse": "商業地"
+    },
+    {
+      "id": "lp-8",
+      "lat": 35.71,
+      "lng": 139.8107,
+      "price": 420000,
+      "year": 2025,
+      "address": "東京都江東区豊洲三丁目",
+      "landUse": "住宅地"
+    }
+  ],
+  "sampleDemographics": [
+    {
+      "region": "千代田区",
+      "population": 67927,
+      "density": 5830,
+      "growthRate": 2.1,
+      "ageGroups": {
+        "young": 11,
+        "working": 68,
+        "elderly": 21
+      }
+    },
+    {
+      "region": "中央区",
+      "population": 174073,
+      "density": 17110,
+      "growthRate": 3.5,
+      "ageGroups": {
+        "young": 13,
+        "working": 70,
+        "elderly": 17
+      }
+    },
+    {
+      "region": "港区",
+      "population": 260486,
+      "density": 12770,
+      "growthRate": 1.8,
+      "ageGroups": {
+        "young": 12,
+        "working": 67,
+        "elderly": 21
+      }
+    },
+    {
+      "region": "新宿区",
+      "population": 349385,
+      "density": 19100,
+      "growthRate": 0.5,
+      "ageGroups": {
+        "young": 9,
+        "working": 69,
+        "elderly": 22
+      }
+    },
+    {
+      "region": "文京区",
+      "population": 240069,
+      "density": 21260,
+      "growthRate": 1.3,
+      "ageGroups": {
+        "young": 12,
+        "working": 67,
+        "elderly": 21
+      }
+    },
+    {
+      "region": "台東区",
+      "population": 211444,
+      "density": 20910,
+      "growthRate": 0.9,
+      "ageGroups": {
+        "young": 10,
+        "working": 66,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "墨田区",
+      "population": 275082,
+      "density": 19980,
+      "growthRate": 0.7,
+      "ageGroups": {
+        "young": 11,
+        "working": 65,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "江東区",
+      "population": 524310,
+      "density": 13050,
+      "growthRate": 2.4,
+      "ageGroups": {
+        "young": 13,
+        "working": 67,
+        "elderly": 20
+      }
+    },
+    {
+      "region": "品川区",
+      "population": 422488,
+      "density": 18500,
+      "growthRate": 1.1,
+      "ageGroups": {
+        "young": 11,
+        "working": 68,
+        "elderly": 21
+      }
+    },
+    {
+      "region": "目黒区",
+      "population": 287750,
+      "density": 19540,
+      "growthRate": 0.6,
+      "ageGroups": {
+        "young": 11,
+        "working": 67,
+        "elderly": 22
+      }
+    },
+    {
+      "region": "大田区",
+      "population": 748081,
+      "density": 12300,
+      "growthRate": 0.2,
+      "ageGroups": {
+        "young": 11,
+        "working": 64,
+        "elderly": 25
+      }
+    },
+    {
+      "region": "世田谷区",
+      "population": 939099,
+      "density": 16200,
+      "growthRate": 0.8,
+      "ageGroups": {
+        "young": 12,
+        "working": 65,
+        "elderly": 23
+      }
+    },
+    {
+      "region": "渋谷区",
+      "population": 243883,
+      "density": 16020,
+      "growthRate": 1.2,
+      "ageGroups": {
+        "young": 10,
+        "working": 70,
+        "elderly": 20
+      }
+    },
+    {
+      "region": "中野区",
+      "population": 344880,
+      "density": 22120,
+      "growthRate": 0.4,
+      "ageGroups": {
+        "young": 9,
+        "working": 68,
+        "elderly": 23
+      }
+    },
+    {
+      "region": "杉並区",
+      "population": 591108,
+      "density": 17360,
+      "growthRate": 0.3,
+      "ageGroups": {
+        "young": 10,
+        "working": 66,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "豊島区",
+      "population": 301599,
+      "density": 23200,
+      "growthRate": 0.3,
+      "ageGroups": {
+        "young": 9,
+        "working": 67,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "北区",
+      "population": 355213,
+      "density": 17230,
+      "growthRate": -0.2,
+      "ageGroups": {
+        "young": 10,
+        "working": 63,
+        "elderly": 27
+      }
+    },
+    {
+      "region": "荒川区",
+      "population": 217475,
+      "density": 21400,
+      "growthRate": 0.1,
+      "ageGroups": {
+        "young": 11,
+        "working": 64,
+        "elderly": 25
+      }
+    },
+    {
+      "region": "板橋区",
+      "population": 584483,
+      "density": 18140,
+      "growthRate": 0.1,
+      "ageGroups": {
+        "young": 11,
+        "working": 65,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "練馬区",
+      "population": 752608,
+      "density": 15650,
+      "growthRate": 0.4,
+      "ageGroups": {
+        "young": 12,
+        "working": 64,
+        "elderly": 24
+      }
+    },
+    {
+      "region": "足立区",
+      "population": 695043,
+      "density": 13060,
+      "growthRate": -0.3,
+      "ageGroups": {
+        "young": 11,
+        "working": 62,
+        "elderly": 27
+      }
+    },
+    {
+      "region": "葛飾区",
+      "population": 464526,
+      "density": 13360,
+      "growthRate": -0.1,
+      "ageGroups": {
+        "young": 12,
+        "working": 63,
+        "elderly": 25
+      }
+    },
+    {
+      "region": "江戸川区",
+      "population": 697932,
+      "density": 13990,
+      "growthRate": -0.2,
+      "ageGroups": {
+        "young": 13,
+        "working": 64,
+        "elderly": 23
+      }
+    }
+  ],
+  "sampleDisasterRisks": [
+    {
+      "id": "dr-1",
+      "type": "flood",
+      "level": 5,
+      "region": "江東区",
+      "description": "荒川氾濫時の最大浸水深 5m以上。広範囲で2階以上浸水"
+    },
+    {
+      "id": "dr-2",
+      "type": "flood",
+      "level": 4,
+      "region": "足立区",
+      "description": "荒川・中川氾濫時の浸水深 3-5m"
+    },
+    {
+      "id": "dr-3",
+      "type": "flood",
+      "level": 4,
+      "region": "葛飾区",
+      "description": "中川・江戸川氾濫時の浸水深 3-5m"
+    },
+    {
+      "id": "dr-4",
+      "type": "flood",
+      "level": 3,
+      "region": "江戸川区",
+      "description": "荒川氾濫時の浸水深 1-3m"
+    },
+    {
+      "id": "dr-5",
+      "type": "earthquake",
+      "level": 5,
+      "region": "墨田区",
+      "description": "建物倒壊危険度ランク5。木造密集地域"
+    },
+    {
+      "id": "dr-6",
+      "type": "earthquake",
+      "level": 4,
+      "region": "荒川区",
+      "description": "火災危険度ランク4。延焼リスク高"
+    },
+    {
+      "id": "dr-7",
+      "type": "earthquake",
+      "level": 4,
+      "region": "台東区",
+      "description": "建物倒壊危険度ランク4"
+    },
+    {
+      "id": "dr-8",
+      "type": "earthquake",
+      "level": 3,
+      "region": "北区",
+      "description": "火災危険度ランク3"
+    },
+    {
+      "id": "dr-9",
+      "type": "tsunami",
+      "level": 2,
+      "region": "江戸川区",
+      "description": "東京湾内湾の津波リスク（低）"
+    },
+    {
+      "id": "dr-10",
+      "type": "tsunami",
+      "level": 2,
+      "region": "品川区",
+      "description": "東京湾岸の津波リスク（低）"
+    },
+    {
+      "id": "dr-11",
+      "type": "landslide",
+      "level": 3,
+      "region": "世田谷区",
+      "description": "国分寺崖線沿いの土砂災害警戒区域"
+    },
+    {
+      "id": "dr-12",
+      "type": "landslide",
+      "level": 2,
+      "region": "北区",
+      "description": "飛鳥山周辺の急傾斜地"
+    }
+  ],
+  "sampleTransportStations": [
+    {
+      "id": "ts-1",
+      "name": "新宿駅",
+      "lat": 35.6896,
+      "lng": 139.7006,
+      "type": "train",
+      "dailyPassengers": 775386,
+      "ward": "新宿区",
+      "lines": [
+        "JR山手線",
+        "中央線",
+        "小田急線",
+        "京王線",
+        "都営新宿線",
+        "丸ノ内線",
+        "都営大江戸線"
+      ]
+    },
+    {
+      "id": "ts-2",
+      "name": "池袋駅",
+      "lat": 35.7295,
+      "lng": 139.7109,
+      "type": "train",
+      "dailyPassengers": 558623,
+      "ward": "豊島区",
+      "lines": [
+        "JR山手線",
+        "東武東上線",
+        "西武池袋線",
+        "丸ノ内線",
+        "有楽町線",
+        "副都心線"
+      ]
+    },
+    {
+      "id": "ts-3",
+      "name": "東京駅",
+      "lat": 35.6812,
+      "lng": 139.7671,
+      "type": "train",
+      "dailyPassengers": 462589,
+      "ward": "千代田区",
+      "lines": [
+        "東海道新幹線",
+        "JR山手線",
+        "中央線",
+        "京葉線",
+        "丸ノ内線"
+      ]
+    },
+    {
+      "id": "ts-4",
+      "name": "品川駅",
+      "lat": 35.6284,
+      "lng": 139.7387,
+      "type": "train",
+      "dailyPassengers": 374601,
+      "ward": "品川区",
+      "lines": [
+        "東海道新幹線",
+        "JR山手線",
+        "京急線"
+      ]
+    },
+    {
+      "id": "ts-5",
+      "name": "渋谷駅",
+      "lat": 35.658,
+      "lng": 139.7016,
+      "type": "train",
+      "dailyPassengers": 366128,
+      "ward": "渋谷区",
+      "lines": [
+        "JR山手線",
+        "東急東横線",
+        "銀座線",
+        "半蔵門線",
+        "副都心線"
+      ]
+    },
+    {
+      "id": "ts-6",
+      "name": "北千住駅",
+      "lat": 35.7497,
+      "lng": 139.8049,
+      "type": "train",
+      "dailyPassengers": 246855,
+      "ward": "足立区",
+      "lines": [
+        "JR常磐線",
+        "東武スカイツリーライン",
+        "千代田線",
+        "日比谷線",
+        "つくばエクスプレス"
+      ]
+    },
+    {
+      "id": "ts-7",
+      "name": "上野駅",
+      "lat": 35.7141,
+      "lng": 139.7774,
+      "type": "train",
+      "dailyPassengers": 187532,
+      "ward": "台東区",
+      "lines": [
+        "東北新幹線",
+        "JR山手線",
+        "京浜東北線",
+        "銀座線",
+        "日比谷線"
+      ]
+    },
+    {
+      "id": "ts-8",
+      "name": "秋葉原駅",
+      "lat": 35.6984,
+      "lng": 139.7731,
+      "type": "train",
+      "dailyPassengers": 172486,
+      "ward": "千代田区",
+      "lines": [
+        "JR山手線",
+        "京浜東北線",
+        "総武線",
+        "日比谷線",
+        "つくばエクスプレス"
+      ]
+    },
+    {
+      "id": "ts-9",
+      "name": "目黒駅",
+      "lat": 35.6337,
+      "lng": 139.7158,
+      "type": "train",
+      "dailyPassengers": 148920,
+      "ward": "品川区",
+      "lines": [
+        "JR山手線",
+        "東急目黒線",
+        "南北線",
+        "三田線"
+      ]
+    },
+    {
+      "id": "ts-10",
+      "name": "中目黒駅",
+      "lat": 35.644,
+      "lng": 139.6987,
+      "type": "train",
+      "dailyPassengers": 132450,
+      "ward": "目黒区",
+      "lines": [
+        "東急東横線",
+        "日比谷線"
+      ]
+    }
+  ]
+}

@@ -23,15 +23,18 @@ export interface LandPricePoint {
   landUse: string;
 }
 
+// Fields are nullable because the upstream statistics suppress cells for
+// small populations (e-Stat emits "-", "***", "X"). null means "not
+// published" — rendered as データなし — and is deliberately distinct from 0.
 export interface DemographicsData {
   region: string;
-  population: number;
-  density: number; // 人/km²
+  population: number | null;
+  density: number | null; // 人/km²
   growthRate: number; // %
   ageGroups: {
-    young: number; // 0-14
-    working: number; // 15-64
-    elderly: number; // 65+
+    young: number | null; // 0-14
+    working: number | null; // 15-64
+    elderly: number | null; // 65+
   };
 }
 

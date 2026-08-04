@@ -6,6 +6,13 @@ interface MapLegendProps {
   layers: DataLayer[];
 }
 
+// Shown under a layer whose plotted positions are approximations rather
+// than surveyed locations. REINFOLIB publishes transactions by district
+// without coordinates, so each point sits near its ward's centre.
+const LEGEND_NOTES: Record<string, string> = {
+  "land-price": "表示位置は行政区の概算中心です（実際の取引地点とは異なります）",
+};
+
 const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; label: string }[] }> = {
   "land-price": {
     label: "地価（万円/m²）",
@@ -45,7 +52,7 @@ export default function MapLegend({ layers }: MapLegendProps) {
   if (activeLayers.length === 0) return null;
 
   return (
-    <div className="absolute bottom-3 left-3 z-10 glass rounded-xl px-3 py-2 space-y-2 max-w-[180px]">
+    <div className="absolute bottom-3 left-3 z-10 glass rounded-xl px-3 py-2 space-y-2 max-w-[200px]">
       {activeLayers.map((layer) => {
         const config = LEGEND_CONFIG[layer.id];
         if (!config) return null;
@@ -65,6 +72,11 @@ export default function MapLegend({ layers }: MapLegendProps) {
                 <span key={i} className="text-[8px] text-muted-foreground">{s.label}</span>
               ))}
             </div>
+            {LEGEND_NOTES[layer.id] && (
+              <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+                {LEGEND_NOTES[layer.id]}
+              </p>
+            )}
           </div>
         );
       })}

@@ -92,10 +92,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("land-price");
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
 
-  const landPrices = useApiData<LandPricePoint[]>("/api/land-prices", sampleLandPrices);
-  const demographics = useApiData<DemographicsData[]>("/api/demographics", sampleDemographics);
-  const disasterRisks = useApiData<DisasterRisk[]>("/api/disaster-risks", sampleDisasterRisks);
-  const transport = useApiData<TransportStation[]>("/api/transport", sampleTransportStations);
+  const landPrices = useApiData<LandPricePoint[]>("/api/v1/land-prices", sampleLandPrices);
+  const demographics = useApiData<DemographicsData[]>("/api/v1/demographics", sampleDemographics);
+  const disasterRisks = useApiData<DisasterRisk[]>("/api/v1/disaster-risks", sampleDisasterRisks);
+  const transport = useApiData<TransportStation[]>("/api/v1/transport", sampleTransportStations);
 
   // Build layers state from active tab — only the active tab's layer is enabled
   const layers: DataLayer[] = useMemo(() => {

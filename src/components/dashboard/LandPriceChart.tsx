@@ -13,6 +13,7 @@ import {
   Cell,
 } from "recharts";
 import type { LandPriceSummary, DemographicsData } from "@/types";
+import { hasValue } from "@/lib/format";
 import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 
 interface LandPriceChartProps {
@@ -33,7 +34,9 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
   const scatterData = prices
     .map((p) => {
       const demo = demographics.find((d) => d.region === p.region);
-      if (!demo) return null;
+      // A ward whose population/density is unpublished has no position on
+      // this scatter; plotting it at 0 would invent a data point.
+      if (!demo || !hasValue(demo.density) || !hasValue(demo.population)) return null;
       return { name: p.region.replace("区", ""), x: demo.density, y: p.avgPrice / 10000, z: demo.population };
     })
     .filter(Boolean);

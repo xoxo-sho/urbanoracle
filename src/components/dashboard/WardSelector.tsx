@@ -2,6 +2,7 @@
 
 import { MapPin, X } from "lucide-react";
 import type { DemographicsData } from "@/types";
+import { byValueDesc } from "@/lib/format";
 
 interface WardSelectorProps {
   wards: DemographicsData[];
@@ -14,7 +15,7 @@ export default function WardSelector({
   selectedWard,
   onSelect,
 }: WardSelectorProps) {
-  const sorted = [...wards].sort((a, b) => b.population - a.population);
+  const sorted = [...wards].sort((a, b) => byValueDesc(a.population, b.population));
 
   return (
     <div className="flex items-center gap-2">

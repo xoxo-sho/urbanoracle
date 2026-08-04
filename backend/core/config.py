@@ -6,6 +6,7 @@ core/gip_auth.py), never accept anything.
 """
 
 import os
+from pathlib import Path
 
 _GOOGLE_SECURETOKEN_JWKS = (
     "https://www.googleapis.com/service_accounts/v1/jwk/"
@@ -28,6 +29,33 @@ class Settings:
     @property
     def DATABASE_URL(self) -> str:
         return os.environ.get("DATABASE_URL", "")
+
+    @property
+    def ESTAT_API_KEY(self) -> str:
+        return os.environ.get("ESTAT_API_KEY", "")
+
+    @property
+    def REINFOLIB_API_KEY(self) -> str:
+        return os.environ.get("REINFOLIB_API_KEY", "")
+
+    @property
+    def STATIC_DIR(self) -> str:
+        return os.environ.get("STATIC_DIR", "")
+
+    @property
+    def DATA_DIR(self) -> Path:
+        """Where the committed GeoJSON assets live.
+
+        In the container the Next export is copied to STATIC_DIR, so
+        public/data lands at STATIC_DIR/data. Locally and in tests there is
+        no export, so fall back to the repo's public/data.
+        """
+        explicit = os.environ.get("DATA_DIR")
+        if explicit:
+            return Path(explicit)
+        if self.STATIC_DIR:
+            return Path(self.STATIC_DIR) / "data"
+        return Path(__file__).resolve().parents[2] / "public" / "data"
 
 
 settings = Settings()
