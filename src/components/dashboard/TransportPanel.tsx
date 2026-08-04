@@ -19,7 +19,7 @@ interface TransportPanelProps {
   selectedWard: string | null;
 }
 
-export default function TransportPanel({ stations, trends, selectedWard }: TransportPanelProps) {
+export default function TransportPanel({ stations, trends }: TransportPanelProps) {
   const sorted = [...stations].sort((a, b) => b.dailyPassengers - a.dailyPassengers);
   const maxPassengers = sorted[0]?.dailyPassengers ?? 1;
 

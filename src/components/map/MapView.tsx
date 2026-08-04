@@ -45,7 +45,7 @@ function isLayerEnabled(layers: DataLayer[], id: string): boolean {
   return layers.find((l) => l.id === id)?.enabled ?? false;
 }
 
-export default function MapView({ landPrices, selectedWard, onSelectWard, layers, stations }: MapViewProps) {
+export default function MapView({ selectedWard, onSelectWard, layers, stations }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const popup = useRef<maplibregl.Popup | null>(null);

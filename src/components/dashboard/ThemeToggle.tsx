@@ -1,25 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Sun, Moon } from "lucide-react";
 
+// The theme preference lives outside React (localStorage + matchMedia), so it
+// is read through useSyncExternalStore rather than copied into state from an
+// effect. The server snapshot is always light, matching the prerendered HTML;
+// after hydration React re-reads the real preference and re-renders.
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): boolean {
+  const stored = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return stored === "dark" || (!stored && prefersDark);
+}
+
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+function setStoredTheme(next: boolean) {
+  localStorage.setItem("theme", next ? "dark" : "light");
+  listeners.forEach((l) => l());
+}
+
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const dark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = stored === "dark" || (!stored && prefersDark);
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
 
-  const toggle = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  };
+  const toggle = () => setStoredTheme(!dark);
 
   return (
     <button

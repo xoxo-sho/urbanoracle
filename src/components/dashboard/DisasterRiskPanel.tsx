@@ -33,7 +33,7 @@ interface DisasterRiskPanelProps {
   selectedWard: string | null;
 }
 
-export default function DisasterRiskPanel({ risks, zoning, selectedWard }: DisasterRiskPanelProps) {
+export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelProps) {
   // Pie: risk type distribution
   const riskByType = risks.reduce<Record<string, number>>((acc, r) => {
     acc[r.type] = (acc[r.type] ?? 0) + 1;

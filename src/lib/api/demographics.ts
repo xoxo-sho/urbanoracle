@@ -92,7 +92,6 @@ export async function fetchDemographicsFromEStat(): Promise<DemographicsData[]> 
     if (totalPop === 0) continue;
 
     const youngPop = findValue(values, code, "020", "110"); // 0-14
-    const workingPop = findValue(values, code, "020", "120"); // 15-64
     const elderlyPop = findValue(values, code, "020", "130"); // 65+
 
     // Use percentage from API if available, otherwise calculate

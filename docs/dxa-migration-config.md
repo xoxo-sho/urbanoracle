@@ -25,3 +25,12 @@ DisasterShield: included in v1 at Stage 4.5 (2 proxy routes + cross-product
   auth), folded in from the addon/disastershield-beta-integration branch.
 Retired hosts (enter verify-bundle RETIRED_HOSTS at cutover, NOT before):
   urbanoracle-seven.vercel.app
+
+## Stage 6 deploy notes
+- Cloud Run deploy MUST pass --service-account=urbanoracle-run@urbanoracle.iam.gserviceaccount.com
+  explicitly. Omitting it silently runs the service as the default compute SA
+  (89383988887-compute@) which holds roles/editor — a declaration-vs-reality
+  gap. Runtime identity = urbanoracle-run (cloudsql.client + secretAccessor on
+  urbanoracle-db-url only).
+- Stripping roles/editor from the default compute SA is a SEPARATE later item,
+  to be decided only after Stage 6 confirms nothing depends on it.

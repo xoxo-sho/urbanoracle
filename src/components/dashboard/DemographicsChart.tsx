@@ -13,7 +13,6 @@ import {
 } from "recharts";
 import type { DemographicsData, PopulationTrend } from "@/types";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
