@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # dxa-migration is included so the gate is live DURING the migration,
+    # not only after merge to main.
+    branches: [main, dxa-migration]
   pull_request:
     branches: [main]
 
@@ -27,3 +29,60 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      # postgres:16, NOT postgis — UrbanOracle persists identity only
+      # (Stage 2a decision: zero geometry columns).
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: urbanoracle
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: urbanoracle_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U urbanoracle"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://urbanoracle:test_password@localhost:5432/urbanoracle_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements-dev.txt
+
+      - name: Run migrations (alembic upgrade head)
+        working-directory: backend
+        run: python -m alembic upgrade head
+
+      # The live migration must produce a fail-closed default: a users row
+      # the provisioning logic never evaluated can never be active.
+      - name: Verify is_active default is false (live migration)
+        run: |
+          python - <<'EOF'
+          import psycopg
+          with psycopg.connect(
+              "host=localhost dbname=urbanoracle_test user=urbanoracle password=test_password"
+          ) as conn:
+              default = conn.execute(
+                  "SELECT column_default FROM information_schema.columns "
+                  "WHERE table_name='users' AND column_name='is_active'"
+              ).fetchone()[0]
+          assert default == "false", f"is_active default is {default!r}, expected 'false'"
+          print("ok: users.is_active default = false")
+          EOF
+
+      - name: Run backend tests
+        working-directory: backend
+        run: python -m pytest -q
