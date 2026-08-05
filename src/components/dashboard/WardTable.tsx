@@ -9,13 +9,17 @@ interface WardTableProps {
   onSelectWard: (ward: string) => void;
 }
 
-function heatColor(value: number | null, min: number, max: number, hue: number): string {
+// Intensity within one semantic axis: stronger value -> stronger step of the
+// same hue. Two hues would imply a distinction the data does not make.
+function heatColor(value: number | null, min: number, max: number, axis: "up" | "down"): string {
   if (!hasValue(value)) return "var(--muted-foreground)";
   const ratio = Math.max(0, Math.min(1, (value - min) / (max - min || 1)));
-  const lightness = 0.25 + ratio * 0.45;
-  return `oklch(${lightness} 0.15 ${hue})`;
+  if (ratio > 0.66) return `var(--${axis}-text)`;
+  if (ratio > 0.33) return `var(--${axis}-strong)`;
+  return "var(--muted-foreground)";
 }
 
+// h-audit: data-ramp — a hard two-stop fill boundary IS the bar, not decoration.
 function miniBar(value: number | null, max: number, color: string): string {
   if (!hasValue(value) || max <= 0) return "transparent";
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -58,17 +62,17 @@ export default function WardTable({ demographics, landPrices, onSelectWard }: Wa
                 <td className="py-1.5 pr-2 font-medium text-primary hover:underline">{d.region.replace("区", "")}</td>
                 <td className="text-right py-1.5 px-2 tabular-nums">{formatMan(d.population)}</td>
                 <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: heatColor(d.density, 5000, 24000, 250) }}>
+                  <span style={{ color: heatColor(d.density, 5000, 24000, "up") }}>
                     {formatK(d.density)}
                   </span>
                 </td>
                 <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span className={d.growthRate >= 0 ? "text-emerald-400" : "text-red-400"}>
+                  <span style={{ color: d.growthRate >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
                     {d.growthRate > 0 ? "+" : ""}{d.growthRate}%
                   </span>
                 </td>
                 <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: heatColor(d.ageGroups.elderly, 15, 30, 30) }}>
+                  <span style={{ color: heatColor(d.ageGroups.elderly, 15, 30, "down") }}>
                     {formatPct(d.ageGroups.elderly)}
                   </span>
                 </td>
@@ -76,7 +80,7 @@ export default function WardTable({ demographics, landPrices, onSelectWard }: Wa
                   {price ? `${(price.avgPrice / 10000).toFixed(0)}万` : NO_DATA}
                 </td>
                 <td className="py-1.5 pl-2">
-                  <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "oklch(0.55 0.12 250)") }} />
+                  <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "var(--up-ui)") }} />
                 </td>
               </tr>
             );

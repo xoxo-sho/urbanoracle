@@ -12,11 +12,11 @@ import type {
 } from "@/types";
 
 export const dataLayers: DataLayer[] = [
-  { id: "land-price", label: "地価", description: "公示地価・基準地価", color: "#ef4444", enabled: true },
-  { id: "demographics", label: "人口統計", description: "人口・世帯数・年齢構成", color: "#3b82f6", enabled: false },
-  { id: "disaster-risk", label: "災害リスク", description: "洪水・地震・土砂災害・津波", color: "#f59e0b", enabled: false },
-  { id: "transportation", label: "交通", description: "鉄道・バス路線・乗降客数", color: "#10b981", enabled: false },
-  { id: "zoning", label: "用途地域", description: "用途地域・容積率・建蔽率", color: "#8b5cf6", enabled: false },
+  { id: "land-price", label: "地価", description: "公示地価・基準地価", color: "var(--up-text)", enabled: true },
+  { id: "demographics", label: "人口統計", description: "人口・世帯数・年齢構成", color: "var(--ink-3)", enabled: false },
+  { id: "disaster-risk", label: "災害リスク", description: "洪水・地震・土砂災害・津波", color: "var(--down-text)", enabled: false },
+  { id: "transportation", label: "交通", description: "鉄道・バス路線・乗降客数", color: "var(--ink-4)", enabled: false },
+  { id: "zoning", label: "用途地域", description: "用途地域・容積率・建蔽率", color: "var(--ink-5)", enabled: false },
 ];
 
 export const sampleLandPrices: LandPricePoint[] = [
@@ -147,14 +147,14 @@ export const sampleTransportTrends: TransportTrend[] = [
 ];
 
 export const sampleZoning: ZoningArea[] = [
-  { id: "z-1", type: "commercial", label: "商業地域", color: "#ef4444", maxFloorAreaRatio: 800, maxBuildingCoverage: 80, areaPct: 12 },
-  { id: "z-2", type: "neighborhood-commercial", label: "近隣商業地域", color: "#f9a8d4", maxFloorAreaRatio: 400, maxBuildingCoverage: 80, areaPct: 8 },
-  { id: "z-3", type: "residential-1-low", label: "一低住専", color: "#2d8a4e", maxFloorAreaRatio: 150, maxBuildingCoverage: 50, areaPct: 18 },
-  { id: "z-4", type: "residential-1-mid", label: "一中住専", color: "#a8d5a2", maxFloorAreaRatio: 300, maxBuildingCoverage: 60, areaPct: 15 },
-  { id: "z-5", type: "residential-1", label: "一種住居", color: "#fef3a8", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 22 },
-  { id: "z-6", type: "quasi-residential", label: "準住居", color: "#fbbf24", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 5 },
-  { id: "z-7", type: "quasi-industrial", label: "準工業", color: "#c4b5fd", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
-  { id: "z-8", type: "industrial", label: "工業", color: "#93c5fd", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
+  { id: "z-1", type: "commercial", label: "商業地域", color: "var(--ink-1)", maxFloorAreaRatio: 800, maxBuildingCoverage: 80, areaPct: 12 },
+  { id: "z-2", type: "neighborhood-commercial", label: "近隣商業地域", color: "var(--ink-2)", maxFloorAreaRatio: 400, maxBuildingCoverage: 80, areaPct: 8 },
+  { id: "z-3", type: "residential-1-low", label: "一低住専", color: "var(--ink-3)", maxFloorAreaRatio: 150, maxBuildingCoverage: 50, areaPct: 18 },
+  { id: "z-4", type: "residential-1-mid", label: "一中住専", color: "var(--ink-4)", maxFloorAreaRatio: 300, maxBuildingCoverage: 60, areaPct: 15 },
+  { id: "z-5", type: "residential-1", label: "一種住居", color: "var(--ink-5)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 22 },
+  { id: "z-6", type: "quasi-residential", label: "準住居", color: "var(--ink-6)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 5 },
+  { id: "z-7", type: "quasi-industrial", label: "準工業", color: "var(--ink-7)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
+  { id: "z-8", type: "industrial", label: "工業", color: "var(--ink-8)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
 ];
 
 export const sampleWardProfiles: WardProfile[] = [

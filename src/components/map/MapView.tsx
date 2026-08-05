@@ -5,6 +5,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { LandPricePoint, DataLayer, TransportStation } from "@/types";
 import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
+import { mapPalette } from "@/lib/palette";
 import type { WardFeatureCollection } from "@/data/ward-boundaries";
 
 interface MapViewProps {
@@ -54,6 +55,9 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
   const wardGeoJSON = useRef<WardFeatureCollection | null>(null);
 
   const setupLayers = useCallback((m: maplibregl.Map) => {
+    // MapLibre paint expressions cannot read CSS variables, so the semantic
+    // palette is resolved to literals for the active mode.
+    const c = mapPalette(isDarkMode());
     // Remove existing custom layers/sources
     const layerIds = ["ward-fill", "ward-line", "ward-highlight-line", "station-circles", "station-labels", "hazard-flood", "hazard-tsunami", "hazard-landslide"];
     for (const id of layerIds) {
@@ -77,26 +81,26 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     let fillColor: maplibregl.ExpressionSpecification | string;
     if (landEnabled) {
       fillColor = ["interpolate", ["linear"], ["get", "avgLandPrice"],
-        300000, "#2563eb",
-        1000000, "#6d28d9",
-        3000000, "#9333ea",
-        5300000, "#dc2626",
+        300000, c.upFill,
+        1000000, c.upUi,
+        3000000, c.upStrong,
+        5300000, c.upText,
       ] as maplibregl.ExpressionSpecification;
     } else if (demoEnabled) {
       fillColor = ["interpolate", ["linear"], ["get", "density"],
-        5000, isDarkMode() ? "#1e3a5f" : "#dbeafe",
-        12000, "#3b82f6",
-        23000, isDarkMode() ? "#93c5fd" : "#1e3a5f",
+        5000, c.neutral3,
+        12000, c.neutral2,
+        23000, c.neutral1,
       ] as maplibregl.ExpressionSpecification;
     } else if (riskEnabled) {
       fillColor = ["interpolate", ["linear"], ["get", "maxRiskLevel"],
-        0, "#22c55e",
-        2, "#f59e0b",
-        4, "#dc2626",
-        5, "#dc2626",
+        0, c.downFill,
+        2, c.downUi,
+        4, c.downStrong,
+        5, c.downText,
       ] as maplibregl.ExpressionSpecification;
     } else {
-      fillColor = isDarkMode() ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)";
+      fillColor = c.emptyFill;
     }
 
     // Choropleth fill layer
@@ -122,7 +126,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
       type: "line",
       source: "wards",
       paint: {
-        "line-color": isDarkMode() ? "#ffffff20" : "#00000015",
+        "line-color": c.hairline,
         "line-width": [
           "case",
           selectedWard
@@ -142,7 +146,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
         source: "wards",
         filter: ["==", ["get", "name"], selectedWard],
         paint: {
-          "line-color": "#5b8af9",
+          "line-color": c.upText,
           "line-width": 3,
           "line-opacity": 0.9,
         },
@@ -159,9 +163,9 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
         source: "stations",
         paint: {
           "circle-radius": ["interpolate", ["linear"], ["get", "passengers"], 100000, 6, 800000, 22],
-          "circle-color": "#10b981",
+          "circle-color": c.upStrong,
           "circle-opacity": 0.7,
-          "circle-stroke-color": "#10b981",
+          "circle-stroke-color": c.upText,
           "circle-stroke-width": 1.5,
           "circle-stroke-opacity": 0.9,
         },
@@ -178,8 +182,8 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
           "text-anchor": "bottom",
         },
         paint: {
-          "text-color": isDarkMode() ? "#d1d5db" : "#374151",
-          "text-halo-color": isDarkMode() ? "#000000" : "#ffffff",
+          "text-color": c.inkOnMap,
+          "text-halo-color": c.haloOnMap,
           "text-halo-width": 1.5,
         },
       });
@@ -330,7 +334,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
           .setHTML(`
             <div style="font-family:var(--font-geist-sans,system-ui);">
               <div style="font-size:13px;font-weight:700;color:var(--foreground);">${props.name}</div>
-              <div style="font-size:12px;color:#10b981;font-weight:600;">${(Number(props.passengers) / 10000).toFixed(1)}万人/日</div>
+              <div style="font-size:12px;color:var(--up-text);font-weight:600;">${(Number(props.passengers) / 10000).toFixed(1)}万人/日</div>
             </div>
           `)
           .addTo(m);
@@ -394,5 +398,5 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     }
   }, [selectedWard, layers, stations, setupLayers]);
 
-  return <div ref={mapContainer} className="absolute inset-0 rounded-2xl" style={{ width: "100%", height: "100%" }} />;
+  return <div ref={mapContainer} className="absolute inset-0 rounded-sm" style={{ width: "100%", height: "100%" }} />;
 }

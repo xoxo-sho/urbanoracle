@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,26 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Heading faces (spec §3), self-hosted as heading-only subsets so the payload
+// is bounded and reproducible. Both are display: swap — a heading face must
+// never block first paint.
+//
+// 欧文 leads the stack and 和文 follows, so Latin in a mixed heading is set in
+// Source Serif and every Japanese glyph falls through to Zen Old Mincho.
+const sourceSerif = localFont({
+  src: "./fonts/SourceSerif4-700-subset.woff2",
+  variable: "--font-source-serif",
+  weight: "700",
+  display: "swap",
+});
+
+const zenOldMincho = localFont({
+  src: "./fonts/ZenOldMincho-700-subset.woff2",
+  variable: "--font-zen-old-mincho",
+  weight: "700",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -43,7 +64,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${zenOldMincho.variable} antialiased`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground">{children}</body>

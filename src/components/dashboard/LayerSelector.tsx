@@ -14,17 +14,17 @@ export default function LayerSelector({ layers, onToggle }: LayerSelectorProps) 
         <button
           key={layer.id}
           onClick={() => onToggle(layer.id)}
-          className="group relative flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer hover:bg-accent/50"
+          className="group relative flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs transition-all cursor-pointer hover:bg-accent/50"
           style={{
-            backgroundColor: layer.enabled ? `${layer.color}15` : undefined,
+            backgroundColor: layer.enabled ? `color-mix(in oklch, ${layer.color} 12%, transparent)` : undefined,
           }}
           title={layer.description}
         >
           <span
             className="relative h-2 w-2 rounded-full transition-all"
             style={{
-              backgroundColor: layer.enabled ? layer.color : "oklch(0.35 0 0)",
-              boxShadow: layer.enabled ? `0 0 8px ${layer.color}60` : "none",
+              backgroundColor: layer.enabled ? layer.color : "var(--muted-foreground)",
+              boxShadow: "none",
             }}
           >
             {layer.enabled && (
@@ -36,7 +36,7 @@ export default function LayerSelector({ layers, onToggle }: LayerSelectorProps) 
           </span>
           <span
             className="font-medium transition-colors"
-            style={{ color: layer.enabled ? "oklch(0.92 0 0)" : "oklch(0.5 0 0)" }}
+            style={{ color: layer.enabled ? "var(--foreground)" : "var(--muted-foreground)" }}
           >
             {layer.label}
           </span>

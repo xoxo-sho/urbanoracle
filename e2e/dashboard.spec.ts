@@ -39,11 +39,11 @@ test.describe("Dashboard", () => {
     // Select a ward
     await selector.selectOption("千代田区");
     // Ward name appears in map overlay label
-    await expect(page.locator(".glass").first()).toContainText("千代田区");
+    await expect(page.locator(".map-overlay").first()).toContainText("千代田区");
 
     // Reset
     await selector.selectOption("");
-    await expect(page.locator(".glass").first()).toContainText("全エリア");
+    await expect(page.locator(".map-overlay").first()).toContainText("全エリア");
   });
 
   test("key metrics are displayed", async ({ page }) => {

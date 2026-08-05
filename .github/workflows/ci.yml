@@ -27,6 +27,12 @@ jobs:
       - name: Test
         run: npm test
 
+      # design-spec-v1 §8: the H項 list is enforced structurally, so a
+      # reintroduced glassmorphism/blob/emoji fails the build rather than
+      # being caught (or missed) in review.
+      - name: H項 audit
+        run: npm run audit:h
+
       - name: Build
         run: npm run build
 

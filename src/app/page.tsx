@@ -33,11 +33,12 @@ import type {
 } from "@/types";
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
+import { APPROX_LOCATION_NOTE } from "@/lib/sources";
 
 const MapView = dynamic(() => import("@/components/map/MapView"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center rounded-2xl bg-secondary/30 border border-border/50">
+    <div className="flex h-full items-center justify-center rounded-sm bg-secondary/30 border border-border/50">
       <div className="flex flex-col items-center gap-3">
         <Map className="h-6 w-6 text-primary/60 animate-pulse" />
         <p className="text-xs text-muted-foreground">地図を読み込み中...</p>
@@ -156,11 +157,11 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ height: "100dvh" }}>
       {/* Header */}
-      <header className="shrink-0 border-b border-border/50 bg-card/50 backdrop-blur-sm px-4 md:px-6 py-2 md:py-3">
+      <header className="shrink-0 border-b border-border/50 bg-card px-4 md:px-6 py-2 md:py-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
-              <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-xl bg-primary/15">
+              <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-sm bg-primary/15">
                 <Map className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
               </div>
               <h1 className="text-sm md:text-base font-bold tracking-tight leading-none">
@@ -184,7 +185,7 @@ export default function Home() {
           {/* Left column: Map + Key Metrics */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
             {/* Map */}
-            <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/30" style={{ minHeight: "240px", flex: "1 1 280px" }}>
+            <div className="relative overflow-hidden rounded-sm border border-border/50 bg-card/30" style={{ minHeight: "240px", flex: "1 1 280px" }}>
               <MapView
                 landPrices={filteredLandPrices}
                 selectedWard={selectedWard}
@@ -193,7 +194,7 @@ export default function Home() {
                 stations={transport.data}
               />
               <div className="absolute top-3 left-3 z-10">
-                <div className="glass rounded-lg px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
+                <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
                   {selectedWard ?? "全エリア"}
                 </div>
               </div>
@@ -203,7 +204,7 @@ export default function Home() {
             {/* 3 Key Metrics */}
             <div className="grid grid-cols-3 gap-2 animate-fade-in-up" style={{ animationDelay: "0.1s", opacity: 0 }}>
               <div className="key-metric">
-                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <TrendingUp className="h-4 w-4 text-up-text" />
                 <span className="text-xl font-bold tabular-nums">
                   {topGrowth ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate}%` : "—"}
                 </span>
@@ -213,12 +214,12 @@ export default function Home() {
                 </span>
               </div>
               <div className="key-metric">
-                <Shield className="h-4 w-4 text-amber-400" />
+                <Shield className="h-4 w-4 text-down-text" />
                 <span className="text-xl font-bold tabular-nums">{highRiskCount}</span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">高リスク<br />{selectedWard ? "該当" : "地域"}</span>
               </div>
               <div className="key-metric">
-                <Users className="h-4 w-4 text-blue-400" />
+                <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xl font-bold tabular-nums">
                   {totalPassengers > 0 ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : "—"}
                 </span>
@@ -235,7 +236,7 @@ export default function Home() {
           {/* Right column: 5 tabs — tab switch controls map choropleth */}
           <div className="col-span-12 lg:col-span-7 flex flex-col animate-fade-in-up" style={{ animationDelay: "0.05s", opacity: 0 }}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-              <TabsList className="shrink-0 w-full bg-secondary/50 rounded-xl p-1">
+              <TabsList className="shrink-0 w-full bg-secondary/50 rounded-sm p-1">
                 <TabsTrigger value="land-price" className="flex-1 cursor-pointer rounded-lg text-xs">
                   地価
                 </TabsTrigger>
@@ -360,8 +361,11 @@ export default function Home() {
 
       {/* Attribution footer */}
       <footer className="shrink-0 border-t border-border/50 px-6 py-2">
-        <p className="text-[9px] text-muted-foreground text-center">
-          出典: 国土数値情報（国土交通省）、e-Stat（総務省統計局）、不動産情報ライブラリ（国土交通省）、OpenStreetMap contributors、CARTO
+        <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
+          出典: 不動産情報ライブラリ（国土交通省, 2024年） ／ e-Stat 国勢調査（総務省統計局, 2020年） ／
+          国土数値情報（国土交通省, 2024年） ／ ハザードマップポータルサイト（国土交通省） ／
+          OpenStreetMap contributors ／ CARTO
+          <span className="block mt-0.5">{APPROX_LOCATION_NOTE}</span>
         </p>
       </footer>
     </div>
