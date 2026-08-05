@@ -33,6 +33,8 @@ from services import sample_data
 logger = logging.getLogger(__name__)
 
 XIT001_URL = "https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001"
+# Every target ward is a 13xxx code, so the prefecture is constant.
+PREFECTURE = "13"
 YEAR = 2024
 MAX_POINTS_PER_WARD = 5
 # ±0.0075° ≈ ±830m lat / ±680m lng — ward-scale spread, matching the original.
@@ -137,7 +139,13 @@ def transform_ward_records(ward_code: str, records: list[dict]) -> list[dict]:
 async def _fetch_ward(client: httpx.AsyncClient, ward_code: str, api_key: str) -> list[dict]:
     response = await client.get(
         XIT001_URL,
-        params={"area": ward_code, "year": YEAR},
+        # XIT001 keys `area` on the 2-digit PREFECTURE and `city` on the
+        # municipality. Passing the 5-digit ward code as `area` returns
+        # HTTP 400 ('area'が不正な形式です) for every ward, which the router
+        # then absorbs into a sample fallback — so the dashboard showed
+        # plausible fabricated prices and nothing reported an error. This
+        # was inherited from the TypeScript original; it never worked.
+        params={"area": PREFECTURE, "city": ward_code, "year": YEAR},
         headers={"Ocp-Apim-Subscription-Key": api_key},
         timeout=30.0,
     )

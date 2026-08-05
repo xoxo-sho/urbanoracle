@@ -90,11 +90,36 @@ def test_disaster_risks_reports_is_live_false(client):
     assert resp.json()["isLive"] is False
 
 
-def test_transport_is_live_true_from_the_local_file(client):
+def test_transport_without_odpt_is_not_claimed_live(client):
+    """Stations are real, ridership is not — so the response is not live.
+
+    Claiming isLive with every dailyPassengers null would present "unknown"
+    as though it had been measured.
+    """
+    resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})
+    body = resp.json()
+    assert body["isLive"] is False
+    assert len(body["data"]) == 50
+    # Never 0 — absence is null.
+    assert all(s["dailyPassengers"] is None for s in body["data"])
+
+
+def test_transport_with_odpt_is_live_and_carries_ridership(client, monkeypatch):
+    from services import odpt
+
+    async def fake_ridership():
+        return {odpt.normalize_station_name("東京"): 500000}, 2024
+
+    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
+
     resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})
     body = resp.json()
     assert body["isLive"] is True
-    assert len(body["data"]) == 50
+    tokyo = [s for s in body["data"] if s["name"] == "東京駅"]
+    assert tokyo and tokyo[0]["dailyPassengers"] == 500000
+    # Stations ODPT does not cover stay null rather than becoming 0.
+    uncovered = [s for s in body["data"] if s["name"] != "東京駅"]
+    assert all(s["dailyPassengers"] is None for s in uncovered)
 
 
 def test_upstream_failure_falls_back_with_is_live_false(client):
@@ -117,7 +142,9 @@ def test_envelope_neutralizes_a_non_finite_value_from_a_service(client, monkeypa
     monkeypatch.setattr(
         transport,
         "load_stations",
-        lambda: [{"id": "ts-0", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}],
+        lambda ridership=None: [
+            {"id": "ts-0", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}
+        ],
     )
 
     resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})

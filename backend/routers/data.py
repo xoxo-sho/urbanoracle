@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 
 from core import cache
 from core.boundary import json_safe
-from services import demographics, disaster_risks, land_prices, transport
+from services import demographics, disaster_risks, land_prices, odpt, transport
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ async def get_land_prices() -> JSONResponse:
     try:
         data = await land_prices.fetch_land_prices()
     except Exception:
-        logger.warning("land price upstream unavailable — serving fallback")
+        logger.warning("land price upstream unavailable — serving fallback", exc_info=True)
         return _envelope(land_prices.fallback(), False)
     cache.set("land-prices", data)
     return _envelope(data, True)
@@ -48,7 +48,7 @@ async def get_demographics() -> JSONResponse:
     try:
         data = await demographics.fetch_demographics()
     except Exception:
-        logger.warning("e-Stat upstream unavailable — serving fallback")
+        logger.warning("e-Stat upstream unavailable — serving fallback", exc_info=True)
         return _envelope(demographics.fallback(), False)
     cache.set("demographics", data)
     return _envelope(data, True)
@@ -64,13 +64,35 @@ async def get_disaster_risks() -> JSONResponse:
 
 @router.get("/transport")
 async def get_transport() -> JSONResponse:
+    """Stations come from the committed GeoJSON; ridership comes from ODPT.
+
+    isLive is true only when BOTH succeeded. If ODPT fails the station list is
+    still correct, but every ridership figure would be null — reporting that
+    as live data would present "unknown" as though it were measured, so the
+    whole response is marked isLive=false and the failure is logged loudly.
+    """
     cached = cache.get("transport")
     if cached is not None:
         return _envelope(cached, True)
+
     try:
-        data = transport.load_stations()
+        ridership, _year = await odpt.fetch_ridership()
     except Exception:
-        logger.warning("station GeoJSON unreadable — serving fallback")
+        logger.warning(
+            "ODPT ridership unavailable — station ridership will be データなし",
+            exc_info=True,
+        )
+        ridership = None
+
+    try:
+        data = transport.load_stations(ridership)
+    except Exception:
+        logger.warning("station GeoJSON unreadable — serving fallback", exc_info=True)
         return _envelope(transport.fallback(), False)
+
+    if ridership is None:
+        # Stations are real, ridership is not available: do not claim live.
+        return _envelope(data, False)
+
     cache.set("transport", data)
     return _envelope(data, True)

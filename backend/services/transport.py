@@ -16,6 +16,7 @@ from pathlib import Path
 
 from core.config import settings
 from services import sample_data
+from services.odpt import normalize_station_name
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +70,15 @@ def _rewrite_line(line: str) -> str:
     return line
 
 
-def transform_stations(geojson: dict) -> list[dict]:
-    """Pure: station GeoJSON → the top MAX_STATIONS by line count."""
+def transform_stations(
+    geojson: dict, ridership: dict[str, int] | None = None
+) -> list[dict]:
+    """Pure: station GeoJSON → the top MAX_STATIONS by line count.
+
+    ``ridership`` is keyed by ODPT-normalized station name. A station absent
+    from it gets ``None`` — ODPT does not cover JR East or the major private
+    railways, and reporting 0 for those would assert they carry no passengers.
+    """
     features = sorted(
         geojson.get("features", []),
         key=lambda f: f.get("properties", {}).get("lineCount", 0),
@@ -88,8 +96,10 @@ def transform_stations(geojson: dict) -> list[dict]:
                 "lat": lat,
                 "lng": lng,
                 "type": "train",
-                # The source GeoJSON carries no ridership figures.
-                "dailyPassengers": 0,
+                # None, never 0: absent from ODPT means unknown, not empty.
+                "dailyPassengers": (ridership or {}).get(
+                    normalize_station_name(props.get("name", ""))
+                ),
                 "lines": [_rewrite_line(line) for line in props.get("lines", [])],
                 "ward": assign_ward(lat, lng),
             }
@@ -101,12 +111,12 @@ def stations_path() -> Path:
     return settings.DATA_DIR / STATIONS_FILENAME
 
 
-def load_stations() -> list[dict]:
+def load_stations(ridership: dict[str, int] | None = None) -> list[dict]:
     """Read and transform the committed GeoJSON. Raises if it is missing."""
     path = stations_path()
     with path.open(encoding="utf-8") as fh:
         geojson = json.load(fh)
-    stations = transform_stations(geojson)
+    stations = transform_stations(geojson, ridership)
     if not stations:
         raise RuntimeError(f"{path} yielded no stations")
     return stations

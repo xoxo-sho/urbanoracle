@@ -22,6 +22,10 @@ export const SOURCES = {
     label: "ハザードマップポータルサイト（国土交通省）",
     href: "https://disaportal.gsi.go.jp/",
   },
+  odpt: {
+    label: "公共交通オープンデータセンター（ODPT）",
+    href: "https://www.odpt.org/",
+  },
   disastershield: {
     label: "DisasterShield（Beta）",
     href: "",

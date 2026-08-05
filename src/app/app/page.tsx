@@ -36,6 +36,7 @@ import { Map, TrendingUp, Users, Shield } from "lucide-react";
 import { APPROX_LOCATION_NOTE } from "@/lib/sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import VerificationBanner from "@/components/auth/VerificationBanner";
+import { NO_DATA, byValueDesc, hasValue } from "@/lib/format";
 
 const MapView = dynamic(() => import("@/components/map/MapView"), {
   ssr: false,
@@ -119,9 +120,17 @@ export default function Home() {
   const metricsRisks = selectedWard ? filteredRisks : disasterRisks.data;
   const metricsStations = selectedWard ? filteredStations : transport.data;
 
-  const topGrowth = [...metricsDemo].sort((a, b) => b.growthRate - a.growthRate)[0];
+  // Only wards with a published growth rate can rank; a null must not sort
+  // as if it were 0, which would beat every genuinely negative ward.
+  const topGrowth = [...metricsDemo]
+    .filter((d) => hasValue(d.growthRate))
+    .sort((a, b) => byValueDesc(a.growthRate, b.growthRate))[0];
   const highRiskCount = metricsRisks.filter((r) => r.level >= 4).length;
-  const totalPassengers = metricsStations.reduce((sum, s) => sum + s.dailyPassengers, 0);
+  // Sum only the stations ODPT actually covers. Treating null as 0 would
+  // report a total that silently excludes JR without saying so.
+  const passengerValues = metricsStations.map((s) => s.dailyPassengers).filter(hasValue);
+  const totalPassengers = passengerValues.reduce((sum, v) => sum + v, 0);
+  const passengersKnown = passengerValues.length > 0;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ height: "100dvh" }}>
@@ -176,7 +185,9 @@ export default function Home() {
               <div className="key-metric">
                 <TrendingUp className="h-4 w-4 text-up-text" />
                 <span className="text-xl font-bold tabular-nums">
-                  {topGrowth ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate}%` : "—"}
+                  {topGrowth && hasValue(topGrowth.growthRate)
+                    ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate.toFixed(1)}%`
+                    : NO_DATA}
                 </span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">
                   {selectedWard ? "成長率" : "成長率1位"}
@@ -191,7 +202,7 @@ export default function Home() {
               <div className="key-metric">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xl font-bold tabular-nums">
-                  {totalPassengers > 0 ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : "—"}
+                  {passengersKnown ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : NO_DATA}
                 </span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
               </div>

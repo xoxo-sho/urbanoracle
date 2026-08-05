@@ -67,8 +67,8 @@ export default function WardTable({ demographics, landPrices, onSelectWard }: Wa
                   </span>
                 </td>
                 <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: d.growthRate >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
-                    {d.growthRate > 0 ? "+" : ""}{d.growthRate}%
+                  <span style={{ color: (d.growthRate ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
+                    {hasValue(d.growthRate) ? `${d.growthRate > 0 ? "+" : ""}${d.growthRate.toFixed(1)}%` : NO_DATA}
                   </span>
                 </td>
                 <td className="text-right py-1.5 px-2 tabular-nums">

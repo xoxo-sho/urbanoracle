@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { TransportStation, TransportTrend } from "@/types";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
 
@@ -21,13 +22,16 @@ interface TransportPanelProps {
 }
 
 export default function TransportPanel({ stations, trends }: TransportPanelProps) {
-  const sorted = [...stations].sort((a, b) => b.dailyPassengers - a.dailyPassengers);
-  const maxPassengers = sorted[0]?.dailyPassengers ?? 1;
+  // Stations without ODPT coverage sort last rather than as zero.
+  const sorted = [...stations].sort((a, b) => byValueDesc(a.dailyPassengers, b.dailyPassengers));
+  const known = sorted.map((s) => s.dailyPassengers).filter(hasValue);
+  const maxPassengers = known.length ? Math.max(...known) : 0;
 
   // Treemap data: aggregate lines across stations
   const lineMap = new Map<string, number>();
   for (const s of stations) {
     for (const line of s.lines) {
+      if (!hasValue(s.dailyPassengers)) continue;
       lineMap.set(line, (lineMap.get(line) ?? 0) + s.dailyPassengers);
     }
   }
@@ -55,7 +59,10 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
       {/* Station ranking */}
       <div className="space-y-1.5">
         {sorted.map((station, i) => {
-          const ratio = station.dailyPassengers / maxPassengers;
+          const ratio =
+            hasValue(station.dailyPassengers) && maxPassengers > 0
+              ? station.dailyPassengers / maxPassengers
+              : 0;
           const isFirst = i === 0;
           return (
             <div key={station.id}
@@ -73,7 +80,7 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{station.name}</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{(station.dailyPassengers / 10000).toFixed(1)}万</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{formatMan(station.dailyPassengers)}</span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {station.lines.slice(0, 3).map((line) => (
@@ -119,7 +126,12 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
             }}
           />
         </ResponsiveContainer>
-        <SourceNote source="ksj" unit="人/日" year="2024年" />
+        <SourceNote
+          source="odpt"
+          unit="乗降客数 人/日"
+          year="2024年調査"
+          note="駅の位置・路線は国土数値情報。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」"
+        />
       </div>
 
       {/* Transport trends */}

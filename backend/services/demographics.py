@@ -26,6 +26,13 @@ logger = logging.getLogger(__name__)
 ESTAT_URL = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData"
 STATS_DATA_ID = "0003448299"
 
+# The census table above is a single time point (2020), so it cannot yield a
+# growth rate — which is why growthRate was previously hard-coded to 0. e-Stat
+# publishes the change rate already computed at ward level in the 2025
+# preliminary count, so it is read rather than derived from two snapshots.
+GROWTH_STATS_DATA_ID = "0004050417"
+GROWTH_TAB_CODE = "2025_35"  # 5年間の人口増減率 (%)
+
 # ward code -> (name, area km²)
 TOKYO_WARDS: dict[str, tuple[str, float]] = {
     "13101": ("千代田区", 11.66),
@@ -75,14 +82,68 @@ def _find_value(values: list[dict], area: str, tab: str, cat01: str, cat02: str 
     return float("nan")
 
 
+def parse_growth_rates(values: list[dict]) -> dict[str, float | None]:
+    """Pure: e-Stat VALUE rows -> {ward_code: signed percent}.
+
+    A suppressed or unparseable cell yields None rather than 0.0: a genuine
+    0% change and "not published" are different facts, and rendering the
+    second as the first invents a statistic.
+    """
+    rates: dict[str, float | None] = {}
+    for v in values:
+        if v.get("@tab") != GROWTH_TAB_CODE:
+            continue
+        code = v.get("@area")
+        if not code:
+            continue
+        try:
+            rate = float(v.get("$"))
+        except (TypeError, ValueError):
+            rates[code] = None
+            continue
+        rates[code] = rate if is_finite_number(rate) else None
+    return rates
+
+
+async def fetch_growth_rates() -> dict[str, float | None]:
+    """Ward growth rates. Raises on failure so the caller can null the field."""
+    api_key = settings.ESTAT_API_KEY
+    if not api_key:
+        raise RuntimeError("ESTAT_API_KEY is not set")
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            ESTAT_URL,
+            params={
+                "appId": api_key,
+                "statsDataId": GROWTH_STATS_DATA_ID,
+                "cdArea": ",".join(TOKYO_WARDS),
+                "cdTab": GROWTH_TAB_CODE,
+                "limit": 1000,
+            },
+            timeout=30.0,
+        )
+    if response.status_code != 200:
+        raise RuntimeError(f"e-Stat growth table error: {response.status_code}")
+    body = response.json()
+    if body.get("GET_STATS_DATA", {}).get("RESULT", {}).get("STATUS") != 0:
+        raise RuntimeError("e-Stat growth table returned an error status")
+    values = body["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]
+    values = values if isinstance(values, list) else [values]
+    return parse_growth_rates(values)
+
+
 def _clamp_pct(value: float) -> float | None:
     if not is_finite_number(value):
         return None
     return max(0.0, min(100.0, value))
 
 
-def transform_estat(values: list[dict]) -> list[dict]:
+def transform_estat(
+    values: list[dict], growth_rates: dict[str, float | None] | None = None
+) -> list[dict]:
     """Pure: e-Stat VALUE rows → demographics records."""
+    growth_rates = growth_rates or {}
     results: list[dict] = []
 
     for code, (name, area_km2) in TOKYO_WARDS.items():
@@ -129,7 +190,9 @@ def transform_estat(values: list[dict]) -> list[dict]:
                 "region": name,
                 "population": finite_or_none(total_pop) if has_total else None,
                 "density": finite_or_none(density),
-                "growthRate": 0,  # the census table carries no growth rate
+                # None (not 0) when unavailable: "no data" and "no change"
+                # are different facts.
+                "growthRate": finite_or_none(growth_rates.get(code)),
                 "ageGroups": {"young": young, "working": working, "elderly": elderly},
             }
         )
@@ -162,7 +225,20 @@ async def fetch_demographics() -> list[dict]:
         raise RuntimeError("e-Stat returned an error status")
 
     values = body["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]
-    records = transform_estat(values)
+
+    # The growth rate lives in a different table. If that call fails the
+    # population data is still good, so the field degrades to null rather
+    # than taking the whole endpoint down — but it degrades LOUDLY.
+    try:
+        growth_rates = await fetch_growth_rates()
+    except Exception:
+        logger.warning(
+            "e-Stat growth table unavailable — growthRate will be null, not 0",
+            exc_info=True,
+        )
+        growth_rates = {}
+
+    records = transform_estat(values, growth_rates)
     if not any(r["population"] is not None for r in records):
         raise RuntimeError("e-Stat returned no usable population data")
     return records

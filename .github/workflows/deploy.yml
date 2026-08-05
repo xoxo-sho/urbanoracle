@@ -129,7 +129,7 @@ jobs:
             --min-instances 0 \
             --max-instances 5 \
             --add-cloudsql-instances "${CLOUDSQL_INSTANCE}" \
-            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,REINFOLIB_API_KEY=REINFOLIB_API_KEY:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest" \
+            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,REINFOLIB_API_KEY=REINFOLIB_API_KEY:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest,ODPT_API_KEY=ODPT_API_KEY:latest" \
             --set-env-vars "^;^ENVIRONMENT=production;STATIC_DIR=/app/static;GIP_PROJECT_ID=dxalabs-platform;URBANORACLE_FREEMAIL_DOMAINS=gmail.com,googlemail.com,yahoo.co.jp,yahoo.com,ymail.com,outlook.com,hotmail.com,live.com,icloud.com,me.com,proton.me,protonmail.com,aol.com,gmx.com;URBANORACLE_ALLOWLIST_EMAILS=sho.t.hmu@gmail.com"
           # ^;^ sets gcloud's list delimiter to ';'. It cannot be ',' (the
           # freemail list contains commas) and it can no longer be '@' either,

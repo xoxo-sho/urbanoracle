@@ -34,7 +34,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
   const avg = {
     population: hasValue(avgPopulation) ? Math.round(avgPopulation) : null,
     density: hasValue(avgDensity) ? Math.round(avgDensity) : null,
-    growthRate: +(allData.reduce((s, d) => s + d.growthRate, 0) / allData.length).toFixed(1),
+    growthRate: averageOf(allData.map((d) => d.growthRate)),
     elderly: hasValue(avgElderly) ? Math.round(avgElderly) : null,
   };
 
@@ -56,7 +56,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
         <div className="grid grid-cols-4 gap-2">
           <MetricCard label="人口" value={formatMan(ward.population)} sub={subVsAverage(popDiff)} positive={Number(popDiff ?? 0) >= 0} />
           <MetricCard label="密度" value={formatK(ward.density)} sub={subVsAverage(densityDiff)} positive={Number(densityDiff ?? 0) >= 0} />
-          <MetricCard label="成長率" value={`${ward.growthRate > 0 ? "+" : ""}${ward.growthRate}%`} sub={`平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate}%`} positive={ward.growthRate >= avg.growthRate} />
+          <MetricCard label="成長率" value={hasValue(ward.growthRate) ? `${ward.growthRate > 0 ? "+" : ""}${ward.growthRate.toFixed(1)}%` : NO_DATA} sub={hasValue(avg.growthRate) ? `平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate.toFixed(1)}%` : `平均 ${NO_DATA}`} positive={(ward.growthRate ?? 0) >= (avg.growthRate ?? 0)} />
           <MetricCard label="高齢率" value={formatPct(ward.ageGroups.elderly)} sub={`平均 ${formatPct(avg.elderly)}`} positive={(ward.ageGroups.elderly ?? 0) <= (avg.elderly ?? 0)} />
         </div>
 
@@ -81,8 +81,14 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
   const prevPop = popTrendData[popTrendData.length - 2]?.人口 ?? latestPop;
   const recentGrowth = ((latestPop - prevPop) / prevPop * 100).toFixed(1);
 
-  const fastestGrowing = allData.reduce((max, d) => d.growthRate > max.growthRate ? d : max);
-  const fastestDeclining = allData.reduce((min, d) => d.growthRate < min.growthRate ? d : min);
+  // Wards with no published rate cannot lead or trail a ranking.
+  const ranked = allData.filter((d) => hasValue(d.growthRate));
+  const fastestGrowing = ranked.length
+    ? ranked.reduce((max, d) => (d.growthRate! > max.growthRate! ? d : max))
+    : null;
+  const fastestDeclining = ranked.length
+    ? ranked.reduce((min, d) => (d.growthRate! < min.growthRate! ? d : min))
+    : null;
   const agedRanked = allData.filter((d) => hasValue(d.ageGroups.elderly));
   const mostAged = agedRanked.length
     ? agedRanked.reduce((max, d) => (d.ageGroups.elderly! > max.ageGroups.elderly! ? d : max))
@@ -129,13 +135,13 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>+{fastestGrowing.growthRate}%</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing.region}</div>
+          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing?.region ?? ""}</div>
           <div className="text-[8px] text-muted-foreground">最大成長</div>
         </div>
         <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining.growthRate}%</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining.region}</div>
+          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining?.region ?? ""}</div>
           <div className="text-[8px] text-muted-foreground">最大減少</div>
         </div>
         <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>

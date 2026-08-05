@@ -30,7 +30,7 @@ export interface DemographicsData {
   region: string;
   population: number | null;
   density: number | null; // 人/km²
-  growthRate: number; // %
+  growthRate: number | null; // % — null when e-Stat has no figure
   ageGroups: {
     young: number | null; // 0-14
     working: number | null; // 15-64
@@ -52,7 +52,9 @@ export interface TransportStation {
   lat: number;
   lng: number;
   type: "train" | "bus" | "subway";
-  dailyPassengers: number;
+  // null when ODPT does not cover the station (JR East, Keio, Odakyu…)
+  // or reports boardings-only. Never 0 — that would claim no passengers.
+  dailyPassengers: number | null;
   lines: string[];
   ward?: string;
 }
