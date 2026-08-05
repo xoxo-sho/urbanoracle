@@ -57,6 +57,11 @@ jobs:
       - name: Verifier self-test (fault injection)
         run: npm run verify:bundle:selftest
 
+      # A present-but-nonsense build arg once shipped ("-" in every secret).
+      # This proves the guard that now rejects that class still works.
+      - name: Build-arg guard self-test
+        run: npm run verify:guard
+
   backend:
     runs-on: ubuntu-latest
     services:

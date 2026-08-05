@@ -22,19 +22,51 @@ set -euo pipefail
 IMAGE_TAG="${1:?usage: $0 <image-tag>}"
 PROJECT_ID="${PROJECT_ID:-urbanoracle}"
 REGION="${REGION:-asia-northeast1}"
+NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://urbanoracle.dxalabs.com}"
 SITE_ORIGIN="${NEXT_PUBLIC_SITE_URL:-https://urbanoracle.dxalabs.com}"
 
 # Poll ceiling tracks cloudbuild.yaml's timeout (1200s) plus queue time.
 MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-1500}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-15}"
 
-for required in NEXT_PUBLIC_FIREBASE_API_KEY NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
-                NEXT_PUBLIC_FIREBASE_PROJECT_ID NEXT_PUBLIC_FIREBASE_APP_ID; do
-  if [ -z "${!required:-}" ]; then
-    echo "::error::${required} is not set — refusing to build a bundle without it" >&2
+# ---------------------------------------------------------------------------
+# Degenerate-value guard
+# ---------------------------------------------------------------------------
+# A present-but-nonsense value is worse than a missing one: it builds, ships,
+# and fails somewhere far from the cause. This happened for real — every
+# NEXT_PUBLIC_* secret was once set to the literal string "-" (`gh secret set
+# --body -` takes the value, and reads stdin only when --body is omitted), and
+# the first symptom was `TypeError: Invalid URL, input: '-'` three minutes into
+# a container build.
+#
+# So each value is checked for shape here, before anything is submitted. The
+# checks name the offending variable and never print its value.
+guard() {
+  local name="$1" pattern="$2" description="$3" value="${!1:-}"
+
+  if [ -z "${value}" ]; then
+    echo "::error::${name} is empty — refusing to build a bundle without it" >&2
     exit 1
   fi
-done
+  if [ "${value}" = "-" ]; then
+    echo "::error::${name} is the literal string '-' — this is the 'gh secret set --body -' mistake, not a real value" >&2
+    exit 1
+  fi
+  if [ "${#value}" -lt 8 ]; then
+    echo "::error::${name} is ${#value} characters — too short to be a real ${description}" >&2
+    exit 1
+  fi
+  if ! printf '%s' "${value}" | grep -qE "${pattern}"; then
+    echo "::error::${name} does not look like a ${description} (value withheld)" >&2
+    exit 1
+  fi
+}
+
+guard NEXT_PUBLIC_FIREBASE_API_KEY     '^AIza[0-9A-Za-z_-]{20,}$'  'Firebase browser API key (AIza…)'
+guard NEXT_PUBLIC_FIREBASE_APP_ID      '^1:[0-9]{6,}:web:[0-9a-f]+$' 'Firebase web appId (1:<digits>:web:<hex>)'
+guard NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN '^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' 'Firebase auth domain'
+guard NEXT_PUBLIC_FIREBASE_PROJECT_ID  '^[a-z][a-z0-9-]{4,}$'      'GCP project id'
+guard NEXT_PUBLIC_SITE_URL             '^https?://[A-Za-z0-9.-]+\.[A-Za-z]{2,}'  'site origin (http(s)://host)'
 
 SUBSTITUTIONS="_IMAGE_TAG=${IMAGE_TAG}"
 SUBSTITUTIONS="${SUBSTITUTIONS},_NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}"
