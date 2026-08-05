@@ -12,8 +12,9 @@ this same origin, so there is no legitimate cross-origin caller.
 
 from fastapi import APIRouter, Depends, FastAPI
 
-from core.authz import register_authz_handlers, require_active
+from core.authz import get_current_user, register_authz_handlers, require_active
 from middleware.security_headers import SecurityHeadersMiddleware
+from routers.auth import router as auth_router
 from routers.data import router as data_router
 from routers.health import router as health_router
 
@@ -36,3 +37,10 @@ app.include_router(health_router, prefix="/api/v1")
 protected = APIRouter(prefix="/api/v1", dependencies=[Depends(require_active)])
 protected.include_router(data_router)
 app.include_router(protected)
+
+# Account-state routes require a verified identity but NOT an active account:
+# a pending user has to be able to ask for re-evaluation, which is the whole
+# point of the upgrade path. They expose no data — only the caller's own state.
+authenticated = APIRouter(prefix="/api/v1", dependencies=[Depends(get_current_user)])
+authenticated.include_router(auth_router)
+app.include_router(authenticated)

@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Dashboard", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+    // The dashboard moved to /app in Stage 4-P2b; / is now the landing page.
+    await page.goto("/app");
     // Wait for page to be interactive (tabs rendered)
     await page.waitForSelector("[data-slot='tabs']", { timeout: 10000 });
   });
