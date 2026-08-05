@@ -1,0 +1,193 @@
+name: Deploy
+
+on:
+  # Targets dxa-migration for the duration of the migration. RETARGET TO main
+  # at merge — leaving it here would make the migration branch the thing that
+  # deploys production.
+  push:
+    branches: [dxa-migration]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: urbanoracle
+  REGION: asia-northeast1
+  SERVICE: urbanoracle
+  CLOUDSQL_INSTANCE: urbanoracle:asia-northeast1:urbanoracle-db
+  # Least-privilege runtime identity: cloudsql.client plus secretAccessor on
+  # exactly three secrets. Never the default compute SA, which carries editor.
+  RUNTIME_SA: urbanoracle-run@urbanoracle.iam.gserviceaccount.com
+  MIGRATE_JOB: urbanoracle-migrate
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for keyless auth: the runner mints an OIDC token that GCP
+      # trusts through the workload identity pool.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Keyless. There is no GCP_SA_KEY secret for this project — the sibling
+      # products' long-lived JSON key is the thing this deliberately avoids.
+      # The provider's attribute condition restricts the trust to this repo.
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/89383988887/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-deploy@urbanoracle.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Cloud Build rather than a runner-side docker build: the image needs the
+      # whole repo as context, and the NEXT_PUBLIC_* client config must be
+      # injected as build args (Next inlines them at compile time).
+      #
+      # The script submits with --async and polls `builds describe`, exiting
+      # non-zero on anything that is not a confirmed SUCCESS. A synchronous
+      # submit piped through tail/grep would report the pipeline's status
+      # instead of the build's, letting a failed build reach the deploy step.
+      #
+      # Inside the build, verify-bundle runs BEFORE the image is pushed, so a
+      # bundle carrying the wrong appId or an absolute origin never becomes a
+      # deployable artifact.
+      - name: Build image (Cloud Build, async + poll)
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+        run: scripts/cloudbuild-submit.sh "${GITHUB_SHA::7}"
+
+      # Migrations run as a Cloud Run JOB using the just-built image, not from
+      # the runner over a proxy. Two reasons:
+      #
+      #   1. The job runs as the RUNTIME service account, which already holds
+      #      cloudsql.client and secretAccessor on urbanoracle-db-url. The
+      #      proxy alternative would require granting the deploy identity
+      #      database-credential access it otherwise never needs.
+      #   2. The migration executes the exact code that is about to serve, so
+      #      the schema and the application can never be one commit apart.
+      #
+      # DATABASE_URL is mounted from Secret Manager into the job's environment;
+      # it is never a command-line argument, never written into alembic.ini,
+      # and never echoed. (alembic/env.py reads it from the environment and
+      # passes it to engine_from_config as a dict value, so it does not go
+      # through configparser and cannot trip % interpolation.)
+      #
+      # `upgrade head` is idempotent, so a re-run on an already-migrated
+      # database is a no-op. A non-zero exit fails this step and the deploy
+      # below never runs: new code is never loaded onto an unmigrated schema.
+      - name: Migrate the production database (gates the deploy)
+        run: |
+          set -euo pipefail
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/urbanoracle/urbanoracle:${GITHUB_SHA::7}"
+
+          gcloud run jobs deploy "${MIGRATE_JOB}" \
+            --image "${IMAGE}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --service-account "${RUNTIME_SA}" \
+            --set-cloudsql-instances "${CLOUDSQL_INSTANCE}" \
+            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest" \
+            --command alembic \
+            --args upgrade,head \
+            --max-retries 0 \
+            --task-timeout 300s
+
+          # --wait propagates the task's exit status, so a failed migration
+          # fails the step rather than being reported as a successful submit.
+          gcloud run jobs execute "${MIGRATE_JOB}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --wait
+
+      # --allow-unauthenticated puts Cloud Run's IAM out of the way so the
+      # app's own two gates are the single place access is decided: the LP,
+      # /login and the static assets are public by design, and every API route
+      # except /api/v1/health answers 401 without a verified token.
+      - name: Deploy to Cloud Run
+        run: |
+          set -euo pipefail
+          gcloud run deploy "${SERVICE}" \
+            --project "${PROJECT_ID}" \
+            --image "${REGION}-docker.pkg.dev/${PROJECT_ID}/urbanoracle/urbanoracle:${GITHUB_SHA::7}" \
+            --region "${REGION}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --service-account "${RUNTIME_SA}" \
+            --port 8080 \
+            --cpu 1 \
+            --memory 1Gi \
+            --min-instances 0 \
+            --max-instances 5 \
+            --add-cloudsql-instances "${CLOUDSQL_INSTANCE}" \
+            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,REINFOLIB_API_KEY=REINFOLIB_API_KEY:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest" \
+            --set-env-vars "^@^ENVIRONMENT=production@STATIC_DIR=/app/static@GIP_PROJECT_ID=dxalabs-platform@URBANORACLE_FREEMAIL_DOMAINS=gmail.com,googlemail.com,yahoo.co.jp,yahoo.com,ymail.com,outlook.com,hotmail.com,live.com,icloud.com,me.com,proton.me,protonmail.com,aol.com,gmx.com"
+          # ^@^ switches gcloud's list delimiter to @, because the freemail
+          # list itself contains commas.
+          #
+          # URBANORACLE_ALLOWLIST_DOMAINS is deliberately UNSET: with no
+          # allowlist, Layer 2 approves nobody, freemail addresses pend at
+          # Layer 3, and custom domains auto-approve at Layer 4 — which is the
+          # curated posture, with manual activation for anyone who pends.
+
+      # The runtime identity is the whole point of --service-account. Asserting
+      # it here means a future edit that drops the flag fails the deploy rather
+      # than silently running production as the default compute SA (editor).
+      - name: Verify the runtime identity took effect
+        run: |
+          set -euo pipefail
+          ACTUAL=$(gcloud run services describe "${SERVICE}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(spec.template.spec.serviceAccountName)')
+          if [ "${ACTUAL}" != "${RUNTIME_SA}" ]; then
+            echo "::error::service runs as '${ACTUAL}', expected '${RUNTIME_SA}'" >&2
+            exit 1
+          fi
+          echo "  ok: runtime identity is ${ACTUAL}"
+
+      # The gate has to be installed, not merely intended: --allow-unauthenticated
+      # means the application is the only thing deciding access.
+      - name: Verify the deployed service denies anonymous callers
+        run: |
+          set -euo pipefail
+          URL=$(gcloud run services describe "${SERVICE}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(status.url)')
+          echo "Service URL: ${URL}"
+
+          check() {
+            local p="$1" want="$2" got rc=0
+            got=$(curl -s -o /dev/null -w '%{http_code}' \
+              --retry 3 --retry-all-errors --retry-delay 2 --max-time 20 \
+              "${URL}${p}") || rc=$?
+            # "could not reach it" is a different outcome from "answered
+            # wrongly" and must not be reported as the latter.
+            if [ "${rc}" -ne 0 ]; then
+              echo "::error::GET ${p}: curl failed (exit ${rc})" >&2
+              exit 1
+            fi
+            if [ "${got}" != "${want}" ]; then
+              echo "::error::GET ${p} returned ${got}, expected ${want}" >&2
+              exit 1
+            fi
+            echo "  ok: GET ${p} -> ${got}"
+          }
+
+          check /api/v1/health        200
+          check /api/v1/land-prices   401
+          check /api/v1/demographics  401
+          check /api/v1/transport     401
+          check /api/v1/auth/me       401
+          check /                     200
+          check /app                  200
+          check /login                200
+          check /no-such-page         404

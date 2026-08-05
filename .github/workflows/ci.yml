@@ -2,11 +2,13 @@ name: CI
 
 on:
   push:
-    # dxa-migration is included so the gate is live DURING the migration,
-    # not only after merge to main.
-    branches: [main, dxa-migration]
+    branches: [main]
   pull_request:
     branches: [main]
+  # Called by deploy.yml so nothing reaches Cloud Run without passing CI.
+  # dxa-migration is covered through that call rather than by its own push
+  # trigger, which would otherwise run the whole suite twice per push.
+  workflow_call:
 
 jobs:
   lint-test-build:
