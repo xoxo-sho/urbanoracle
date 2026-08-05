@@ -5,7 +5,7 @@ gets a UrbanOracle *row* on their first authenticated request — but not
 necessarily an *active* account. Authentication itself is unchanged: the
 RS256 signature, issuer, audience and expiry are all verified upstream in
 ``core.gip_auth``, and an anonymous caller still gets 401. Whether the row
-starts active is decided by the 4-layer rule below; ``users.is_active`` is
+starts active is decided by the 5-layer rule below; ``users.is_active`` is
 the PRIMARY access gate (curated model), enforced by ``core.authz``.
 
 Provider-agnostic: the rule reads only ``sub`` / ``email`` /
@@ -26,17 +26,33 @@ gets their own Organization (1-user-1-org), and nothing here can reach
 another product: UrbanOracle only ever holds its own DATABASE_URL. A shared
 identity tenant does not imply a shared user table.
 
-THE 4-LAYER AUTO-APPROVAL RULE (first match wins, fail-closed):
+THE 5-LAYER AUTO-APPROVAL RULE (first match wins, fail-closed):
 
-    Layer 1: email_verified != true      -> is_active=False (pending)
-    Layer 2: domain in ALLOWLIST         -> is_active=True  (auto-approve)
-    Layer 3: domain in FREEMAIL DENYLIST -> is_active=False (pending)
-    Layer 4: otherwise                   -> is_active=True  (auto-approve)
+    Layer 1: email_verified != true            -> is_active=False (pending)
+    Layer 2: email in EMAIL allowlist          -> is_active=True  (auto-approve)
+    Layer 3: domain in DOMAIN allowlist        -> is_active=True  (auto-approve)
+    Layer 4: domain in FREEMAIL denylist       -> is_active=False (pending)
+    Layer 5: otherwise                         -> is_active=True  (auto-approve)
 
-Domain extraction normalizes (substring after the LAST '@', lowercased,
-trimmed) — an un-normalized comparison would be a silent allowlist/denylist
-bypass. Decisions are logged with the domain only; the local part is
-scrubbed so the audit trail carries no unnecessary PII.
+Layer 2 sits ABOVE the freemail denylist on purpose: it admits one named
+address without admitting its domain. Inviting an individual investor who
+uses gmail must not open gmail.com to everyone, and that is exactly what
+the ordering buys — every other address on that domain still pends at
+Layer 4.
+
+Layer 1 still outranks it. An unverified address that appears on the email
+allowlist PENDS, and is raised only after verification completes (see
+re_evaluate). Otherwise anyone able to type an allowlisted address into a
+sign-up form would be admitted as its owner.
+
+Normalization is applied identically to the full address and to the domain
+(trimmed, lowercased, domain taken after the LAST '@'), on both the claim
+and the configured entries. An un-normalized comparison is a silent
+allowlist/denylist bypass.
+
+Decisions are logged with the local part scrubbed, including Layer 2 hits:
+knowing that an allowlisted address matched does not require writing the
+address into the log.
 """
 
 import logging
@@ -52,6 +68,7 @@ logger = logging.getLogger(__name__)
 
 ALLOWLIST_ENV = "URBANORACLE_ALLOWLIST_DOMAINS"
 FREEMAIL_ENV = "URBANORACLE_FREEMAIL_DOMAINS"
+EMAIL_ALLOWLIST_ENV = "URBANORACLE_ALLOWLIST_EMAILS"
 
 # Used only when FREEMAIL_ENV is unset. An operator may set it (even to an
 # empty string) to take explicit control of the denylist.
@@ -84,6 +101,11 @@ class ProvisioningRefusedError(Exception):
     """
 
 
+def _normalize_email(email: str) -> str:
+    """The whole address, trimmed and lowercased."""
+    return email.strip().lower()
+
+
 def _normalize_domain(email: str) -> str:
     """Substring after the LAST '@', lowercased, trimmed."""
     return email.strip().rsplit("@", 1)[-1].strip().lower()
@@ -99,6 +121,13 @@ def _allowlist() -> set[str]:
     return _domains_from_env(ALLOWLIST_ENV)
 
 
+def _allowlisted_emails() -> set[str]:
+    """Individually invited addresses. Empty (the default) approves nobody."""
+    raw = os.environ.get(EMAIL_ALLOWLIST_ENV)
+    entries = () if raw is None else raw.split(",")
+    return {_normalize_email(e) for e in entries if e.strip()}
+
+
 def _freemail() -> set[str]:
     return _domains_from_env(FREEMAIL_ENV, default=SEED_FREEMAIL_DOMAINS)
 
@@ -108,19 +137,23 @@ def _scrubbed(email: str) -> str:
 
 
 def evaluate_activation(email: str, email_verified: bool) -> tuple[bool, str]:
-    """Run the 4-layer rule. Returns (is_active, deciding_layer)."""
+    """Run the 5-layer rule. Returns (is_active, deciding_layer)."""
+    # L1 is unconditional: no claim about an address counts until the address
+    # has been proven to belong to the caller.
     if not email_verified:
         return False, "layer1-unverified"
+    if _normalize_email(email) in _allowlisted_emails():
+        return True, "layer2-email-allowlist"
     domain = _normalize_domain(email)
     if domain in _allowlist():
-        return True, "layer2-allowlist"
+        return True, "layer3-domain-allowlist"
     if domain in _freemail():
-        return False, "layer3-freemail"
-    return True, "layer4-default"
+        return False, "layer4-freemail"
+    return True, "layer5-default"
 
 
 def re_evaluate(user: User) -> User:
-    """Re-run the 4-layer rule for an existing user. RAISE-ONLY.
+    """Re-run the 5-layer rule for an existing user. RAISE-ONLY.
 
     May lift is_active false->true (e.g. after email verification completes,
     or after the allowlist widens). MUST NOT lower true->false: tightening

@@ -130,14 +130,21 @@ jobs:
             --max-instances 5 \
             --add-cloudsql-instances "${CLOUDSQL_INSTANCE}" \
             --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,REINFOLIB_API_KEY=REINFOLIB_API_KEY:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest" \
-            --set-env-vars "^@^ENVIRONMENT=production@STATIC_DIR=/app/static@GIP_PROJECT_ID=dxalabs-platform@URBANORACLE_FREEMAIL_DOMAINS=gmail.com,googlemail.com,yahoo.co.jp,yahoo.com,ymail.com,outlook.com,hotmail.com,live.com,icloud.com,me.com,proton.me,protonmail.com,aol.com,gmx.com"
-          # ^@^ switches gcloud's list delimiter to @, because the freemail
-          # list itself contains commas.
+            --set-env-vars "^;^ENVIRONMENT=production;STATIC_DIR=/app/static;GIP_PROJECT_ID=dxalabs-platform;URBANORACLE_FREEMAIL_DOMAINS=gmail.com,googlemail.com,yahoo.co.jp,yahoo.com,ymail.com,outlook.com,hotmail.com,live.com,icloud.com,me.com,proton.me,protonmail.com,aol.com,gmx.com;URBANORACLE_ALLOWLIST_EMAILS=sho.t.hmu@gmail.com"
+          # ^;^ sets gcloud's list delimiter to ';'. It cannot be ',' (the
+          # freemail list contains commas) and it can no longer be '@' either,
+          # now that URBANORACLE_ALLOWLIST_EMAILS holds an email address —
+          # an '@' delimiter would split that value mid-address. ';' occurs in
+          # none of the values.
           #
-          # URBANORACLE_ALLOWLIST_DOMAINS is deliberately UNSET: with no
-          # allowlist, Layer 2 approves nobody, freemail addresses pend at
-          # Layer 3, and custom domains auto-approve at Layer 4 — which is the
-          # curated posture, with manual activation for anyone who pends.
+          # URBANORACLE_ALLOWLIST_EMAILS is Layer 2: it admits named
+          # individuals WITHOUT admitting their domain, so an invited investor
+          # on gmail is approved while gmail.com as a whole still pends at
+          # Layer 4.
+          #
+          # URBANORACLE_ALLOWLIST_DOMAINS (Layer 3) stays UNSET: no domain is
+          # blanket-approved. Custom domains auto-approve at Layer 5, freemail
+          # pends, and anyone who pends is activated manually.
 
       # The runtime identity is the whole point of --service-account. Asserting
       # it here means a future edit that drops the flag fails the deploy rather

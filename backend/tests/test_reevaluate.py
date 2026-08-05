@@ -19,7 +19,66 @@ CLAIMS_UNVERIFIED = {
 @pytest.fixture()
 def _allow_acme(monkeypatch):
     monkeypatch.setenv("URBANORACLE_ALLOWLIST_DOMAINS", "acme.com")
+    monkeypatch.delenv("URBANORACLE_ALLOWLIST_EMAILS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
+
+
+INVITED_FREEMAIL = {
+    "sub": "gipuid_reevaluate_invited_01",
+    "email": "invited.investor@gmail.com",
+    "email_verified": False,
+}
+
+
+@pytest.fixture()
+def _invited_freemail(monkeypatch):
+    """One named gmail invited; the rest of gmail.com still curated."""
+    monkeypatch.setenv("URBANORACLE_ALLOWLIST_EMAILS", "invited.investor@gmail.com")
+    monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
+    monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
+
+
+def test_invited_freemail_address_pends_until_verified_then_raises(
+    db_session, _invited_freemail
+):
+    """The L1-over-L2 journey, end to end.
+
+    Being on the email allowlist is not enough on its own: the address has to
+    be proven first. This is the path Stage 7 exercises for real.
+    """
+    user = ensure_user(db_session, dict(INVITED_FREEMAIL))
+    assert user.is_active is False  # L1: unverified
+
+    # Verification completes; the next authenticated request carries the claim.
+    verified = dict(INVITED_FREEMAIL, email_verified=True)
+    user = ensure_user(db_session, verified)
+
+    assert user.email_verified is True
+    assert user.is_active is True  # L2 now applies
+
+
+def test_a_different_freemail_address_is_not_raised(db_session, _invited_freemail):
+    """The invitation is for one address, not for gmail.com."""
+    other = {
+        "sub": "gipuid_reevaluate_other_001",
+        "email": "someone.else@gmail.com",
+        "email_verified": True,
+    }
+    user = ensure_user(db_session, other)
+    assert user.is_active is False  # still pends at L4
+
+
+def test_re_evaluate_never_revokes_an_invited_user(db_session, _invited_freemail, monkeypatch):
+    """The no-downgrade invariant still holds with the new layer."""
+    user = ensure_user(db_session, dict(INVITED_FREEMAIL, email_verified=True))
+    assert user.is_active is True
+
+    # The invitation is withdrawn from config.
+    monkeypatch.setenv("URBANORACLE_ALLOWLIST_EMAILS", "")
+    re_evaluate(user)
+    db_session.commit()
+
+    assert user.is_active is True, "re_evaluate must never lower true->false"
 
 
 def test_unverified_allowlist_user_starts_pending(db_session, _allow_acme):

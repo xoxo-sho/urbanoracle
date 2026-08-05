@@ -44,6 +44,22 @@ Build-args (Next-style, per Parallel City precedent; NOT Vite VITE_*):
 Access model: CURATED — provision is_active=false (pending), manual
   activation by Sho; protected routes require is_active=true as a second
   gate. (PENDING SHO FINAL CONFIRM — do not implement until Stage 2.)
+Provisioning rule (Stage 2b, extended at Stage 6.5) — 5 layers, first match
+  wins, fail-closed:
+    L1 email_verified != true      -> pending   (unconditional, highest)
+    L2 email in ALLOWLIST_EMAILS   -> active    (named individuals)
+    L3 domain in ALLOWLIST_DOMAINS -> active
+    L4 domain in FREEMAIL_DOMAINS  -> pending
+    L5 otherwise (custom domain)   -> active
+  L2 sits above L4 so one invited freemail address can be admitted without
+  admitting its domain; L1 stays above L2 so an unverified address gains
+  nothing from being listed. re_evaluate is raise-only and never revokes.
+  Runtime env (Cloud Run):
+    URBANORACLE_ALLOWLIST_EMAILS  = sho.t.hmu@gmail.com
+    URBANORACLE_ALLOWLIST_DOMAINS = (unset — no blanket domain approval)
+    URBANORACLE_FREEMAIL_DOMAINS  = the 14 seed domains
+  NOTE for --set-env-vars: the delimiter must be ';' (^;^). ',' collides with
+  the freemail list and '@' collides with the email allowlist.
 Capability set: aggregation UI + external-data proxy only. No ML, no PDF,
   no 3D. Image-level gates: verify-bundle ONLY (no model-load smoke, no
   CJK font-register smoke).
