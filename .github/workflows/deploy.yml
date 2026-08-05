@@ -1,11 +1,11 @@
 name: Deploy
 
 on:
-  # Targets dxa-migration for the duration of the migration. RETARGET TO main
-  # at merge — leaving it here would make the migration branch the thing that
-  # deploys production.
+  # Production deploys come from main. The migration branch deliberately no
+  # longer deploys: after the cutover, a push to a feature branch must not be
+  # able to replace the running service.
   push:
-    branches: [dxa-migration]
+    branches: [main]
   workflow_dispatch:
 
 env:

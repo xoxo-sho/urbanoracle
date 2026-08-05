@@ -10,7 +10,7 @@ stage where it is removed. Nothing on this list is removed before its stage.
 
 | # | Item | Location | Action | Target stage |
 |---|------|----------|--------|--------------|
-| 1 | `.vercel/` directory (project linkage) | `.vercel/project.json` | Remove | At cutover |
+| 1 | `.vercel/` directory (project linkage) | `.vercel/project.json` | Remove | **DONE (Stage 8)** — removed; it was gitignored, so it never entered history |
 | 2 | Hardcoded Vercel origin in sitemap | `src/app/sitemap.ts:6` | Replace with `NEXT_PUBLIC_SITE_URL`-derived origin | Stage 4/5 |
 | 3 | robots.txt sitemap line + `Disallow: /api/` | `public/robots.txt` | Origin swap; reconsider `Disallow: /api/` once API is same-origin FastAPI | Stage 4/5 |
 | 4 | Transport route self-HTTP fetch via `VERCEL_URL` | `src/app/api/transport/route.ts:52-54` | Becomes a local file read in the FastAPI port | Stage 3 |

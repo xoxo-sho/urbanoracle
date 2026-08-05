@@ -37,16 +37,15 @@ SKIP_REAL_CONFIG="${SKIP_REAL_CONFIG:-0}"
 
 # Hosts that must never appear in a shipped bundle.
 #
-# urbanoracle-seven.vercel.app is NOT yet retired as a deployment — it stays
-# live as the rollback target until the cutover to the custom domain is
-# verified (docs/legacy-excision.md). What is enforced here is narrower and
-# true today: the BUILD must not reference it, because sitemap/robots/canonical
-# now derive from NEXT_PUBLIC_SITE_URL. At cutover (Stage 6/7) the host is also
-# retired at the deployment level, and CUTOVER_RETIRED_HOSTS below folds into
-# this list with no change to the check itself.
+# urbanoracle-seven.vercel.app is now retired at BOTH levels: the build must
+# not reference it (sitemap/robots/canonical derive from NEXT_PUBLIC_SITE_URL)
+# and the deployment itself is gone as of the Stage 8 cutover. It stays listed
+# permanently — a retired host reappearing in a bundle means a stale env var or
+# a reverted config, which is exactly the regression this catches.
+#
+# The staged CUTOVER_RETIRED_HOSTS variable that used to sit here folded into
+# this list at cutover, as designed: the check itself never changed.
 RETIRED_HOSTS="${RETIRED_HOSTS:-urbanoracle-seven.vercel.app supabase.co}"
-# Documented for the cutover step; not separately enforced yet.
-CUTOVER_RETIRED_HOSTS="urbanoracle-seven.vercel.app"
 
 if [ ! -d "$DIR" ]; then
   echo "FAIL: bundle directory not found: $DIR" >&2

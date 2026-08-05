@@ -4,7 +4,7 @@
 
 地価・人口統計・災害リスク・交通・用途地域のオープンデータを、インタラクティブな地図とチャートで可視化する Web アプリケーション。
 
-**Live:** https://urbanoracle-seven.vercel.app
+**Live:** https://urbanoracle.dxalabs.com
 
 ---
 
@@ -31,7 +31,8 @@
 | Icons | Lucide React |
 | Testing | Vitest + Testing Library |
 | CI/CD | GitHub Actions |
-| Hosting | Vercel |
+| Hosting | Cloud Run (asia-northeast1) |
+| Auth | Google Identity Platform (`dxalabs-platform` tenant) |
 
 ## Getting Started
 
