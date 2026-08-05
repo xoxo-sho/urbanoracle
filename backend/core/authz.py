@@ -30,19 +30,34 @@ class PendingActivationError(Exception):
     """Authenticated + provisioned, but is_active is false."""
 
 
-def get_current_user(
+def _bearer_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
-    session: Session = Depends(get_session),
-) -> User:
+) -> str:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Not authenticated")
+    return credentials.credentials
 
-    payload = decode_auth_token(credentials.credentials)
+
+def _verified_claims(token: str = Depends(_bearer_token)) -> dict:
+    payload = decode_auth_token(token)
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return payload
 
+
+def get_current_user(
+    # Declared BEFORE the session on purpose. FastAPI resolves dependencies in
+    # signature order and stops at the first that raises, so an anonymous or
+    # invalid-token request is rejected without a database connection ever
+    # being opened. With the session first, a request carrying no credentials
+    # at all still reached the database — which turned every 401 into a 500
+    # whenever the database was unreachable, and let unauthenticated traffic
+    # drive connection attempts.
+    claims: dict = Depends(_verified_claims),
+    session: Session = Depends(get_session),
+) -> User:
     try:
-        return ensure_user(session, payload)
+        return ensure_user(session, claims)
     except ProvisioningRefusedError:
         # Refused ≠ pending: this identity cannot have an account at all.
         raise HTTPException(status_code=401, detail="Identity not provisionable")

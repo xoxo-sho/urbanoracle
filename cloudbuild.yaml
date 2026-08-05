@@ -1,0 +1,78 @@
+# Cloud Build config for the single-service image (root Dockerfile: Next
+# static export served by FastAPI).
+#
+# Launched from scripts/cloudbuild-submit.sh with --async plus describe
+# polling; see that script for why a synchronous submit is not used.
+#
+# GATE ORDERING IS THE POINT: `images:` is what pushes to Artifact Registry,
+# and Cloud Build only publishes it after every step has succeeded. verify-bundle
+# therefore runs BEFORE any push, and a bundle that fails it never becomes a
+# deployable artifact.
+#
+# LIGHTENED vs Parallel City: there is no model-load smoke and no CJK
+# font-register smoke, because UrbanOracle has no ML and no PDF capability.
+# Adding a smoke test for an absent capability would assert nothing while
+# implying coverage that does not exist.
+
+steps:
+  # 1. Build the image.
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_BUILD_SHA=${_IMAGE_TAG}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_API_KEY=${_NEXT_PUBLIC_FIREBASE_API_KEY}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+      - --build-arg=NEXT_PUBLIC_FIREBASE_APP_ID=${_NEXT_PUBLIC_FIREBASE_APP_ID}
+      - --build-arg=NEXT_PUBLIC_SITE_URL=${_SITE_ORIGIN}
+      - --tag=asia-northeast1-docker.pkg.dev/$PROJECT_ID/urbanoracle/urbanoracle:${_IMAGE_TAG}
+      - .
+
+  # 2. Verify what the image actually contains.
+  #
+  # Next inlines NEXT_PUBLIC_* at compile time, so a wrong or missing build arg
+  # is invisible in the source and observable only in the built bundle. The
+  # bundle is extracted from the image rather than from the workspace, so what
+  # is checked is exactly what would ship.
+  - id: verify-bundle
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        IMAGE="asia-northeast1-docker.pkg.dev/$PROJECT_ID/urbanoracle/urbanoracle:${_IMAGE_TAG}"
+        cid=$(docker create "$$IMAGE")
+        trap 'docker rm -f "$$cid" >/dev/null 2>&1 || true' EXIT
+        rm -rf /workspace/_bundle
+        docker cp "$$cid":/app/static /workspace/_bundle
+        EXPECT_AUTH_DOMAIN="${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}" \
+        EXPECT_PROJECT_ID="${_NEXT_PUBLIC_FIREBASE_PROJECT_ID}" \
+        EXPECT_APP_ID="${_NEXT_PUBLIC_FIREBASE_APP_ID}" \
+        EXPECT_SITE_ORIGIN="${_SITE_ORIGIN}" \
+          bash scripts/verify-bundle.sh /workspace/_bundle
+
+# Pushed only if every step above succeeded.
+images:
+  - asia-northeast1-docker.pkg.dev/$PROJECT_ID/urbanoracle/urbanoracle:${_IMAGE_TAG}
+
+substitutions:
+  _IMAGE_TAG: manual
+  _NEXT_PUBLIC_FIREBASE_API_KEY: ""
+  _NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ""
+  _NEXT_PUBLIC_FIREBASE_PROJECT_ID: ""
+  # Identifies which web app inside the shared dxalabs-platform project this
+  # bundle was built for. The other three fields are common to the project, so
+  # this is the only one that pins identity.
+  _NEXT_PUBLIC_FIREBASE_APP_ID: ""
+  # Not defaulted to empty: an empty origin would produce a landing page
+  # advertising a canonical URL that does not exist.
+  _SITE_ORIGIN: https://urbanoracle.dxalabs.com
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# npm ci + next build + the Python wheels fit comfortably; the poll ceiling in
+# scripts/cloudbuild-submit.sh is aligned with this value.
+timeout: 1200s

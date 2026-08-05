@@ -13,6 +13,8 @@ this same origin, so there is no legitimate cross-origin caller.
 from fastapi import APIRouter, Depends, FastAPI
 
 from core.authz import get_current_user, register_authz_handlers, require_active
+from core.config import settings
+from core.spa import mount_static_site
 from middleware.security_headers import SecurityHeadersMiddleware
 from routers.auth import router as auth_router
 from routers.data import router as data_router
@@ -44,3 +46,9 @@ app.include_router(protected)
 authenticated = APIRouter(prefix="/api/v1", dependencies=[Depends(get_current_user)])
 authenticated.include_router(auth_router)
 app.include_router(authenticated)
+
+# The built front-end registers a catch-all, so it must come after every API
+# route — matching is by registration order. With no build output present
+# (API-only development, the test suite) this is a no-op.
+if settings.STATIC_DIR:
+    mount_static_site(app, settings.STATIC_DIR)
