@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/lib/auth-context";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,6 +36,8 @@ const zenOldMincho = localFont({
 });
 
 export const metadata: Metadata = {
+  // Every absolute URL in the document derives from here.
+  metadataBase: new URL(SITE_URL),
   title: "UrbanOracle - 都市データ可視化ダッシュボード",
   description:
     "東京23区の地価・人口統計・災害リスク・交通・用途地域などのオープンデータを可視化するWebダッシュボード",
@@ -44,7 +47,8 @@ export const metadata: Metadata = {
     description: "東京23区のオープンデータを地図とチャートで可視化",
     type: "website",
     locale: "ja_JP",
-    siteName: "UrbanOracle",
+    siteName: SITE_NAME,
+    url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",

@@ -15,6 +15,10 @@ export const metadata = {
   title: "UrbanOracle — 東京23区の上振れと下振れ",
   description:
     "地価・人口・交通の上振れと、災害リスクの下振れを同一の意思決定面で読み解く都市データ計器。",
+  // The landing page is the ONLY page that claims a canonical URL. That is
+  // what lets verify-bundle tell the LP from the dashboard shell in a
+  // single-Next build where both sides share /_next/ assets.
+  alternates: { canonical: "/" },
 };
 
 const CAPABILITIES = [

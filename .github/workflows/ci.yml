@@ -33,8 +33,27 @@ jobs:
       - name: H項 audit
         run: npm run audit:h
 
-      - name: Build
+      # Structural static-export build. The config values are dummy but are
+      # NOT on the placeholder deny-list, so a build that simply lost its
+      # arguments stays distinguishable from this one. The real-config
+      # assertions run at image build time (Stage 5/6) with the real appId.
+      - name: Build (static export)
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: structural-check-build
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dxalabs-platform.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: dxalabs-platform
+          NEXT_PUBLIC_FIREBASE_APP_ID: structural-check-build
+          NEXT_PUBLIC_SITE_URL: https://urbanoracle.dxalabs.com
         run: npm run build
+
+      - name: Verify bundle structure
+        run: SKIP_REAL_CONFIG=1 npm run verify:bundle
+
+      # The gate that decides whether a bundle may ship is itself tested:
+      # every assertion is broken in turn and must turn the verifier red,
+      # including the canonical-absence discriminator (LP served at /app).
+      - name: Verifier self-test (fault injection)
+        run: npm run verify:bundle:selftest
 
   backend:
     runs-on: ubuntu-latest
