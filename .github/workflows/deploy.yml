@@ -6,6 +6,37 @@ on:
   # able to replace the running service.
   push:
     branches: [main]
+    # A docs-only commit should not rebuild the image, run the migration job,
+    # and roll a new revision. It costs several minutes and swaps the serving
+    # revision for a byte-identical one.
+    #
+    # The safety property is GitHub's paths-ignore semantics: the workflow is
+    # skipped only when EVERY file in the push matches one of these patterns.
+    # One code file anywhere in a mixed commit and the whole push deploys, so
+    # this cannot silently drop a real change — the failure mode is an extra
+    # deploy, never a missing one.
+    #
+    # '**.md' matches Markdown at any depth ('**' spans '/'), so it covers
+    # README.md, AGENTS.md, CLAUDE.md and docs/*.md. 'docs/**' additionally
+    # covers non-Markdown that lands in docs/ (diagrams, fixtures).
+    #
+    # Neither can match a build input: the image is built from package.json,
+    # package-lock.json, tsconfig.json, next.config.ts, postcss.config.mjs,
+    # eslint.config.mjs, public/, src/ and backend/ (see Dockerfile) — no .md
+    # among them and no docs/ COPY. This holds only while no Markdown is
+    # imported into the bundle; if MDX content is ever added under src/, drop
+    # '**.md' to a narrower pattern, because a content change would then be a
+    # real code change wearing a .md extension.
+    #
+    # Deliberately NOT ignored: .dockerignore (changes the build context),
+    # .github/** (changes this pipeline), and every dotfile at the root that
+    # tooling reads. The list stays short on purpose — each pattern is another
+    # chance to skip a deploy that mattered.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  # Unfiltered on purpose: paths-ignore does not apply to workflow_dispatch,
+  # so this stays the escape hatch for forcing a deploy of an ignored path.
   workflow_dispatch:
 
 env:

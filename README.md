@@ -72,21 +72,49 @@ API キー未設定でもサンプルデータで動作します。
 
 ## Project Structure
 
+One Cloud Run container serves both halves: FastAPI owns `/api/v1/*` and hands
+everything else to the Next.js static export (LP at `/`, dashboard at `/app`).
+
 ```
-src/
+src/                  # Next.js — built to a static export, no server runtime
 ├── app/
-│   ├── api/          # API Routes (land-prices, demographics, etc.)
-│   ├── page.tsx      # Main dashboard
+│   ├── page.tsx      # Landing page (public)
+│   ├── app/page.tsx  # Dashboard (gated)
+│   ├── login/        # Sign-in (Google Identity Platform)
+│   ├── pending/      # Awaiting activation
 │   ├── layout.tsx    # Root layout + SEO
 │   ├── error.tsx     # Error boundary
 │   └── not-found.tsx # 404 page
 ├── components/
 │   ├── map/          # MapView + MapLegend (MapLibre, client-only)
-│   └── dashboard/    # Charts, tables, selectors (17 components)
-├── data/             # Sample data + ward boundaries GeoJSON
-├── lib/              # API clients + chart theme
+│   ├── landing/      # LP sections
+│   ├── auth/         # Auth UI
+│   └── dashboard/    # Charts, tables, selectors
+├── data/             # Ward boundaries GeoJSON
+├── lib/              # Firebase client, auth context, formatting, chart theme
 └── types/            # Shared TypeScript interfaces
+
+backend/              # FastAPI — the API surface and the static-file server
+├── main.py           # App entrypoint
+├── routers/          # /api/v1 routes (data, auth)
+├── services/         # Upstream clients (REINFOLIB, e-Stat, ODPT, KSJ)
+├── core/             # Token verification, activation policy, SPA serving
+├── db/               # SQLAlchemy models + session
+├── middleware/       # Cross-cutting request handling
+├── alembic/          # Schema migrations
+├── data/             # Static datasets served by the API
+└── tests/            # pytest (requires a disposable postgres)
 ```
+
+There are no Next.js API routes: they were ported to FastAPI so the API keys
+live in Secret Manager and never reach the browser bundle.
+
+## Deployment
+
+Push to `main` → `.github/workflows/deploy.yml` (CI → Cloud Build + bundle
+verification → Alembic migration job → Cloud Run). Documentation-only commits
+skip the deploy; see [`docs/development-guide.md`](docs/development-guide.md)
+§7.2.
 
 ## Data Sources
 
