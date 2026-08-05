@@ -45,11 +45,22 @@ SUBSTITUTIONS="${SUBSTITUTIONS},_SITE_ORIGIN=${SITE_ORIGIN}"
 
 echo "Submitting build for tag ${IMAGE_TAG} (project ${PROJECT_ID}, region ${REGION})"
 
+# The build runs as a service account we own, not the legacy Google-managed
+# Cloud Build SA. That SA is not a per-project resource, so `actAs` on it cannot
+# be scoped — granting it would have meant project-level serviceAccountUser on
+# the deploy identity, which would also let it impersonate the default compute
+# SA (roles/editor). A named build SA keeps the grant resource-scoped.
+#
+# urbanoracle-build@ holds only artifactregistry.writer, logging.logWriter, and
+# read on the source bucket. It has no access to any secret.
+BUILD_SA="${BUILD_SA:-projects/${PROJECT_ID}/serviceAccounts/urbanoracle-build@${PROJECT_ID}.iam.gserviceaccount.com}"
+
 BUILD_ID="$(gcloud builds submit \
   --async \
   --project "${PROJECT_ID}" \
   --region "${REGION}" \
   --config cloudbuild.yaml \
+  --service-account "${BUILD_SA}" \
   --substitutions "${SUBSTITUTIONS}" \
   --format='value(id)' \
   .)"
