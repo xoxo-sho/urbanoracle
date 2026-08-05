@@ -105,14 +105,26 @@ export function getWardCenter(wardName: string): [number, number] | null {
 }
 
 export function buildStationGeoJSON(
-  stations: Array<{ name: string; lat: number; lng: number; dailyPassengers: number; ward?: string }>
+  stations: Array<{
+    name: string;
+    lat: number;
+    lng: number;
+    dailyPassengers: number | null;
+    ward?: string;
+  }>
 ): GeoJSON.FeatureCollection {
   return {
     type: "FeatureCollection",
-    features: stations.map((s) => ({
-      type: "Feature" as const,
-      properties: { name: s.name, passengers: s.dailyPassengers, ward: s.ward ?? "" },
-      geometry: { type: "Point" as const, coordinates: [s.lng, s.lat] },
-    })),
+    // Stations with no published ridership are omitted rather than drawn at
+    // radius 0: the map sizes its circles by passenger volume, and a station
+    // ODPT does not cover would otherwise render as the smallest possible
+    // dot — visually indistinguishable from a genuinely quiet station.
+    features: stations
+      .filter((s) => typeof s.dailyPassengers === "number")
+      .map((s) => ({
+        type: "Feature" as const,
+        properties: { name: s.name, passengers: s.dailyPassengers, ward: s.ward ?? "" },
+        geometry: { type: "Point" as const, coordinates: [s.lng, s.lat] },
+      })),
   };
 }

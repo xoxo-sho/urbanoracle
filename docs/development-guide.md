@@ -279,16 +279,21 @@ npm run build
 
 TypeScript 型チェック + Next.js ビルドが実行される。エラーがあるとビルドが失敗する。
 
-### 7.2 デプロイ（Vercel 推奨）
+### 7.2 デプロイ（Cloud Run）
 
-```bash
-# Vercel CLI でデプロイ
-npx vercel
+`main` への push で `.github/workflows/deploy.yml` が自動実行される。手動デプロイ
+の口は `workflow_dispatch` のみで、ローカルからの直接デプロイ手段は用意しない
+（実行中のイメージと `main` が乖離しないため）。
 
-# または GitHub 連携で自動デプロイ
-# 1. Vercel Dashboard で GitHub リポジトリを接続
-# 2. main ブランチへの push で自動デプロイ
-```
+パイプライン:
+
+1. `ci.yml`（lint / 型 / Vitest / pytest / H項監査）
+2. Cloud Build — 静的エクスポート + `scripts/verify-bundle.sh`（**push 前**に実行）
+3. Cloud Run ジョブ `urbanoracle-migrate` で `alembic upgrade head`
+4. Cloud Run サービス `urbanoracle` を更新
+5. デプロイ後検証（実行 SA の確認、匿名アクセスが 401 になることの確認）
+
+いずれかが失敗した時点で以降は実行されない。
 
 ### 7.3 環境変数（API 連携時）
 

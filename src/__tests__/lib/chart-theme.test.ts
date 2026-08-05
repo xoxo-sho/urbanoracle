@@ -14,8 +14,23 @@ describe("Chart theme", () => {
   });
 
   it("chart colors reference CSS variables", () => {
-    expect(CHART_COLORS.primary).toContain("var(--");
-    expect(CHART_COLORS.secondary).toContain("var(--");
-    expect(CHART_COLORS.warning).toContain("var(--");
+    for (const value of Object.values(CHART_COLORS)) {
+      expect(value).toContain("var(--");
+    }
+  });
+
+  it("series colors are the two semantic axes plus neutral steps", () => {
+    // design-spec-v1 §2: colour carries meaning. Upside and downside are the
+    // only chromatic series; everything else must be a neutral ink step.
+    expect(CHART_COLORS.upside).toBe("var(--up-text)");
+    expect(CHART_COLORS.downside).toBe("var(--down-text)");
+    for (const key of ["neutral1", "neutral2", "neutral3"] as const) {
+      expect(CHART_COLORS[key]).toMatch(/var\(--chart-[345]\)/);
+    }
+  });
+
+  it("maps signed change onto the upside/downside axis", () => {
+    expect(CHART_COLORS.positive).toBe(CHART_COLORS.upside);
+    expect(CHART_COLORS.negative).toBe(CHART_COLORS.downside);
   });
 });

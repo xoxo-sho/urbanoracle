@@ -26,12 +26,11 @@ const AXIS_LABELS: Record<string, string> = {
 };
 
 const WARD_COLORS = [
-  CHART_COLORS.primary,
-  CHART_COLORS.secondary,
-  CHART_COLORS.warning,
-  CHART_COLORS.purple,
-  CHART_COLORS.yellow,
-  "oklch(0.6 0.18 200)",
+  CHART_COLORS.upside,
+  CHART_COLORS.downside,
+  CHART_COLORS.neutral1,
+  CHART_COLORS.neutral2,
+  CHART_COLORS.neutral3,
 ];
 
 export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
@@ -51,8 +50,8 @@ export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
       </h4>
       <ResponsiveContainer width="100%" height={260}>
         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
-          <PolarGrid stroke="oklch(1 0 0 / 8%)" />
-          <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.6 0 0)", fontSize: 10 }} />
+          <PolarGrid stroke="var(--grid-line)" />
+          <PolarAngleAxis dataKey="axis" tick={{ fill: "var(--axis-tick)", fontSize: 10 }} />
           <PolarRadiusAxis tick={false} axisLine={false} domain={[0, 100]} />
           {profiles.map((p, i) => (
             <Radar key={p.region} name={p.region} dataKey={p.region}
@@ -61,7 +60,7 @@ export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
               fillOpacity={0.06} strokeWidth={1.5}
             />
           ))}
-          <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "oklch(0.55 0 0)" }} />
+          <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
         </RadarChart>
       </ResponsiveContainer>
     </div>

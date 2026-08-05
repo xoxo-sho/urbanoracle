@@ -13,7 +13,8 @@ import {
 } from "recharts";
 import type { DemographicsData, PopulationTrend } from "@/types";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
+import SourceNote from "@/components/dashboard/SourceNote";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
@@ -23,29 +24,40 @@ interface DemographicsChartProps {
 }
 
 export default function DemographicsChart({ data, allData, populationTrends, selectedWard }: DemographicsChartProps) {
-  const sorted = [...data].sort((a, b) => b.population - a.population);
+  const sorted = [...data].sort((a, b) => byValueDesc(a.population, b.population));
   const ward = selectedWard ? sorted[0] : null;
 
   // Averages for comparison when ward is selected
+  const avgPopulation = averageOf(allData.map((d) => d.population));
+  const avgDensity = averageOf(allData.map((d) => d.density));
+  const avgElderly = averageOf(allData.map((d) => d.ageGroups.elderly));
   const avg = {
-    population: Math.round(allData.reduce((s, d) => s + d.population, 0) / allData.length),
-    density: Math.round(allData.reduce((s, d) => s + d.density, 0) / allData.length),
-    growthRate: +(allData.reduce((s, d) => s + d.growthRate, 0) / allData.length).toFixed(1),
-    elderly: Math.round(allData.reduce((s, d) => s + d.ageGroups.elderly, 0) / allData.length),
+    population: hasValue(avgPopulation) ? Math.round(avgPopulation) : null,
+    density: hasValue(avgDensity) ? Math.round(avgDensity) : null,
+    growthRate: averageOf(allData.map((d) => d.growthRate)),
+    elderly: hasValue(avgElderly) ? Math.round(avgElderly) : null,
   };
+
+  // "x% vs the 23-ward average" is only meaningful when both sides exist.
+  const diffPct = (value: number | null, average: number | null): string | null =>
+    hasValue(value) && hasValue(average) && average !== 0
+      ? (((value - average) / average) * 100).toFixed(0)
+      : null;
+  const subVsAverage = (diff: string | null) =>
+    diff === null ? `平均比 ${NO_DATA}` : `平均比 ${Number(diff) > 0 ? "+" : ""}${diff}%`;
 
   // Ward-specific view
   if (ward && selectedWard) {
-    const popDiff = ((ward.population - avg.population) / avg.population * 100).toFixed(0);
-    const densityDiff = ((ward.density - avg.density) / avg.density * 100).toFixed(0);
+    const popDiff = diffPct(ward.population, avg.population);
+    const densityDiff = diffPct(ward.density, avg.density);
     return (
       <div className="space-y-3">
         {/* Ward summary cards */}
         <div className="grid grid-cols-4 gap-2">
-          <MetricCard label="人口" value={`${(ward.population / 10000).toFixed(1)}万`} sub={`平均比 ${Number(popDiff) > 0 ? "+" : ""}${popDiff}%`} positive={Number(popDiff) >= 0} />
-          <MetricCard label="密度" value={`${(ward.density / 1000).toFixed(1)}k`} sub={`平均比 ${Number(densityDiff) > 0 ? "+" : ""}${densityDiff}%`} positive={Number(densityDiff) >= 0} />
-          <MetricCard label="成長率" value={`${ward.growthRate > 0 ? "+" : ""}${ward.growthRate}%`} sub={`平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate}%`} positive={ward.growthRate >= avg.growthRate} />
-          <MetricCard label="高齢率" value={`${ward.ageGroups.elderly}%`} sub={`平均 ${avg.elderly}%`} positive={ward.ageGroups.elderly <= avg.elderly} />
+          <MetricCard label="人口" value={formatMan(ward.population)} sub={subVsAverage(popDiff)} positive={Number(popDiff ?? 0) >= 0} />
+          <MetricCard label="密度" value={formatK(ward.density)} sub={subVsAverage(densityDiff)} positive={Number(densityDiff ?? 0) >= 0} />
+          <MetricCard label="成長率" value={hasValue(ward.growthRate) ? `${ward.growthRate > 0 ? "+" : ""}${ward.growthRate.toFixed(1)}%` : NO_DATA} sub={hasValue(avg.growthRate) ? `平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate.toFixed(1)}%` : `平均 ${NO_DATA}`} positive={(ward.growthRate ?? 0) >= (avg.growthRate ?? 0)} />
+          <MetricCard label="高齢率" value={formatPct(ward.ageGroups.elderly)} sub={`平均 ${formatPct(avg.elderly)}`} positive={(ward.ageGroups.elderly ?? 0) <= (avg.elderly ?? 0)} />
         </div>
 
         {/* Age breakdown */}
@@ -55,8 +67,9 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
           </h4>
           <div className="grid grid-cols-2 gap-3 mt-3">
             <AgeBar label={selectedWard} young={ward.ageGroups.young} working={ward.ageGroups.working} elderly={ward.ageGroups.elderly} />
-            <AgeBar label="23区平均" young={Math.round(allData.reduce((s, d) => s + d.ageGroups.young, 0) / allData.length)} working={Math.round(allData.reduce((s, d) => s + d.ageGroups.working, 0) / allData.length)} elderly={avg.elderly} />
+            <AgeBar label="23区平均" young={averageOf(allData.map((d) => d.ageGroups.young))} working={averageOf(allData.map((d) => d.ageGroups.working))} elderly={avg.elderly} />
           </div>
+          <SourceNote source="estat" unit="%" year="2020年国勢調査" />
         </div>
       </div>
     );
@@ -68,9 +81,18 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
   const prevPop = popTrendData[popTrendData.length - 2]?.人口 ?? latestPop;
   const recentGrowth = ((latestPop - prevPop) / prevPop * 100).toFixed(1);
 
-  const fastestGrowing = allData.reduce((max, d) => d.growthRate > max.growthRate ? d : max);
-  const fastestDeclining = allData.reduce((min, d) => d.growthRate < min.growthRate ? d : min);
-  const mostAged = allData.reduce((max, d) => d.ageGroups.elderly > max.ageGroups.elderly ? d : max);
+  // Wards with no published rate cannot lead or trail a ranking.
+  const ranked = allData.filter((d) => hasValue(d.growthRate));
+  const fastestGrowing = ranked.length
+    ? ranked.reduce((max, d) => (d.growthRate! > max.growthRate! ? d : max))
+    : null;
+  const fastestDeclining = ranked.length
+    ? ranked.reduce((min, d) => (d.growthRate! < min.growthRate! ? d : min))
+    : null;
+  const agedRanked = allData.filter((d) => hasValue(d.ageGroups.elderly));
+  const mostAged = agedRanked.length
+    ? agedRanked.reduce((max, d) => (d.ageGroups.elderly! > max.ageGroups.elderly! ? d : max))
+    : null;
 
   const ageData = sorted.slice(0, 8).map((d) => ({
     name: d.region.replace("区", ""),
@@ -88,7 +110,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
             <div className="text-right">
               <span className="text-base font-bold">{(latestPop / 10000).toFixed(0)}</span>
               <span className="text-[10px] text-muted-foreground">万人</span>
-              <span className={`ml-1.5 text-[10px] font-medium ${Number(recentGrowth) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <span className="ml-1.5 text-[10px] font-medium" style={{ color: Number(recentGrowth) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
                 {Number(recentGrowth) > 0 ? "+" : ""}{recentGrowth}%
               </span>
             </div>
@@ -97,34 +119,35 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
             <AreaChart data={popTrendData}>
               <defs>
                 <linearGradient id="demoPopGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.2} />
-                  <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
+                  <stop offset="0%" stopColor={CHART_COLORS.upside} stopOpacity={0.18} />
+                  <stop offset="100%" stopColor={CHART_COLORS.upside} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="year" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} />
               <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={36} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} domain={["dataMin - 300000", "dataMax + 200000"]} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => typeof v === "number" ? `${v.toLocaleString()}人` : v} />
-              <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.primary} strokeWidth={2} fill="url(#demoPopGrad)" />
+              <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.upside} strokeWidth={2} fill="url(#demoPopGrad)" />
             </AreaChart>
           </ResponsiveContainer>
+          <SourceNote source="estat" unit="人" year="2000–2025年" />
         </div>
       )}
 
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-emerald-500/8 border border-emerald-500/15 py-2 px-1">
-          <div className="text-sm font-bold text-emerald-300">+{fastestGrowing.growthRate}%</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing.region}</div>
-          <div className="text-[8px] text-emerald-400/60">最大成長</div>
+        <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
+          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing?.region ?? ""}</div>
+          <div className="text-[8px] text-muted-foreground">最大成長</div>
         </div>
-        <div className="rounded-lg bg-red-500/8 border border-red-500/15 py-2 px-1">
-          <div className="text-sm font-bold text-red-300">{fastestDeclining.growthRate}%</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining.region}</div>
-          <div className="text-[8px] text-red-400/60">最大減少</div>
+        <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
+          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining?.region ?? ""}</div>
+          <div className="text-[8px] text-muted-foreground">最大減少</div>
         </div>
-        <div className="rounded-lg bg-amber-500/8 border border-amber-500/15 py-2 px-1">
-          <div className="text-sm font-bold text-amber-300">{mostAged.ageGroups.elderly}%</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{mostAged.region}</div>
-          <div className="text-[8px] text-amber-400/60">高齢化率1位</div>
+        <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>
+          <div className="text-sm font-bold tabular-nums">{mostAged ? formatPct(mostAged.ageGroups.elderly) : NO_DATA}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{mostAged?.region ?? ""}</div>
+          <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
         </div>
       </div>
 
@@ -135,12 +158,13 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
             <XAxis type="number" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <YAxis type="category" dataKey="name" {...AXIS_STYLE} width={36} />
             <Tooltip contentStyle={TOOLTIP_STYLE} />
-            <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "oklch(0.55 0 0)" }} />
-            <Bar dataKey="0-14歳" stackId="a" fill="oklch(0.72 0.12 220)" radius={0} />
-            <Bar dataKey="15-64歳" stackId="a" fill="oklch(0.55 0.16 250)" radius={0} />
-            <Bar dataKey="65歳+" stackId="a" fill="oklch(0.42 0.12 280)" radius={[0, 3, 3, 0]} />
+            <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
+            <Bar dataKey="0-14歳" stackId="a" fill="var(--chart-5)" radius={0} />
+            <Bar dataKey="15-64歳" stackId="a" fill="var(--chart-4)" radius={0} />
+            <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
           </BarChart>
         </ResponsiveContainer>
+        <SourceNote source="estat" unit="%" year="2020年国勢調査" />
       </div>
     </div>
   );
@@ -151,24 +175,38 @@ function MetricCard({ label, value, sub, positive }: { label: string; value: str
     <div className="chart-section text-center py-3">
       <div className="text-[10px] text-muted-foreground mb-1">{label}</div>
       <div className="text-lg font-bold">{value}</div>
-      <div className={`text-[9px] mt-0.5 ${positive ? "text-emerald-400" : "text-red-400"}`}>{sub}</div>
+      <div className="text-[9px] mt-0.5" style={{ color: positive ? "var(--up-text)" : "var(--down-text)" }}>{sub}</div>
     </div>
   );
 }
 
-function AgeBar({ label, young, working, elderly }: { label: string; young: number; working: number; elderly: number }) {
+function AgeBar({
+  label,
+  young,
+  working,
+  elderly,
+}: {
+  label: string;
+  young: number | null;
+  working: number | null;
+  elderly: number | null;
+}) {
+  // An unpublished share draws no segment at all — a zero-width bar is the
+  // honest rendering of "not published", unlike a 0% label.
+  const width = (value: number | null) => (hasValue(value) ? `${value}%` : "0%");
+
   return (
     <div>
       <div className="text-[10px] text-muted-foreground mb-1.5">{label}</div>
       <div className="flex h-3 rounded-full overflow-hidden">
-        <div style={{ width: `${young}%`, background: "oklch(0.72 0.12 220)" }} />
-        <div style={{ width: `${working}%`, background: "oklch(0.55 0.16 250)" }} />
-        <div style={{ width: `${elderly}%`, background: "oklch(0.42 0.12 280)" }} />
+        <div style={{ width: width(young), background: "var(--chart-5)" }} />
+        <div style={{ width: width(working), background: "var(--chart-4)" }} />
+        <div style={{ width: width(elderly), background: "var(--chart-3)" }} />
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-muted-foreground">年少{young}%</span>
-        <span className="text-[9px] text-muted-foreground">生産{working}%</span>
-        <span className="text-[9px] text-muted-foreground">高齢{elderly}%</span>
+        <span className="text-[9px] text-muted-foreground">年少{formatPct(young)}</span>
+        <span className="text-[9px] text-muted-foreground">生産{formatPct(working)}</span>
+        <span className="text-[9px] text-muted-foreground">高齢{formatPct(elderly)}</span>
       </div>
     </div>
   );

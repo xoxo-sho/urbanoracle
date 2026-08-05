@@ -1,0 +1,9 @@
+# Backend runtime + test dependencies (Stage 2b). Pinned like the Parallel
+# City precedent — upgrades are deliberate changes, not CI surprises.
+fastapi==0.115.12
+sqlalchemy==2.0.41
+psycopg[binary]==3.2.9
+alembic==1.16.1
+pyjwt[crypto]==2.10.1
+pytest==8.3.5
+httpx==0.28.1

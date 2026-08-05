@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Dashboard", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+    // The dashboard moved to /app in Stage 4-P2b; / is now the landing page.
+    await page.goto("/app");
     // Wait for page to be interactive (tabs rendered)
     await page.waitForSelector("[data-slot='tabs']", { timeout: 10000 });
   });
@@ -39,11 +40,11 @@ test.describe("Dashboard", () => {
     // Select a ward
     await selector.selectOption("千代田区");
     // Ward name appears in map overlay label
-    await expect(page.locator(".glass").first()).toContainText("千代田区");
+    await expect(page.locator(".map-overlay").first()).toContainText("千代田区");
 
     // Reset
     await selector.selectOption("");
-    await expect(page.locator(".glass").first()).toContainText("全エリア");
+    await expect(page.locator(".map-overlay").first()).toContainText("全エリア");
   });
 
   test("key metrics are displayed", async ({ page }) => {

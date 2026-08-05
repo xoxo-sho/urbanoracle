@@ -9,23 +9,21 @@ import {
   Legend,
 } from "recharts";
 import type { DisasterRisk, ZoningArea } from "@/types";
-import { TOOLTIP_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE } from "@/lib/chart-theme";
+import { AXIS, NEUTRAL, riskStep } from "@/lib/palette";
 import { AlertTriangle, Droplets, Mountain, Waves } from "lucide-react";
+import SourceNote from "@/components/dashboard/SourceNote";
 
 const riskIcons = { flood: Droplets, earthquake: AlertTriangle, landslide: Mountain, tsunami: Waves };
 const riskLabels: Record<string, string> = { flood: "洪水", earthquake: "地震", landslide: "土砂災害", tsunami: "津波" };
+// Hazard type is a category, not a magnitude: neutral ink steps, with the
+// single downside hue reserved for severity below.
 const riskColors: Record<string, string> = {
-  flood: CHART_COLORS.primary, earthquake: CHART_COLORS.warning,
-  landslide: CHART_COLORS.secondary, tsunami: CHART_COLORS.purple,
+  flood: NEUTRAL[1], earthquake: AXIS.down.text,
+  landslide: NEUTRAL[2], tsunami: NEUTRAL[3],
 };
 
-const levelConfig: Record<number, { bg: string; text: string; bar: string }> = {
-  1: { bg: "bg-emerald-500/10", text: "text-emerald-300", bar: "bg-emerald-500" },
-  2: { bg: "bg-yellow-500/10", text: "text-yellow-300", bar: "bg-yellow-500" },
-  3: { bg: "bg-orange-500/10", text: "text-orange-300", bar: "bg-orange-500" },
-  4: { bg: "bg-red-500/10", text: "text-red-300", bar: "bg-red-500" },
-  5: { bg: "bg-red-600/15", text: "text-red-200", bar: "bg-red-600" },
-};
+
 
 interface DisasterRiskPanelProps {
   risks: DisasterRisk[];
@@ -33,7 +31,7 @@ interface DisasterRiskPanelProps {
   selectedWard: string | null;
 }
 
-export default function DisasterRiskPanel({ risks, zoning, selectedWard }: DisasterRiskPanelProps) {
+export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelProps) {
   // Pie: risk type distribution
   const riskByType = risks.reduce<Record<string, number>>((acc, r) => {
     acc[r.type] = (acc[r.type] ?? 0) + 1;
@@ -63,9 +61,10 @@ export default function DisasterRiskPanel({ risks, zoning, selectedWard }: Disas
                 {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Legend iconSize={6} wrapperStyle={{ fontSize: "10px", color: "oklch(0.6 0 0)" }} />
+              <Legend iconSize={6} wrapperStyle={{ fontSize: "10px", color: "var(--muted-foreground)" }} />
             </PieChart>
           </ResponsiveContainer>
+          <SourceNote source="hazard" unit="件" year="2024年" />
         </div>
 
         {/* Zoning — stacked horizontal bar, not a chart library component */}
@@ -93,9 +92,10 @@ export default function DisasterRiskPanel({ risks, zoning, selectedWard }: Disas
               </div>
             ))}
             {zoning.length > 5 && (
-              <span className="text-[9px] text-muted-foreground">+{zoning.length - 5} more</span>
+              <span className="text-[9px] text-muted-foreground">他 {zoning.length - 5} 区分</span>
             )}
           </div>
+          <SourceNote source="ksj" unit="面積 %" year="2024年" />
         </div>
       </div>
 
@@ -105,15 +105,15 @@ export default function DisasterRiskPanel({ risks, zoning, selectedWard }: Disas
           .sort((a, b) => b.level - a.level)
           .map((risk, i) => {
             const Icon = riskIcons[risk.type];
-            const config = levelConfig[risk.level];
+            const step = riskStep(risk.level);
             return (
               <div key={risk.id}
-                className="group rounded-xl border border-border/50 bg-card/30 p-3 transition-colors hover:bg-accent/50 animate-fade-in-up"
+                className="group rounded-sm border border-border/50 bg-card/30 p-3 transition-colors hover:bg-accent/50 animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${config.bg}`}>
-                    <Icon className={`h-4 w-4 ${config.text}`} />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm" style={{ background: step.fill }}>
+                    <Icon className="h-4 w-4" style={{ color: step.text }} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
@@ -125,12 +125,12 @@ export default function DisasterRiskPanel({ risks, zoning, selectedWard }: Disas
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((level) => (
                           <div key={level}
-                            className={`h-1 w-4 rounded-full ${level <= risk.level ? config.bar : "bg-secondary"}`}
-                            style={{ opacity: level <= risk.level ? 0.8 : 0.3 }}
+                            className="h-1 w-4 rounded-full"
+                            style={{ background: level <= risk.level ? step.bar : "var(--secondary)" }}
                           />
                         ))}
                       </div>
-                      <span className={`text-[10px] font-bold ${config.text}`}>Lv.{risk.level}</span>
+                      <span className="text-[10px] font-bold" style={{ color: step.text }}>Lv.{risk.level}</span>
                     </div>
                   </div>
                 </div>

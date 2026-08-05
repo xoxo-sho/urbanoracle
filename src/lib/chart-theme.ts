@@ -1,3 +1,5 @@
+import { AXIS, NEUTRAL } from "@/lib/palette";
+
 export const TOOLTIP_STYLE = {
   background: "var(--tooltip-bg)",
   border: "1px solid var(--tooltip-border)",
@@ -18,13 +20,24 @@ export const AXIS_STYLE = {
 
 export const CURSOR_STYLE = { fill: "var(--cursor-fill)" };
 
+/**
+ * Series colours (design-spec-v1 §2, §10(b)).
+ *
+ * `upside`/`downside` are the only chromatic series. Everything else is a
+ * neutral ink step — fully desaturated, so a chart can never imply a meaning
+ * the data does not carry.
+ */
 export const CHART_COLORS = {
-  primary: "var(--chart-1)",
-  secondary: "var(--chart-2)",
-  warning: "var(--chart-3)",
-  purple: "var(--chart-4)",
-  yellow: "var(--chart-5)",
-  primaryMuted: "var(--chart-1)",
-  positive: "oklch(0.55 0.18 160)",
-  negative: "oklch(0.55 0.2 25)",
+  upside: AXIS.up.text,
+  upsideStrong: AXIS.up.strong,
+  upsideFill: AXIS.up.fill,
+  downside: AXIS.down.text,
+  downsideStrong: AXIS.down.strong,
+  downsideFill: AXIS.down.fill,
+  neutral1: NEUTRAL[1],
+  neutral2: NEUTRAL[2],
+  neutral3: NEUTRAL[3],
+  /** Signed change: gains are upside, losses are downside. */
+  positive: AXIS.up.text,
+  negative: AXIS.down.text,
 } as const;

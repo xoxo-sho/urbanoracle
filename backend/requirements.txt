@@ -1,0 +1,22 @@
+# Runtime dependencies for the container image.
+#
+# Pinned, like the Parallel City precedent — a dependency upgrade should be a
+# deliberate commit, not a surprise at build time.
+#
+# Deliberately ABSENT (UrbanOracle has no ML/PDF/3D capability): scikit-learn,
+# lightgbm, joblib, numpy/pandas, reportlab, trimesh. Adding an unused heavy
+# dependency would mean shipping a runtime surface nothing exercises.
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+
+# DB (Cloud SQL Postgres; identity only, no PostGIS)
+sqlalchemy==2.0.41
+psycopg[binary]==3.2.9
+alembic==1.16.1
+
+# Auth — GIP RS256 verification. [crypto] pulls in the RSA backend PyJWT needs
+# to check securetoken signatures.
+pyjwt[crypto]==2.10.1
+
+# Outbound calls to REINFOLIB / e-Stat
+httpx==0.28.1

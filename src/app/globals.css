@@ -7,9 +7,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+
+  /* Step Zero (spec §1): --font-sans used to reference itself, so it resolved
+     to nothing and Geist Sans was never applied. It now points at the variable
+     next/font actually defines. */
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* Headings only (spec §3): 欧文 serif first, 和文 明朝 as the fallback that
+     picks up every Japanese glyph. */
+  --font-heading: var(--font-source-serif), var(--font-zen-old-mincho), serif;
+
+  /* Semantic axis (spec §2), exposed to Tailwind as text-up-text, bg-down-fill … */
+  --color-up-text: var(--up-text);
+  --color-up-strong: var(--up-strong);
+  --color-up-aa: var(--up-aa);
+  --color-up-ui: var(--up-ui);
+  --color-up-fill: var(--up-fill);
+  --color-down-text: var(--down-text);
+  --color-down-strong: var(--down-strong);
+  --color-down-aa: var(--down-aa);
+  --color-down-ui: var(--down-ui);
+  --color-down-fill: var(--down-fill);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +58,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Radius (spec §10(a)): tightened from 0.75rem to 0.25rem. An atlas plate has
+     near-square corners; the H項 audit caps computed radii at 8px. */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,110 +70,167 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ─── Light mode (default) ─── */
+/* ─── Light mode — atlas cream ground (spec §2) ───
+   Every text token is measured against #FAF7F1; see src/__tests__/lib/palette
+   for the enforced AA gate. */
 :root {
-  --background: oklch(0.98 0.005 265);
-  --foreground: oklch(0.15 0.01 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.01 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.01 265);
-  --primary: oklch(0.55 0.22 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.95 0.005 265);
-  --secondary-foreground: oklch(0.25 0.01 265);
-  --muted: oklch(0.95 0.005 265);
-  --muted-foreground: oklch(0.48 0 0);
-  --accent: oklch(0.95 0.008 265);
-  --accent-foreground: oklch(0.15 0.01 265);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0 0 0 / 8%);
-  --input: oklch(0 0 0 / 8%);
-  --ring: oklch(0.55 0.22 250);
-  --chart-1: oklch(0.55 0.22 250);
-  --chart-2: oklch(0.55 0.18 160);
-  --chart-3: oklch(0.6 0.2 30);
-  --chart-4: oklch(0.55 0.18 310);
-  --chart-5: oklch(0.6 0.16 80);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.97 0.005 265);
-  --sidebar-foreground: oklch(0.15 0.01 265);
-  --sidebar-primary: oklch(0.55 0.22 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.95 0.008 265);
-  --sidebar-accent-foreground: oklch(0.15 0.01 265);
-  --sidebar-border: oklch(0 0 0 / 8%);
-  --sidebar-ring: oklch(0.55 0.22 250);
+  --background: #FAF7F1;
+  --foreground: #1A1814;
+  --card: #FFFDF9;
+  --card-foreground: #1A1814;
+  --popover: #FFFDF9;
+  --popover-foreground: #1A1814;
 
-  /* Glass tokens — light */
-  --glass-bg: oklch(1 0 0 / 72%);
-  --glass-border: oklch(0 0 0 / 8%);
-  --glass-highlight: oklch(0 0 0 / 3%);
+  /* Upside 深紺 / downside 深銅 — the only chromatic meaning in the system. */
+  --up-text: #16305C;    /* 12.19:1 — AAA */
+  --up-strong: #0054A5;  /*  6.99:1 — AA  */
+  --up-aa: #2272CD;      /*  4.51:1 — large text / UI */
+  --up-ui: #4491EF;      /*  3.00:1 — strokes, non-text */
+  --up-fill: #DCE6F4;    /* area fill only */
+  --down-text: #6E2417;  /* 10.19:1 — AAA */
+  --down-strong: #A02905;/*  6.98:1 — AA  */
+  --down-aa: #C34B2D;    /*  4.50:1 — large text / UI */
+  --down-ui: #E66B4C;    /*  2.99:1 — fill only */
+  --down-fill: #F4E1D8;  /* area fill only */
 
-  /* Chart tokens — light */
-  --tooltip-bg: oklch(1 0 0 / 97%);
-  --tooltip-border: oklch(0 0 0 / 8%);
-  --tooltip-radius: 12px;
-  --tooltip-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --tooltip-color: oklch(0.15 0 0);
-  --axis-tick: oklch(0.45 0 0);
-  --axis-tick-muted: oklch(0.6 0 0);
-  --grid-line: oklch(0 0 0 / 6%);
-  --chart-section-bg: oklch(0 0 0 / 2%);
-  --chart-section-border: oklch(0 0 0 / 6%);
-  --cursor-fill: oklch(0 0 0 / 4%);
+  --primary: #16305C;
+  --primary-foreground: #FAF7F1;
+  --secondary: #F1EDE4;
+  --secondary-foreground: #33302A;
+  --muted: #F1EDE4;
+  --muted-foreground: #5C574E;  /* 6.71:1 */
+  --accent: #EFEBE1;
+  --accent-foreground: #1A1814;
+  --destructive: #A02905;
+  --border: rgb(26 24 20 / 12%);
+  --input: rgb(26 24 20 / 14%);
+  --ring: #16305C;
+
+  /* Chart series (spec §10(b)): fully desaturated except the two axis colors.
+     chart-1/2 carry meaning; 3–5 are neutral ink steps. */
+  --chart-1: #16305C;
+  --chart-2: #6E2417;
+  --chart-3: #4A453D;
+  --chart-4: #6E6960;
+  --chart-5: #918B80;
+
+  /* Categorical (non-axis) ramp — zoning classes and similar. Neutral by
+     construction: category is not magnitude, so it gets no hue. */
+  --ink-1: #2E2A24;
+  --ink-2: #423D35;
+  --ink-3: #565046;
+  --ink-4: #6B6459;
+  --ink-5: #82796C;
+  --ink-6: #9A9184;
+  --ink-7: #B4AC9F;
+  --ink-8: #CFC8BC;
+
+  --radius: 0.25rem;
+
+  --sidebar: #F5F1E8;
+  --sidebar-foreground: #1A1814;
+  --sidebar-primary: #16305C;
+  --sidebar-primary-foreground: #FAF7F1;
+  --sidebar-accent: #EFEBE1;
+  --sidebar-accent-foreground: #1A1814;
+  --sidebar-border: rgb(26 24 20 / 12%);
+  --sidebar-ring: #16305C;
+
+  /* Surfaces — solid and hairline-ruled, no blur (spec §8). */
+  --surface: #FFFDF9;
+  --surface-border: rgb(26 24 20 / 14%);
+  --rule: rgb(26 24 20 / 12%);
+  --rule-strong: rgb(26 24 20 / 26%);
+
+  /* Chart tokens */
+  --tooltip-bg: #FFFDF9;
+  --tooltip-border: rgb(26 24 20 / 18%);
+  --tooltip-radius: 2px;
+  --tooltip-shadow: none;
+  --tooltip-color: #1A1814;
+  --axis-tick: #5C574E;         /* 6.71:1 */
+  --axis-tick-muted: #6E6960;   /* 5.10:1 */
+  --grid-line: rgb(26 24 20 / 10%);
+  --chart-section-bg: transparent;
+  --chart-section-border: rgb(26 24 20 / 12%);
+  --cursor-fill: rgb(26 24 20 / 5%);
 }
 
-/* ─── Dark mode ─── */
+/* ─── Dark mode — ink ground (spec §10(c): current ink CONFIRMED) ───
+   Measured against #0F1319, the ground the frozen spec's dark hexes were
+   solved on, so every ratio it states holds exactly. */
 .dark {
-  --background: oklch(0.11 0.015 265);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.14 0.012 265);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.14 0.012 265);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.72 0.19 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.19 0.012 265);
-  --secondary-foreground: oklch(0.85 0 0);
-  --muted: oklch(0.19 0.012 265);
-  --muted-foreground: oklch(0.58 0 0);
-  --accent: oklch(0.19 0.018 265);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.65 0.22 25);
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.72 0.19 250);
-  --chart-1: oklch(0.72 0.19 250);
-  --chart-2: oklch(0.72 0.17 160);
-  --chart-3: oklch(0.72 0.18 30);
-  --chart-4: oklch(0.72 0.18 310);
-  --chart-5: oklch(0.78 0.14 80);
-  --sidebar: oklch(0.14 0.012 265);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.72 0.19 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.19 0.018 265);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(1 0 0 / 7%);
-  --sidebar-ring: oklch(0.72 0.19 250);
+  --background: #0F1319;
+  --foreground: #F2EFE8;
+  --card: #151A21;
+  --card-foreground: #F2EFE8;
+  --popover: #151A21;
+  --popover-foreground: #F2EFE8;
 
-  /* Glass tokens — dark */
-  --glass-bg: oklch(0.12 0.015 265 / 72%);
-  --glass-border: oklch(1 0 0 / 8%);
-  --glass-highlight: oklch(1 0 0 / 4%);
+  --up-text: #8AABD6;    /* 7.87:1 — AAA */
+  --up-strong: #54A1FF;  /* 7.02:1 — AA  */
+  --up-aa: #2F7DDA;      /* 4.49:1 — large text / UI */
+  --up-ui: #0660BA;      /* 3.01:1 — strokes, non-text */
+  --up-fill: #1B2C42;
+  --down-text: #E9A387;  /* 8.92:1 — AAA */
+  --down-strong: #F77A5B;/* 7.00:1 — AA  */
+  --down-aa: #CF5739;    /* 4.50:1 — large text / UI */
+  --down-ui: #AE3819;    /* 3.00:1 — strokes, non-text */
+  --down-fill: #3A2117;
 
-  /* Chart tokens — dark */
-  --tooltip-bg: oklch(0.14 0.012 265 / 95%);
-  --tooltip-border: oklch(1 0 0 / 10%);
-  --tooltip-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --tooltip-color: oklch(0.95 0 0);
-  --axis-tick: oklch(0.45 0 0);
-  --axis-tick-muted: oklch(0.35 0 0);
-  --grid-line: oklch(1 0 0 / 5%);
-  --chart-section-bg: oklch(1 0 0 / 2%);
-  --chart-section-border: oklch(1 0 0 / 5%);
-  --cursor-fill: oklch(1 0 0 / 3%);
+  --primary: #8AABD6;
+  --primary-foreground: #0F1319;
+  --secondary: #1B212A;
+  --secondary-foreground: #DEDAD2;
+  --muted: #1B212A;
+  --muted-foreground: #9E9C97;  /* 6.79:1 */
+  --accent: #1E242E;
+  --accent-foreground: #F2EFE8;
+  --destructive: #F77A5B;
+  --border: rgb(242 239 232 / 12%);
+  --input: rgb(242 239 232 / 16%);
+  --ring: #8AABD6;
+
+  --chart-1: #8AABD6;
+  --chart-2: #E9A387;
+  --chart-3: #C6C4BE;
+  --chart-4: #9E9C97;
+  --chart-5: #74726D;
+
+  --ink-1: #EDEBE6;
+  --ink-2: #D6D3CD;
+  --ink-3: #BFBCB6;
+  --ink-4: #A8A5A0;
+  --ink-5: #918E89;
+  --ink-6: #7A7873;
+  --ink-7: #64625E;
+  --ink-8: #4E4C49;
+
+  --sidebar: #151A21;
+  --sidebar-foreground: #F2EFE8;
+  --sidebar-primary: #8AABD6;
+  --sidebar-primary-foreground: #0F1319;
+  --sidebar-accent: #1E242E;
+  --sidebar-accent-foreground: #F2EFE8;
+  --sidebar-border: rgb(242 239 232 / 12%);
+  --sidebar-ring: #8AABD6;
+
+  --surface: #151A21;
+  --surface-border: rgb(242 239 232 / 14%);
+  --rule: rgb(242 239 232 / 12%);
+  --rule-strong: rgb(242 239 232 / 26%);
+
+  --tooltip-bg: #151A21;
+  --tooltip-border: rgb(242 239 232 / 20%);
+  --tooltip-radius: 2px;
+  --tooltip-shadow: none;
+  --tooltip-color: #F2EFE8;
+  --axis-tick: #9E9C97;         /* 6.79:1 */
+  --axis-tick-muted: #87857F;   /* 5.05:1 */
+  --grid-line: rgb(242 239 232 / 9%);
+  --chart-section-bg: transparent;
+  --chart-section-border: rgb(242 239 232 / 12%);
+  --cursor-fill: rgb(242 239 232 / 5%);
 }
 
 @layer base {
@@ -164,21 +243,29 @@
   html {
     @apply font-sans;
   }
+  /* 明朝 is for large type only (spec §3) — never small body or data. */
+  h1,
+  h2,
+  h3,
+  .heading {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
 }
 
-/* ─── Glass utility ─── */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1px solid var(--glass-border);
+/* ─── Editorial surfaces (replaces .glass / .glass-strong, spec §2 + §8) ───
+   Opaque plate + hairline rule. No backdrop-filter anywhere in the system. */
+.plate {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
 }
 
-.glass-strong {
-  background: var(--glass-bg);
-  backdrop-filter: blur(32px) saturate(1.5);
-  -webkit-backdrop-filter: blur(32px) saturate(1.5);
-  border: 1px solid var(--glass-border);
+/* Map overlays sit on top of tiles, so they need an opaque ground rather than
+   a translucent one to stay legible over any basemap. */
+.map-overlay {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
 }
 
 /* ─── Animations ─── */
@@ -188,21 +275,6 @@
 }
 .animate-count-up {
   animation: countUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes pulseRing {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.8); opacity: 0; }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.shimmer {
-  background: linear-gradient(90deg, transparent 25%, var(--glass-highlight) 50%, transparent 75%);
-  background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
 }
 
 @keyframes fadeInUp {
@@ -216,16 +288,15 @@
 /* ─── Map overrides ─── */
 .maplibregl-popup-content {
   background: var(--tooltip-bg) !important;
-  backdrop-filter: blur(20px) !important;
   color: var(--foreground) !important;
   border: 1px solid var(--tooltip-border) !important;
-  border-radius: 16px !important;
-  box-shadow: var(--tooltip-shadow) !important;
-  padding: 14px 18px !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  padding: 12px 14px !important;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: var(--card) !important;
+  border-top-color: var(--surface) !important;
 }
 
 .maplibregl-popup-close-button {
@@ -233,25 +304,25 @@
 }
 
 .maplibregl-ctrl-group {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: 12px !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
   overflow: hidden;
 }
 
 .maplibregl-ctrl-group button {
-  width: 36px !important;
-  height: 36px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .maplibregl-ctrl-group button + button {
-  border-top: 1px solid var(--glass-border) !important;
+  border-top: 1px solid var(--rule) !important;
 }
 
 .dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
   filter: invert(1) !important;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .dark .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon {
@@ -270,23 +341,17 @@
 /* ─── Scrollbar ─── */
 .side-panel::-webkit-scrollbar { width: 4px; }
 .side-panel::-webkit-scrollbar-track { background: transparent; }
-.side-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+.side-panel::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 2px; }
 
 /* ─── Recharts overrides ─── */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
   stroke: var(--grid-line) !important;
 }
-.recharts-tooltip-wrapper {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
-}
-.dark .recharts-tooltip-wrapper {
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
-}
 
-/* ─── Chart section card ─── */
+/* ─── Chart section: a ruled block, not a floating card ─── */
 .chart-section {
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--chart-section-border);
   background: var(--chart-section-bg);
   padding: 14px;
@@ -299,7 +364,14 @@
   align-items: center;
   gap: 2px;
   padding: 12px 8px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--chart-section-border);
   background: var(--chart-section-bg);
+}
+
+/* ─── Source / provenance line (spec §9) ─── */
+.source-note {
+  color: var(--muted-foreground);
+  font-size: 9px;
+  line-height: 1.5;
 }

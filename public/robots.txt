@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /api/
-
-Sitemap: https://urbanoracle-seven.vercel.app/sitemap.xml

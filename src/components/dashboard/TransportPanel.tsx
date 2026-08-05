@@ -11,7 +11,9 @@ import {
 } from "recharts";
 import type { TransportStation, TransportTrend } from "@/types";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
+import SourceNote from "@/components/dashboard/SourceNote";
 
 interface TransportPanelProps {
   stations: TransportStation[];
@@ -19,14 +21,17 @@ interface TransportPanelProps {
   selectedWard: string | null;
 }
 
-export default function TransportPanel({ stations, trends, selectedWard }: TransportPanelProps) {
-  const sorted = [...stations].sort((a, b) => b.dailyPassengers - a.dailyPassengers);
-  const maxPassengers = sorted[0]?.dailyPassengers ?? 1;
+export default function TransportPanel({ stations, trends }: TransportPanelProps) {
+  // Stations without ODPT coverage sort last rather than as zero.
+  const sorted = [...stations].sort((a, b) => byValueDesc(a.dailyPassengers, b.dailyPassengers));
+  const known = sorted.map((s) => s.dailyPassengers).filter(hasValue);
+  const maxPassengers = known.length ? Math.max(...known) : 0;
 
   // Treemap data: aggregate lines across stations
   const lineMap = new Map<string, number>();
   for (const s of stations) {
     for (const line of s.lines) {
+      if (!hasValue(s.dailyPassengers)) continue;
       lineMap.set(line, (lineMap.get(line) ?? 0) + s.dailyPassengers);
     }
   }
@@ -47,30 +52,35 @@ export default function TransportPanel({ stations, trends, selectedWard }: Trans
     return row;
   });
 
-  const trendColors = [CHART_COLORS.secondary, CHART_COLORS.primary, CHART_COLORS.warning];
+  const trendColors = [CHART_COLORS.upside, CHART_COLORS.neutral1, CHART_COLORS.neutral2];
 
   return (
     <div className="space-y-4">
       {/* Station ranking */}
       <div className="space-y-1.5">
         {sorted.map((station, i) => {
-          const ratio = station.dailyPassengers / maxPassengers;
+          const ratio =
+            hasValue(station.dailyPassengers) && maxPassengers > 0
+              ? station.dailyPassengers / maxPassengers
+              : 0;
           const isFirst = i === 0;
           return (
             <div key={station.id}
-              className="group relative rounded-xl border border-border/50 bg-card/30 overflow-hidden transition-colors hover:bg-accent/50 animate-fade-in-up"
+              className="group relative rounded-sm border border-border/50 bg-card/30 overflow-hidden transition-colors hover:bg-accent/50 animate-fade-in-up"
               style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}
             >
-              <div className="absolute inset-y-0 left-0 bg-emerald-500/8" style={{ width: `${ratio * 100}%` }} />
+              <div className="absolute inset-y-0 left-0" style={{ width: `${ratio * 100}%`, background: "var(--up-fill)" }} />
               <div className="relative flex items-center gap-3 px-3 py-2.5">
-                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
-                  isFirst ? "bg-emerald-500/20 text-emerald-300" : "bg-secondary text-muted-foreground"
-                }`}>{i + 1}</span>
-                <Train className={`h-3.5 w-3.5 shrink-0 ${isFirst ? "text-emerald-400" : "text-muted-foreground"}`} />
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-[11px] font-bold tabular-nums"
+                  style={isFirst
+                    ? { background: "var(--up-fill)", color: "var(--up-text)" }
+                    : { background: "var(--secondary)", color: "var(--muted-foreground)" }}
+                >{i + 1}</span>
+                <Train className="h-3.5 w-3.5 shrink-0" style={{ color: isFirst ? "var(--up-text)" : "var(--muted-foreground)" }} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{station.name}</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{(station.dailyPassengers / 10000).toFixed(1)}万</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{formatMan(station.dailyPassengers)}</span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {station.lines.slice(0, 3).map((line) => (
@@ -97,17 +107,17 @@ export default function TransportPanel({ stations, trends, selectedWard }: Trans
             data={treemapData}
             dataKey="size"
             aspectRatio={3}
-            stroke="oklch(0.11 0.015 265)"
+            stroke="var(--background)"
             content={({ x, y, width, height, name }) => {
               const w = typeof width === "number" ? width : 0;
               const h = typeof height === "number" ? height : 0;
               return (
                 <g>
-                  <rect x={x} y={y} width={w} height={h} rx={4}
-                    fill={CHART_COLORS.secondary} fillOpacity={w < 30 || h < 20 ? 0.3 : 0.6}
+                  <rect x={x} y={y} width={w} height={h} rx={1}
+                    fill={CHART_COLORS.upside} fillOpacity={w < 30 || h < 20 ? 0.35 : 0.7}
                   />
                   {w > 50 && h > 25 && (
-                    <text x={Number(x) + 6} y={Number(y) + 14} fontSize={10} fill="oklch(0.9 0 0)">
+                    <text x={Number(x) + 6} y={Number(y) + 14} fontSize={10} fill="var(--background)">
                       {typeof name === "string" ? name : ""}
                     </text>
                   )}
@@ -116,6 +126,12 @@ export default function TransportPanel({ stations, trends, selectedWard }: Trans
             }}
           />
         </ResponsiveContainer>
+        <SourceNote
+          source="odpt"
+          unit="乗降客数 人/日"
+          year="2024年調査"
+          note="駅の位置・路線は国土数値情報。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」"
+        />
       </div>
 
       {/* Transport trends */}
@@ -149,6 +165,7 @@ export default function TransportPanel({ stations, trends, selectedWard }: Trans
               ))}
             </AreaChart>
           </ResponsiveContainer>
+          <SourceNote source="ksj" unit="人/日" year="2019–2024年" />
         </div>
       )}
     </div>

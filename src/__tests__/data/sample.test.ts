@@ -14,8 +14,15 @@ describe("Sample data integrity", () => {
     expect(sampleDemographics).toHaveLength(23);
     for (const d of sampleDemographics) {
       expect(d.region).toMatch(/区$/);
+      // The bundled fallback must be complete: nulls are for live upstream
+      // data with suppressed cells, never for the sample set.
+      expect(d.population).not.toBeNull();
       expect(d.population).toBeGreaterThan(0);
-      expect(d.ageGroups.young + d.ageGroups.working + d.ageGroups.elderly).toBe(100);
+      const { young, working, elderly } = d.ageGroups;
+      expect(young).not.toBeNull();
+      expect(working).not.toBeNull();
+      expect(elderly).not.toBeNull();
+      expect(young! + working! + elderly!).toBe(100);
     }
   });
 

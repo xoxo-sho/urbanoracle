@@ -20,7 +20,7 @@ describe("Ward boundaries", () => {
     const geojson = buildStationGeoJSON(stations);
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(1);
-    expect(geojson.features[0].properties.name).toBe("新宿駅");
+    expect(geojson.features[0].properties?.name).toBe("新宿駅");
     expect(geojson.features[0].geometry.type).toBe("Point");
   });
 });

@@ -13,7 +13,10 @@ import {
   Cell,
 } from "recharts";
 import type { LandPriceSummary, DemographicsData } from "@/types";
+import { hasValue } from "@/lib/format";
 import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import SourceNote from "@/components/dashboard/SourceNote";
+import { APPROX_LOCATION_NOTE } from "@/lib/sources";
 
 interface LandPriceChartProps {
   prices: LandPriceSummary[];
@@ -33,7 +36,9 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
   const scatterData = prices
     .map((p) => {
       const demo = demographics.find((d) => d.region === p.region);
-      if (!demo) return null;
+      // A ward whose population/density is unpublished has no position on
+      // this scatter; plotting it at 0 would invent a data point.
+      if (!demo || !hasValue(demo.density) || !hasValue(demo.population)) return null;
       return { name: p.region.replace("区", ""), x: demo.density, y: p.avgPrice / 10000, z: demo.population };
     })
     .filter(Boolean);
@@ -63,13 +68,14 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
             <Bar dataKey="avgPrice" radius={[3, 3, 0, 0]}>
               {sorted.map((entry, i) => (
                 <Cell key={i}
-                  fill={selectedWard && entry.region === selectedWard ? CHART_COLORS.primary : CHART_COLORS.warning}
+                  fill={selectedWard && entry.region === selectedWard ? CHART_COLORS.upside : CHART_COLORS.neutral1}
                   opacity={selectedWard ? (entry.region === selectedWard ? 1 : 0.3) : 1 - i * 0.07}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        <SourceNote source="reinfolib" unit="円/m²" year="2024年" note={APPROX_LOCATION_NOTE} />
       </div>
 
       {/* Scatter: the cross-analysis — this is the real insight */}
@@ -99,13 +105,14 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
                 return [Number(value).toLocaleString(), "人口"];
               }}
             />
-            <Scatter data={scatterData} fill={CHART_COLORS.warning}>
+            <Scatter data={scatterData} fill={CHART_COLORS.neutral1}>
               {scatterData.map((_, i) => (
-                <Cell key={i} fill={CHART_COLORS.warning} opacity={0.7} />
+                <Cell key={i} fill={CHART_COLORS.neutral1} opacity={0.75} />
               ))}
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
+        <SourceNote source="reinfolib" unit="円/m² × 人/km²" year="2024年" />
       </div>
     </div>
   );
