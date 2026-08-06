@@ -25,13 +25,14 @@ DATA_ROUTES = [
 
 ACTIVE_CLAIMS = {
     "sub": "gipuid_routes_active_00001",
-    "email": "analyst@customcorp.jp",  # layer4 -> auto-approved
-    "email_verified": True,
+    "email": "analyst@customcorp.jp",
+    "email_verified": True,  # verified -> active
 }
 PENDING_CLAIMS = {
     "sub": "gipuid_routes_pending_0001",
-    "email": "visitor@gmail.com",  # layer3 -> pending
-    "email_verified": True,
+    "email": "visitor@gmail.com",
+    # UNVERIFIED is now the only way to be pending — see test_second_gate.
+    "email_verified": False,
 }
 TOKENS = {"active-token": ACTIVE_CLAIMS, "pending-token": PENDING_CLAIMS}
 

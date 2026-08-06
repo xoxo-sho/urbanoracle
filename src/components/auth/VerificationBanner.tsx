@@ -13,11 +13,14 @@ import { firebaseAuth } from "@/lib/firebase";
  * completion, and when it sees completion it asks the backend to re-run the
  * activation rule.
  *
- * That second part is the upgrade path from Stage 2b. A user on an allowlist
- * or custom domain who is pending *only* because Layer 1 saw an unverified
- * address should become active the moment they verify, without waiting on a
- * manual review that the rule never required. Without this call they would
- * sit in /pending until someone noticed.
+ * That second part is the upgrade path. Verification is the ONLY thing that
+ * decides activation now, so a user who verifies should become active the
+ * moment they do — without a re-login and without waiting on a review that no
+ * longer exists. Without this call they would keep hitting /pending.
+ *
+ * This banner is the in-app case: an active user whose address is merely
+ * unconfirmed. The full-screen sibling at /pending handles the other case —
+ * not yet active *because* unverified — and is where a 403 lands.
  */
 
 const POLL_INTERVAL_MS = 30_000;

@@ -57,15 +57,21 @@ def test_invited_freemail_address_pends_until_verified_then_raises(
     assert user.is_active is True  # L2 now applies
 
 
-def test_a_different_freemail_address_is_not_raised(db_session, _invited_freemail):
-    """The invitation is for one address, not for gmail.com."""
+def test_an_uninvited_verified_freemail_address_is_active(db_session, _invited_freemail):
+    """Open signup: an uninvited gmail is admitted like anyone else.
+
+    This assertion is INVERTED from the curated model, deliberately — it is
+    the behaviour change itself. Under the 5-layer rule this address pended at
+    Layer 4; there is no Layer 4. The fixture still sets an email allowlist to
+    prove the point: even with one configured, it changes nothing.
+    """
     other = {
         "sub": "gipuid_reevaluate_other_001",
         "email": "someone.else@gmail.com",
         "email_verified": True,
     }
     user = ensure_user(db_session, other)
-    assert user.is_active is False  # still pends at L4
+    assert user.is_active is True
 
 
 def test_re_evaluate_never_revokes_an_invited_user(db_session, _invited_freemail, monkeypatch):
