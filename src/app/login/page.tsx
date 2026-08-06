@@ -65,12 +65,19 @@ export default function LoginPage() {
           email,
           password
         );
-        // Verification is sent immediately but gates nothing (§6): the
-        // account is usable while the message is in transit.
         await sendEmailVerification(credential.user);
-      } else {
-        await signInWithEmailAndPassword(firebaseAuth(), email, password);
+        // Straight to the verification screen rather than via /app.
+        //
+        // Routing to /app worked only by accident: the dashboard would fetch,
+        // get 403 pending_activation, and api-gate would bounce here. That put
+        // a redirect race on the critical path of every signup, and it made the
+        // screen a consequence of a failed request rather than a destination.
+        // A user who has just been told to check their email should be looking
+        // at the page that says so.
+        router.push("/pending");
+        return;
       }
+      await signInWithEmailAndPassword(firebaseAuth(), email, password);
       router.push("/app");
     });
   };
