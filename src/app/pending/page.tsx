@@ -8,25 +8,26 @@ import { useAuth } from "@/lib/auth-context";
 import { firebaseAuth } from "@/lib/firebase";
 
 /**
- * メール確認 — the only reason an authenticated caller is not yet active.
+ * メールアドレスの確認 — the last step of an open signup.
  *
- * Registration is open. This screen used to say 審査中 ("under review") because
- * activation ran a five-layer curation rule; that rule is now a single check on
- * `email_verified`, so there is nothing to review and nobody to wait for. The
- * copy had to change with it: telling someone their access is "being reviewed"
- * when no review exists would leave them waiting for an email that never comes,
- * instead of opening the one already in their inbox.
+ * Deliberately built on the same two-column editorial ground as /login: this is
+ * a step inside the product, not a system notice. The earlier version read like
+ * an error page, which framed a routine wait as something having gone wrong.
  *
- * Reached from a 403 carrying `pending_activation` (see lib/api-gate.ts), which
- * now means exactly one thing: the address is unverified.
+ * Registration is open, so there is no review and nobody to wait for — only an
+ * unopened message. The copy says exactly that and nothing more reassuring than
+ * it can honestly promise.
  *
- * Two ways out, because verification completes in a different tab and this page
- * cannot observe that directly:
- *   - a poll, for the user who leaves this open;
- *   - an explicit re-check, for the user who comes back and wants it now.
+ * Mechanics are unchanged from the functional version:
+ *   - a 15s poll, for the user who leaves this tab open;
+ *   - an explicit re-check, for the user who returns and wants it now.
  * Both force-refresh the ID token before asking the backend to re-evaluate — a
- * cached token still carries `email_verified: false`, so re-evaluating against
- * it would report "still pending" to someone who has just verified.
+ * cached token still carries email_verified:false and would report "still
+ * pending" to someone who has just verified.
+ *
+ * Since activation now converges on any authenticated request, this screen is a
+ * convenience rather than the only way through; a user who ignores it and
+ * navigates back to /app is activated there instead.
  */
 
 const POLL_INTERVAL_MS = 15_000;
@@ -39,14 +40,11 @@ export default function VerifyEmailPage() {
   const [stillUnverified, setStillUnverified] = useState(false);
   const settled = useRef(false);
 
-  /** Re-run the rule with a fresh token; on success land the user in /app. */
   const recheck = useCallback(async () => {
     if (settled.current) return false;
     const next = await refresh();
     if (!next?.emailVerified) return false;
 
-    // Verified: force a token refresh so the claim is current, then ask the
-    // backend to lift is_active false->true (re_evaluate is raise-only).
     const token = await getToken(true);
     if (!token) return false;
     try {
@@ -56,8 +54,6 @@ export default function VerifyEmailPage() {
       });
       if (!res.ok) return false;
     } catch {
-      // Network failure is not terminal: the next sign-in performs the same
-      // upgrade through ensure_user, so we simply stay on this screen.
       return false;
     }
     settled.current = true;
@@ -71,78 +67,103 @@ export default function VerifyEmailPage() {
   }, [recheck]);
 
   return (
-    <main className="min-h-dvh flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-lg">
-        <div
-          className="rounded-sm border p-8 sm:p-10"
-          style={{ background: "var(--up-fill)", borderColor: "var(--surface-border)" }}
-        >
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-            VERIFY YOUR EMAIL
-          </p>
-          <h1 className="heading mt-3 text-2xl" style={{ color: "var(--up-text)" }}>
-            メールを確認してください
+    <main className="min-h-dvh grid lg:grid-cols-[1.1fr_1fr]">
+      {/* Editorial ground — the same 深紺 field the sign-in page stands on. */}
+      <section
+        className="hidden lg:flex flex-col justify-between p-10"
+        style={{ background: "var(--up-fill)" }}
+      >
+        <Link href="/" className="text-[11px] tracking-widest uppercase text-muted-foreground">
+          UrbanOracle
+        </Link>
+        <div className="max-w-md">
+          <h1 className="heading text-3xl leading-snug" style={{ color: "var(--up-text)" }}>
+            あと一歩で、
+            <br />
+            計器が開きます。
           </h1>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            確認できたメールアドレスだけを受け入れています。審査はありません——
+            リンクを開いた時点で、すべての機能がそのまま使えます。
+          </p>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          一つのアカウントで DXA Labs の全プロダクトにアクセスできます。
+        </p>
+      </section>
+
+      <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
+        <div className="w-full max-w-sm mx-auto">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+            VERIFICATION
+          </p>
+          <h2 className="heading mt-2 text-2xl">メールアドレスの確認</h2>
 
           <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-            {user?.email ? `${user.email} 宛に` : "ご登録のメールアドレス宛に"}
-            確認メールをお送りしました。メール内のリンクを開くと、認証が完了します。
-          </p>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            認証が完了すると、そのままご利用いただけます。審査や承認の待ち時間はありません。
+            確認メールをお送りしました。メール内のリンクを開くと認証が完了します。
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              disabled={checking}
-              onClick={async () => {
-                setChecking(true);
-                setStillUnverified(false);
-                const ok = await recheck();
-                if (!ok) setStillUnverified(true);
-                setChecking(false);
-              }}
-              className="rounded-sm border px-4 py-2 text-[11px] disabled:opacity-60"
-              style={{ borderColor: "var(--surface-border)", color: "var(--up-text)" }}
+          {user?.email && (
+            <p
+              className="mt-3 rounded-sm border px-3 py-2 text-xs tabular-nums"
+              style={{ borderColor: "var(--rule)", background: "var(--surface)" }}
             >
-              {checking ? "確認中…" : "認証を確認"}
-            </button>
-
-            <button
-              type="button"
-              onClick={async () => {
-                const current = firebaseAuth().currentUser;
-                if (!current) return;
-                await sendEmailVerification(current).catch(() => undefined);
-                setResent(true);
-              }}
-              className="text-[11px] underline underline-offset-2 text-muted-foreground hover:text-foreground"
-            >
-              {resent ? "確認メールを再送しました" : "確認メールを再送"}
-            </button>
-          </div>
-
-          {stillUnverified && (
-            <p role="status" className="mt-4 text-[11px] text-muted-foreground">
-              まだ認証が確認できません。メール内のリンクを開いてから、もう一度お試しください。
+              {user.email}
             </p>
           )}
 
-          <div className="mt-7 pt-5" style={{ borderTop: "1px solid var(--rule)" }}>
-            <p className="text-[10px] leading-relaxed text-muted-foreground">
-              一つのアカウントで DXA Labs の全プロダクトにアクセスできます。
-            </p>
-          </div>
-        </div>
+          <button
+            type="button"
+            disabled={checking}
+            onClick={async () => {
+              setChecking(true);
+              setStillUnverified(false);
+              const ok = await recheck();
+              if (!ok) setStillUnverified(true);
+              setChecking(false);
+            }}
+            className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: "var(--up-text)" }}
+          >
+            {checking ? "確認しています…" : "認証を確認"}
+          </button>
 
-        <Link
-          href="/"
-          className="mt-5 inline-block text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
-          UrbanOracle について
-        </Link>
-      </div>
+          {stillUnverified && (
+            <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
+              まだ認証を確認できません。メール内のリンクを開いてから、もう一度お試しください。
+            </p>
+          )}
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+            <span className="text-[10px] text-muted-foreground">メールが届かない場合</span>
+            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              const current = firebaseAuth().currentUser;
+              if (!current) return;
+              await sendEmailVerification(current).catch(() => undefined);
+              setResent(true);
+            }}
+            className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+          >
+            {resent ? "確認メールを再送しました" : "確認メールを再送"}
+          </button>
+
+          <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+            迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。
+          </p>
+
+          <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
+            <Link href="/" className="underline underline-offset-2 hover:text-foreground">
+              UrbanOracle について
+            </Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
