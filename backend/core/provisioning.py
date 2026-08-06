@@ -1,12 +1,12 @@
-"""Create the ``users`` row for a first-time authenticated caller (CURATED).
+"""Create the ``users`` row for a first-time authenticated caller (OPEN).
 
 Anyone holding a verified identity on the shared ``dxalabs-platform`` tenant
-gets a UrbanOracle *row* on their first authenticated request — but not
-necessarily an *active* account. Authentication itself is unchanged: the
-RS256 signature, issuer, audience and expiry are all verified upstream in
+gets a UrbanOracle *row* on their first authenticated request, and — once the
+address is verified — an *active* account. Authentication itself is unchanged:
+the RS256 signature, issuer, audience and expiry are all verified upstream in
 ``core.gip_auth``, and an anonymous caller still gets 401. Whether the row
-starts active is decided by the 5-layer rule below; ``users.is_active`` is
-the PRIMARY access gate (curated model), enforced by ``core.authz``.
+starts active is decided by the single rule below; ``users.is_active`` remains
+the PRIMARY access gate, enforced by ``core.authz``.
 
 Provider-agnostic: the rule reads only ``sub`` / ``email`` /
 ``email_verified`` claims, which Google sign-in and Email/Password both
@@ -26,37 +26,35 @@ gets their own Organization (1-user-1-org), and nothing here can reach
 another product: UrbanOracle only ever holds its own DATABASE_URL. A shared
 identity tenant does not imply a shared user table.
 
-THE 5-LAYER AUTO-APPROVAL RULE (first match wins, fail-closed):
+THE RULE: A VERIFIED EMAIL, AND NOTHING ELSE.
 
-    Layer 1: email_verified != true            -> is_active=False (pending)
-    Layer 2: email in EMAIL allowlist          -> is_active=True  (auto-approve)
-    Layer 3: domain in DOMAIN allowlist        -> is_active=True  (auto-approve)
-    Layer 4: domain in FREEMAIL denylist       -> is_active=False (pending)
-    Layer 5: otherwise                         -> is_active=True  (auto-approve)
+    email_verified != true  -> is_active=False  (must verify first)
+    email_verified == true  -> is_active=True   (open self-signup)
 
-Layer 2 sits ABOVE the freemail denylist on purpose: it admits one named
-address without admitting its domain. Inviting an individual investor who
-uses gmail must not open gmail.com to everyone, and that is exactly what
-the ordering buys — every other address on that domain still pends at
-Layer 4.
+Registration is open. Anyone who proves control of an email address gets a
+working account; there is no curation, no invite, no allowlist and no
+freemail denylist. What used to be a five-layer rule collapsed to its first
+layer when the product opened up, and the four layers below it were deleted
+rather than disabled — a dormant allowlist is a trap for whoever reads this
+next.
 
-Layer 1 still outranks it. An unverified address that appears on the email
-allowlist PENDS, and is raised only after verification completes (see
-re_evaluate). Otherwise anyone able to type an allowlisted address into a
-sign-up form would be admitted as its owner.
+**Verification is now the ONLY guardrail, so it is load-bearing.** Before,
+an unverified address merely lost a race against later layers; now it is the
+single thing standing between a stranger and an active account. Anyone who
+can type an address they do not own must not inherit it. `test_open_signup`
+fault-injects exactly this: flip the check and the suite goes red.
 
-Normalization is applied identically to the full address and to the domain
-(trimmed, lowercased, domain taken after the LAST '@'), on both the claim
-and the configured entries. An un-normalized comparison is a silent
-allowlist/denylist bypass.
+Verification arrives late. Email/Password users sign up unverified and
+confirm out of band, so ``re_evaluate`` raises them false->true when the
+verified claim shows up (see below). Google sign-in supplies
+``email_verified: true`` on the first token, so those users are active
+immediately.
 
-Decisions are logged with the local part scrubbed, including Layer 2 hits:
-knowing that an allowlisted address matched does not require writing the
-address into the log.
+Decisions are logged with the local part scrubbed: knowing that an address
+was activated does not require writing the address into the log.
 """
 
 import logging
-import os
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -65,29 +63,6 @@ from sqlalchemy.orm import Session
 from db.models import Organization, User, UserRole
 
 logger = logging.getLogger(__name__)
-
-ALLOWLIST_ENV = "URBANORACLE_ALLOWLIST_DOMAINS"
-FREEMAIL_ENV = "URBANORACLE_FREEMAIL_DOMAINS"
-EMAIL_ALLOWLIST_ENV = "URBANORACLE_ALLOWLIST_EMAILS"
-
-# Used only when FREEMAIL_ENV is unset. An operator may set it (even to an
-# empty string) to take explicit control of the denylist.
-SEED_FREEMAIL_DOMAINS = (
-    "gmail.com",
-    "googlemail.com",
-    "yahoo.co.jp",
-    "yahoo.com",
-    "ymail.com",
-    "outlook.com",
-    "hotmail.com",
-    "live.com",
-    "icloud.com",
-    "me.com",
-    "proton.me",
-    "protonmail.com",
-    "aol.com",
-    "gmx.com",
-)
 
 
 class ProvisioningRefusedError(Exception):
@@ -101,35 +76,9 @@ class ProvisioningRefusedError(Exception):
     """
 
 
-def _normalize_email(email: str) -> str:
-    """The whole address, trimmed and lowercased."""
-    return email.strip().lower()
-
-
 def _normalize_domain(email: str) -> str:
     """Substring after the LAST '@', lowercased, trimmed."""
     return email.strip().rsplit("@", 1)[-1].strip().lower()
-
-
-def _domains_from_env(var: str, default: tuple[str, ...] = ()) -> set[str]:
-    raw = os.environ.get(var)
-    entries = default if raw is None else raw.split(",")
-    return {d.strip().lower() for d in entries if d.strip()}
-
-
-def _allowlist() -> set[str]:
-    return _domains_from_env(ALLOWLIST_ENV)
-
-
-def _allowlisted_emails() -> set[str]:
-    """Individually invited addresses. Empty (the default) approves nobody."""
-    raw = os.environ.get(EMAIL_ALLOWLIST_ENV)
-    entries = () if raw is None else raw.split(",")
-    return {_normalize_email(e) for e in entries if e.strip()}
-
-
-def _freemail() -> set[str]:
-    return _domains_from_env(FREEMAIL_ENV, default=SEED_FREEMAIL_DOMAINS)
 
 
 def _scrubbed(email: str) -> str:
@@ -137,28 +86,29 @@ def _scrubbed(email: str) -> str:
 
 
 def evaluate_activation(email: str, email_verified: bool) -> tuple[bool, str]:
-    """Run the 5-layer rule. Returns (is_active, deciding_layer)."""
-    # L1 is unconditional: no claim about an address counts until the address
-    # has been proven to belong to the caller.
+    """Verified email in, active account out. Returns (is_active, reason).
+
+    ``email`` is unused by the decision and kept only so callers and the log
+    line keep a single signature; the address never influences whether the
+    account activates. That is the point of an open product — no address,
+    domain or provider is treated as more welcome than another.
+
+    Fail-closed: anything that is not an explicit True is unverified.
+    """
     if not email_verified:
-        return False, "layer1-unverified"
-    if _normalize_email(email) in _allowlisted_emails():
-        return True, "layer2-email-allowlist"
-    domain = _normalize_domain(email)
-    if domain in _allowlist():
-        return True, "layer3-domain-allowlist"
-    if domain in _freemail():
-        return False, "layer4-freemail"
-    return True, "layer5-default"
+        return False, "unverified"
+    return True, "verified"
 
 
 def re_evaluate(user: User) -> User:
-    """Re-run the 5-layer rule for an existing user. RAISE-ONLY.
+    """Re-check an existing user against the rule. RAISE-ONLY.
 
-    May lift is_active false->true (e.g. after email verification completes,
-    or after the allowlist widens). MUST NOT lower true->false: tightening
-    the allowlist never revokes an already-approved user — deactivation is a
-    deliberate manual act, not a side effect of a config change.
+    Lifts is_active false->true once email verification completes — the whole
+    reason an Email/Password signup is not a dead end. MUST NOT lower
+    true->false: deactivation is a deliberate manual act, never a side effect
+    of re-evaluation. The guard stays even though nothing can currently
+    demand a downgrade, because the day something can, the safe behaviour
+    should already be the implemented one.
 
     Does not commit; the caller owns the transaction.
     """

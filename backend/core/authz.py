@@ -5,12 +5,18 @@ ensures a provisioned row exists (core.provisioning). Anything short of a
 verified, provisionable identity is a 401.
 
 Gate 2 — ``require_active``: layered ON TOP; requires ``is_active=true``.
-A validly authenticated, provisioned, but pending user gets 403 with the
-structured body ``{"status": "pending_activation"}`` so the frontend can
-route to an "under review" screen.
+A validly authenticated, provisioned, but not-yet-active user gets 403 with
+the structured body ``{"status": "pending_activation"}`` so the frontend can
+route to the email-verification screen.
+
+Registration is open, so ``pending_activation`` now carries exactly one
+meaning: the address is unverified. The status string is kept verbatim
+because it is a wire contract with lib/api-gate.ts — renaming it to match the
+narrower meaning would be a breaking change for a cosmetic gain.
 
 The two outcomes are deliberately distinct: 401 = we don't know who you
-are; 403+pending = we know exactly who you are and the answer is "not yet".
+are; 403+pending = we know exactly who you are, and you have not confirmed
+your address yet.
 """
 
 from fastapi import Depends, FastAPI, HTTPException, Request

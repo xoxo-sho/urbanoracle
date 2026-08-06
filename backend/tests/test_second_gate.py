@@ -16,13 +16,17 @@ from db.models import User
 
 ACTIVE_CLAIMS = {
     "sub": "gipuid_secondgate_active_001",
-    "email": "boss@customcorp.jp",  # layer4 -> auto-approved
-    "email_verified": True,
+    "email": "boss@customcorp.jp",
+    "email_verified": True,  # verified -> active
 }
 PENDING_CLAIMS = {
     "sub": "gipuid_secondgate_pending_1",
-    "email": "newbie@gmail.com",  # layer3 -> pending
-    "email_verified": True,
+    "email": "newbie@gmail.com",
+    # UNVERIFIED is now the only way to be pending. This used to be a verified
+    # gmail held back by the freemail denylist; that layer is gone, so a
+    # verified address here would be ACTIVE and these tests would assert
+    # nothing about the second gate.
+    "email_verified": False,
 }
 TOKENS = {"active-token": ACTIVE_CLAIMS, "pending-token": PENDING_CLAIMS}
 

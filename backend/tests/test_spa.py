@@ -30,7 +30,7 @@ def site(tmp_path):
     (tmp_path / "index.html").write_text("<html><h1>UrbanOracle</h1></html>")
     (tmp_path / "app.html").write_text("<html><div id=dashboard></div></html>")
     (tmp_path / "login.html").write_text("<html><h2>サインイン</h2></html>")
-    (tmp_path / "pending.html").write_text("<html><h1>アクセスを審査中です</h1></html>")
+    (tmp_path / "pending.html").write_text("<html><h1>メールを確認してください</h1></html>")
     (tmp_path / "404.html").write_text("<html><p>ページが見つかりません</p></html>")
     (tmp_path / "sitemap.xml").write_text("<urlset></urlset>")
     (tmp_path / "robots.txt").write_text("User-Agent: *\n")
