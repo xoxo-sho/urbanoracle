@@ -50,6 +50,13 @@ verified claim shows up (see below). Google sign-in supplies
 ``email_verified: true`` on the first token, so those users are active
 immediately.
 
+**Re-registration.** ``users.email`` is UNIQUE and rows are keyed on
+``auth_uid``, so a user deleted from the IdP who signs up again arrives with a
+new uid and collides with their own surviving row. That used to be a permanent
+lockout. ``ensure_user`` now rebinds the row to the new identity — but only
+when the incoming token is verified, because "same address, new uid" is also
+exactly what an account takeover looks like. See the branch for the reasoning.
+
 Decisions are logged with the local part scrubbed: knowing that an address
 was activated does not require writing the address into the log.
 """
@@ -158,6 +165,52 @@ def ensure_user(session: Session, claims: dict) -> User:
             re_evaluate(user)
             session.commit()
         return user
+
+    # No row under this uid. Before creating one, check whether the ADDRESS is
+    # already held by a different sign-in identity — ``users.email`` is UNIQUE,
+    # so an INSERT would fail anyway; the question is what to do about it.
+    #
+    # The legitimate case is re-registration: a user deleted from the IdP (or
+    # who deleted themselves) signs up again with the same address and receives
+    # a brand-new uid. Their row survives, still bound to the dead uid, and
+    # without this branch they are refused forever — the account is unreachable
+    # by the only person who can prove they own the address.
+    #
+    # The dangerous case is identical in shape: someone signing up with an
+    # address they do not own, hoping to inherit the row and its organization.
+    #
+    # ``email_verified`` is the ONLY thing separating them, so it gates the
+    # rebind. Proving control of the address is exactly the evidence needed to
+    # be handed what that address already owns.
+    existing = session.scalar(select(User).where(User.email == email))
+    if existing is not None:
+        if not email_verified:
+            # Deliberately a refusal, not a pending row: we cannot create one
+            # (email is UNIQUE) and we must not rebind on an unproven claim.
+            # A genuine returning user reaches the branch below the moment they
+            # verify — one extra sign-in, versus handing over an account.
+            logger.info(
+                "refused rebind of %s: incoming identity has not verified the address",
+                _scrubbed(email),
+            )
+            raise ProvisioningRefusedError(
+                "email already registered under a different sign-in identity"
+            )
+
+        existing.auth_uid = auth_uid
+        existing.email_verified = True
+        # re_evaluate rather than assigning is_active directly: it is raise-only,
+        # so a row that was deactivated by hand is not silently reactivated by
+        # someone re-registering. (No ban feature exists today; this keeps the
+        # property from being lost the day one does.)
+        re_evaluate(existing)
+        session.commit()
+        logger.info(
+            "rebound %s to a new verified sign-in identity (is_active=%s)",
+            _scrubbed(email),
+            existing.is_active,
+        )
+        return existing
 
     active, layer = evaluate_activation(email, email_verified)
     org = Organization(name=email)
