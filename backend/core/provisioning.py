@@ -158,11 +158,32 @@ def ensure_user(session: Session, claims: dict) -> User:
 
     user = session.scalar(select(User).where(User.auth_uid == auth_uid))
     if user is not None:
-        # Email-verification completion upgrade: an Email/Password user who
-        # verified since last login gets re-evaluated (raise-only).
+        changed = False
+
+        # Record verification the first time a token proves it.
         if email_verified and not user.email_verified:
             user.email_verified = True
-            re_evaluate(user)
+            changed = True
+
+        # Activation is re-checked whenever the caller is INACTIVE and the token
+        # proves verification — deliberately not only on the false->true
+        # transition above.
+        #
+        # Keying on the transition leaves a row stranded: anything already
+        # email_verified=True but is_active=False is never re-examined, because
+        # the transition has already happened and cannot happen twice. The
+        # curated rule produced exactly those rows (verified address, held back
+        # by the freemail layer), and opening signup did not free them — every
+        # later request skipped the branch that would have noticed.
+        #
+        # Checking is_active instead makes activation a property of the current
+        # state rather than of a moment that may have already passed, so it
+        # converges on the next authenticated request from any entry point.
+        if email_verified and not user.is_active:
+            re_evaluate(user)  # raise-only: can lift false->true, never lower
+            changed = True
+
+        if changed:
             session.commit()
         return user
 
