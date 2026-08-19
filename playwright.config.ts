@@ -2,6 +2,9 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
+  // The dxa-ui font-metrics spec has its own config (playwright.font.config.ts,
+  // static server over out/, no dev server) and runs as its own CI step.
+  testIgnore: /font-metrics\.spec\.ts/,
   timeout: 30000,
   retries: 1,
   use: {

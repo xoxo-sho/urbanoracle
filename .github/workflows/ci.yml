@@ -23,6 +23,28 @@ jobs:
 
       - run: npm ci
 
+      # ---- dxa-ui font gate (Track 1) ------------------------------------------
+      # This workflow is what deploy.yml calls (workflow_call) and
+      # `deploy: needs: ci`, so a red step here blocks the deploy (shape A;
+      # the deploy's paths-ignore matches none of these inputs). Four checks:
+      #   0/3 drift    — vendored token bytes match .dxa-ui-version
+      #   1/3 static   — no JA text through a CJK-less stack, incl. the v4
+      #                  @theme keys (this theme is `inline`: the key is the
+      #                  only place the stack exists in source); token rules
+      #   1b  encoding — the EMITTED CSS carries the JA local() names as UTF-8
+      #   2/3+3/3 metrics — a headless browser proves JA/Latin/mono render in
+      #                  the delivered faces by EFFECTIVE font-family (inline
+      #                  theme emits no --font-* runtime vars), asserts the
+      #                  heading stack is untouched, and asserts the runtime
+      #                  check's console line (the tree mounts on the
+      #                  placeholder structural build below).
+      # Not covered: DXA JA Fallback Windows/Legacy local() faces (no Windows
+      # runner; the Apple test self-skips on ubuntu).
+      - name: "Font check 0/3 — drift: vendored dxa-ui tokens match .dxa-ui-version"
+        run: npm run check:dxa-drift
+      - name: "Font check 1/3 — static: no JA text through a CJK-less stack; token rules"
+        run: npm run check:fonts
+
       - name: Lint
         run: npm run lint
 
@@ -51,6 +73,9 @@ jobs:
       - name: Verify bundle structure
         run: SKIP_REAL_CONFIG=1 npm run verify:bundle
 
+      - name: "Font check 1b — build output: emitted CSS is UTF-8 with the JA local() names"
+        run: npm run check:css-encoding
+
       # The gate that decides whether a bundle may ship is itself tested:
       # every assertion is broken in turn and must turn the verifier red,
       # including the canonical-absence discriminator (LP served at /app).
@@ -61,6 +86,20 @@ jobs:
       # This proves the guard that now rejects that class still works.
       - name: Build-arg guard self-test
         run: npm run verify:guard
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+      - name: "Font check 2/3 + 3/3 — metrics on out/; runtime check console asserted"
+        # Serves out/ with a static server (own config, no dev server). Fonts
+        # are self-hosted by next/font — no network needed.
+        run: npm run test:fonts
+      - name: Upload font check report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: font-metrics-report
+          path: playwright-report
+          if-no-files-found: ignore
 
   backend:
     runs-on: ubuntu-latest
