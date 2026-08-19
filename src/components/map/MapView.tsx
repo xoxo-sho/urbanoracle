@@ -289,10 +289,14 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
         const price = props.avgLandPrice ? `${(Number(props.avgLandPrice) / 10000).toFixed(0)}万` : "—";
         const pop = props.population ? `${(Number(props.population) / 10000).toFixed(1)}万` : "—";
 
+        // dxa-ui: the tooltip font is the CSS token directly — this is DOM (a
+        // MapLibre popup html string → element), not canvas, so var() resolves.
+        // The old value named Geist only, and this tooltip renders 人口 / 地価 /
+        // 密度 and ward names.
         popup.current
           .setLngLat(e.lngLat)
           .setHTML(`
-            <div style="font-family:var(--font-geist-sans,system-ui);line-height:1.5;">
+            <div style="font-family:var(--dxa-font-sans);line-height:1.5;">
               <div style="font-size:13px;font-weight:700;color:var(--foreground);margin-bottom:4px;">${name}</div>
               <div style="font-size:11px;color:var(--muted-foreground);display:grid;grid-template-columns:auto 1fr;gap:2px 8px;">
                 <span>人口</span><span style="text-align:right;color:var(--foreground);">${pop}人</span>
@@ -332,7 +336,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
         popup.current
           .setLngLat(e.lngLat)
           .setHTML(`
-            <div style="font-family:var(--font-geist-sans,system-ui);">
+            <div style="font-family:var(--dxa-font-sans);">
               <div style="font-size:13px;font-weight:700;color:var(--foreground);">${props.name}</div>
               <div style="font-size:12px;color:var(--up-text);font-weight:600;">${(Number(props.passengers) / 10000).toFixed(1)}万人/日</div>
             </div>

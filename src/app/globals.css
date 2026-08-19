@@ -1,6 +1,27 @@
+/* dxa-ui font tokens — MUST be the first @import, ahead of tailwindcss, so
+   --dxa-font-* exist before Preflight and the theme read them. Vendored copy;
+   edit dxa-ui/tokens then re-run dxa-ui/scripts/sync.mjs. CI: `npm run
+   check:dxa-drift`. Source: https://github.com/xoxo-sho/dxa-ui (v0.2.0). */
+@import "./dxa/dxa-tokens.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+/* dxa-ui bridge — Next form (dxa-ui/docs/FONT-LOADING.md §3.1): the product's
+   own faces via the next/font variables layout.tsx puts on <html>. Latin =
+   Geist, mono = Geist Mono (the product's choices, untouched), JA = Noto Sans
+   JP — a NEW loader; no JA webfont existed on this surface before. Outside
+   @theme so the values are real runtime variables. Declared on `html`, NOT
+   as a second root-pseudo-class block: src/__tests__/lib/palette.test.ts (the
+   measured contrast gate) parses the FIRST root block in this file — found by
+   its literal text, comments included — for the palette hexes; a bridge
+   block (or even this comment naming it) ahead of the palette blanks that
+   parse and fails 13 contrast tests. `html` is the same element. */
+html {
+  --dxa-face-latin: var(--font-geist-sans);
+  --dxa-face-ja: var(--font-noto-sans-jp);
+  --dxa-face-mono: var(--font-geist-mono);
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,10 +30,20 @@
   --color-foreground: var(--foreground);
 
   /* Step Zero (spec §1): --font-sans used to reference itself, so it resolved
-     to nothing and Geist Sans was never applied. It now points at the variable
-     next/font actually defines. */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+     to nothing and Geist Sans was never applied. It then pointed at the
+     next/font variable — which gave the body chain `Geist, "Geist Fallback"`
+     and NOTHING after it: no CJK face (621 JA chars on the LP went through
+     it on per-glyph engine fallback) and no generic terminator (a failed
+     Geist load would have left nothing). Both keys now route through the
+     dxa-ui tokens, which supply the named JA face, the three local() JA
+     fallback faces, AND the generic terminator in one chain. --font-mono
+     too: the LP's year cells render "2024年" in .font-mono (content rule).
+     NOTE: this @theme is `inline` — Tailwind inlines these values into the
+     utilities and does NOT emit --font-sans / --font-mono as runtime
+     variables. Verification therefore reads the EFFECTIVE font-family on
+     elements (html/body/.font-mono), never a --font-* variable. */
+  --font-sans: var(--dxa-font-sans);
+  --font-mono: var(--dxa-font-mono);
   /* Headings only (spec §3): 欧文 serif first, 和文 明朝 as the fallback that
      picks up every Japanese glyph. */
   --font-heading: var(--font-source-serif), var(--font-zen-old-mincho), serif;

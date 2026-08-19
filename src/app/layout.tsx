@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/lib/auth-context";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
+import { FontRuntimeCheck } from "./font-runtime-check";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,6 +14,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// The body JA face (dxa-ui, 2026-08-19). Until this loader existed the body
+// chain was `Geist, "Geist Fallback"` and nothing else — no CJK face, no
+// generic family — so every Japanese glyph (621 on the LP) fell through to
+// the engine's per-glyph system fallback, silently, and a failed Geist load
+// would have left nothing at all after it. Geist stays the Latin face; this
+// is what the bridge's --dxa-face-ja points at. preload:false like the other
+// JP faces on the platform (many unicode-range slices); display swap.
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  preload: false,
+  display: "swap",
 });
 
 // Heading faces (spec §3), self-hosted as heading-only subsets so the payload
@@ -69,10 +85,14 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${zenOldMincho.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${sourceSerif.variable} ${zenOldMincho.variable} antialiased`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground">
+        {/* dxa-ui check 3 — runtime font assertion. Sibling of AuthProvider, not
+            inside it: it must run on every route and has nothing to do with the
+            auth seam (api-gate / auth-context untouched). Renders nothing. */}
+        <FontRuntimeCheck />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
