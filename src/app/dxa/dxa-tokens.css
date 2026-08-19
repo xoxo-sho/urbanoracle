@@ -1,0 +1,195 @@
+@charset "UTF-8";
+/* dxa-ui v0.2.0 — DO NOT EDIT. Synced from dxa-ui/tokens. */
+
+/* ===========================================================================
+   v0.2.0 ships FONT TOKENS ONLY.
+
+   ENCODING: @charset "UTF-8" is line 1 and is load-bearing. This file carries
+   Japanese local() names (游ゴシック Medium / 游ゴシック Regular / メイリオ).
+   A surface that serves CSS without a charset header would otherwise read
+   those bytes as Latin-1, producing mojibake and a silently non-matching
+   local() — bug #1's shape again, with no detector. Bundlers may hoist or
+   strip @charset, so the declaration alone is not trusted: each consuming
+   repo's CI also asserts the EMITTED CSS is valid UTF-8 and still contains
+   the literal bytes 游ゴシック Medium and メイリオ (check-css-encoding.mjs).
+
+   THE BRIDGE CONTRACT
+   -------------------
+   --dxa-font-sans / --dxa-font-mono are byte-identical in every product. They
+   reach the actual faces through three indirection variables that each product
+   defines once, because font loaders name their families differently:
+
+     Next (next/font/google emits obfuscated family names via CSS variables)
+       :root {
+         --dxa-face-latin: var(--font-inter);
+         --dxa-face-ja:    var(--font-noto-sans-jp);
+         --dxa-face-mono:  var(--font-jetbrains-mono);
+       }
+
+     Vite / plain CSS (faces referenced by their real names)
+       :root {
+         --dxa-face-latin: "Inter";
+         --dxa-face-ja:    "Noto Sans JP";
+         --dxa-face-mono:  "JetBrains Mono";
+       }
+
+   A product that forgets the bridge makes var(--dxa-face-latin) invalid at
+   computed-value time, which drops the whole font-family declaration. That is
+   caught in CI by check-font-cjk.mjs, which fails if a repo consumes
+   --dxa-font-sans without defining the three bridge variables.
+   See dxa-ui/docs/FONT-LOADING.md.
+
+   THE JA FALLBACK FACES
+   ---------------------
+   The three @font-face rules below use local() only: no network, no binary in
+   any repo, framework-agnostic. They render exclusively when the Latin face
+   AND the JA webfont have both missed a glyph — i.e. Japanese text before Noto
+   Sans JP arrives. They therefore stand in for NOTO, and any metric work on
+   them targets Noto's metrics so the webfont swap causes no reflow.
+
+   ONE FACE PER PHYSICAL FONT. Hiragino, Yu Gothic and Meiryo have different
+   metrics, so one descriptor set cannot be right for more than one of them.
+   local() matching is exclusive per platform — a macOS browser resolves only
+   the Apple rule, a Japanese-locale Windows browser only Windows or Legacy —
+   so all three can be listed unconditionally; unmatched rules resolve to
+   nothing and are skipped.
+
+   local() NAME FORMS — load-bearing, do not "tidy".
+   Chromium matches local() against the FULL NAME and POSTSCRIPT NAME only. A
+   bare family name silently fails to match, the @font-face resolves to
+   nothing, and its descriptors are never applied. That failure is invisible
+   on the platform that has the font, because the next stack entry lands on
+   the same physical face, untuned. Verified on macOS 15 / Chromium 126:
+   local("Hiragino Sans") does NOT match; local("Hiragino Sans W3") and
+   local("HiraginoSans-W3") do. Every local() below is therefore a full-name
+   or PostScript-name form, and check-font-cjk.mjs fails CI if a bare family
+   name is reintroduced. Japanese-locale Windows reports localized name-table
+   entries (游ゴシック Regular / メイリオ), so those forms are listed alongside the
+   Latin ones — a Latin-only list can miss on exactly the machines our users
+   have, the same way bug #1 missed on macOS.
+
+   DESCRIPTOR STRENGTH FOLLOWS EVIDENCE, NOT UNIFORMITY.
+   Each face carries a machine-readable status marker on the line before it.
+   check-font-cjk.mjs enforces the rule below; do not remove the markers.
+
+     MEASURED  — the physical font was read with fontTools on a machine that
+                 has it. Carries size-adjust + ascent/descent/line-gap
+                 overrides derived from that measurement.
+     DERIVED   — NOT MEASURED — UNVERIFIABLE. There is no Windows machine
+                 available to this project, now or later. Carries size-adjust
+                 ONLY. ascent-override / descent-override / line-gap-override
+                 are deliberately absent, because they depend on whether the
+                 engine reads hhea or OS/2 usWin metrics for that font on that
+                 platform, which cannot be resolved without the platform. A
+                 wrong override is worse than no override: an unadjusted face
+                 degrades to natural rendering, a wrongly adjusted one degrades
+                 to visible misalignment. size-adjust is kept because it rests
+                 on the CJK full-width invariant (advance = 1.000 em), which is
+                 a property of Japanese typography rather than of any name
+                 table or metrics table, and is robust to that ambiguity.
+                 Full rationale: docs/FONT-LOADING.md §4.5.
+
+   MEASURED derivation (Apple face) — full arithmetic in docs/FONT-LOADING.md §4:
+     Noto Sans JP 400   upm 1000  hhea asc 1160  desc -288  lineGap 0
+                        source: fonts.gstatic.com notosansjp/v56 (woff2), read
+                        with fontTools 4.61.1, 2026-08-16
+     Hiragino Sans W3   upm 1000  hhea asc  880  desc -120  lineGap 500
+                        source: /System/Library/Fonts/ヒラギノ角ゴシック W3.ttc
+                        face 0, macOS 15, read with fontTools 4.61.1
+     both USE_TYPO_METRICS=0, so browsers read hhea, not OS/2 sTypo.
+     size-adjust      = Noto JA advance / Hiragino JA advance = 1.000/1.000 = 100%
+     ascent-override  = 1.160 em / 1.00 = 116%
+     descent-override = 0.288 em / 1.00 = 28.8%
+     line-gap-override= 0.000 em / 1.00 = 0%
+     Repairs Hiragino's 1.5000 em box (0.500 em of it lineGap) to Noto's 1.4480.
+
+   DERIVED derivation (Windows, Legacy faces):
+     No metric of Yu Gothic or Meiryo was used — none is available here. The
+     sole input is the CJK full-width invariant, verified for Noto and
+     Hiragino on the sample 災害リスク評価：齟齬なき閾値と鬱蒼たる樹林 (every
+     mapped glyph, incl. JIS level-2 齟 齬 鬱, = 1.000000 em in both) and
+     asserted, not measured, for Yu Gothic and Meiryo:
+     size-adjust = 1.000 / 1.000 = 100%.
+     Family identity and name-form conventions were taken from Microsoft
+     Typography's font list (learn.microsoft.com/typography/font-list/yu-gothic
+     and /meiryo); those pages document family and style names, not metrics,
+     and were not used for any number in this file.
+
+   Neither fallback declares font-weight, so bold Japanese synthesises during
+   the pre-swap window exactly as it does today. A W6/Bold pair is a v0.2.0
+   item, not an oversight.
+
+   INVARIANT: every stack in this file terminates in a face with CJK coverage.
+   Do not add a stack without one.
+   =========================================================================== */
+
+/* @dxa-face-status: MEASURED (macOS 15, fontTools 4.61.1, 2026-08-16) */
+@font-face {
+  font-family: "DXA JA Fallback Apple";
+  src: local("Hiragino Sans W3"), local("HiraginoSans-W3"),
+       local("Hiragino Kaku Gothic ProN W3"), local("HiraKakuProN-W3");
+  size-adjust: 100%;
+  ascent-override: 116%;
+  descent-override: 28.8%;
+  line-gap-override: 0%;
+}
+
+/* @dxa-face-status: DERIVED — NOT MEASURED — UNVERIFIABLE (no Windows host; size-adjust only) */
+@font-face {
+  font-family: "DXA JA Fallback Windows";
+  src: local("Yu Gothic Medium"), local("YuGothic-Medium"),
+       local("游ゴシック Medium"),
+       local("Yu Gothic Regular"), local("YuGothic-Regular"),
+       local("游ゴシック Regular");
+  size-adjust: 100%;
+}
+
+/* @dxa-face-status: DERIVED — NOT MEASURED — UNVERIFIABLE (no Windows host; size-adjust only) */
+@font-face {
+  font-family: "DXA JA Fallback Legacy";
+  src: local("Meiryo"), local("メイリオ");
+  size-adjust: 100%;
+}
+
+:root {
+  --dxa-font-sans: var(--dxa-face-latin), var(--dxa-face-ja),
+                   "DXA JA Fallback Apple", "DXA JA Fallback Windows",
+                   "DXA JA Fallback Legacy",
+                   system-ui, sans-serif;
+  --dxa-font-mono: var(--dxa-face-mono), var(--dxa-face-ja),
+                   "DXA JA Fallback Apple", "DXA JA Fallback Windows",
+                   "DXA JA Fallback Legacy",
+                   ui-monospace, monospace;
+
+  /* -------------------------------------------------------------------------
+     RESERVED — names fixed at v0.1.0 (unchanged at v0.2.0), values deliberately absent.
+
+     Declared here so consuming repos can be audited for name collisions before
+     the values land, and so the eventual colour/space pass is a value-only
+     change rather than a rename. Uncommenting any of these without a version
+     bump defeats the drift check.
+
+     --dxa-color-bg
+     --dxa-color-bg-elevated
+     --dxa-color-fg
+     --dxa-color-fg-muted
+     --dxa-color-accent
+     --dxa-color-accent-fg
+     --dxa-color-border
+     --dxa-color-danger
+     --dxa-color-warning
+     --dxa-color-success
+
+     --dxa-space-1
+     --dxa-space-2
+     --dxa-space-3
+     --dxa-space-4
+     --dxa-space-6
+     --dxa-space-8
+
+     --dxa-radius-sm
+     --dxa-radius-md
+     --dxa-radius-lg
+     --dxa-radius-full
+     ------------------------------------------------------------------------- */
+}
