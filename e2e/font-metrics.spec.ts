@@ -62,6 +62,12 @@
  * used here does not reproduce it.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any --
+   The __dxaPrimary/__dxaDelivered/__dxaMeasure helpers are injected into the
+   PAGE context via addScriptTag and reached through `window as any` at the
+   evaluate() boundary — the same spec pattern as the other six surfaces.
+   Typing them via declare global would claim they exist in the test context,
+   which they do not. Scoped to this file. */
 import { expect, test } from "@playwright/test";
 
 /** Fixed sample. 齟 U+9F5F, 齬 U+9F6C, 鬱 U+9B31 are JIS X 0208 level-2 kanji. */
