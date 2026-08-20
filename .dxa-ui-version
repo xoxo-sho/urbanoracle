@@ -1,0 +1,10 @@
+{
+  "version": "0.2.0",
+  "generator": "dxa-ui/scripts/sync.mjs",
+  "sourceHash": "5f92ee056475f38d31b66e7255adf1ca1f20f572602c5aacf59909ef88a45f55",
+  "files": {
+    "src/app/dxa/dxa-tokens.css": "a996a0418ca9d56111367351a1b4518d9557b9147dd84d3b7f6e88375ad7c4fc",
+    "scripts/check-dxa-drift.mjs": "0827b8ece744d1aff627a83c841122a7ef474ac38d584113f418e85ef0c46c37",
+    "scripts/dxa-token-lint.mjs": "e1fc8966f980a13f849dcc9722774c9b5f5264c3a0dba0dab2516f7901ce640b"
+  }
+}
