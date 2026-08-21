@@ -24,7 +24,9 @@
  * Vectors 9–10 are an ATTRIBUTION PAIR (FONT-LOADING.md §3.5): 6 codepoints
  * rejecting AND 8 accepting. Either alone is ambiguous — a lone reject could
  * be length failing for the expected reason or for one we did not expect;
- * the pair attributes the behaviour to codepoint counting itself.
+ * the pair attributes the behaviour to codepoint counting itself. (v0.3.1:
+ * the pair's characters are CJK Extension B, not emoji — see vector 9's
+ * annotation.)
  */
 
 export interface PasswordSpecVector {
@@ -44,8 +46,8 @@ export const PASSWORD_SPEC_VECTORS: readonly PasswordSpecVector[] = [
   { input: "\u212A\u212A\u212A\u212A\u212A\u212A\u212A1", expect: "reject", rule: "letter", why: "U+212A KELVIN SIGN (visually identical to K — hence the escape, never a literal): toLowerCase → 'k' — divergence detector" },
   { input: "ſſſſſſſ1", expect: "reject", rule: "letter", why: "U+017F: /[a-z]/iu would accept — guards against a regex regression" },
   { input: "ａｂｃｄ1234", expect: "reject", rule: "letter", why: "fullwidth lowercase: toLowerCase identity — pins a property both old families shared" },
-  { input: "😀😀😀ab1", expect: "reject", rule: "length", why: "6 codepoints; UTF-16-unit counting (9) would wrongly accept — attribution pair, reject side" },
-  { input: "😀😀😀😀😀😀a1", expect: "accept", rule: "all", why: "8 codepoints incl. letter+digit — attribution pair, accept side" },
+  { input: "\u{2000B}\u{2000B}\u{2000B}ab1", expect: "reject", rule: "length", why: "6 codepoints (3× U+2000B 𠀋, CJK Ext B); UTF-16-unit counting (9) would wrongly accept — attribution pair, reject side. CJK Ext B rather than emoji on its own merits: this is the surrogate pair these products actually meet — KSJ place-name data carries JIS level-2 and beyond, which is where this whole track started; emoji were only an example of a surrogate pair (and collide with UI-copy audits: the v0.3.0→v0.3.1 respin)" },
+  { input: "\u{2000B}\u{2000B}\u{2000B}\u{2000B}\u{2000B}\u{2000B}a1", expect: "accept", rule: "all", why: "8 codepoints incl. letter+digit — attribution pair, accept side (surrogate pairs count as one in BOTH directions)" },
   { input: "abcdef1", expect: "reject", rule: "length", why: "boundary: 7" },
   { input: "abcdefg1", expect: "accept", rule: "all", why: "boundary: 8" },
   { input: "ABCDEFG1", expect: "accept", rule: "all", why: "uppercase counts as a letter" },

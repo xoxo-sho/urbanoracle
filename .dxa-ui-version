@@ -1,11 +1,11 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "generator": "dxa-ui/scripts/sync.mjs",
-  "sourceHash": "a92a5d6e30c08f0cf374ec7e8404be6df7b58ad8a577b80f7d7d899d7f8bb1d1",
+  "sourceHash": "6b033b3f6d08c96f3b552830e1d1ed23a24b658b77ae6e777013e0d993cba4e1",
   "files": {
     "src/app/dxa/dxa-tokens.css": "a996a0418ca9d56111367351a1b4518d9557b9147dd84d3b7f6e88375ad7c4fc",
     "src/app/dxa/dxa-password.ts": "6116bb1892701211824c1221482731bfe5e6760d661c93860e3cf48faeb277f0",
-    "src/app/dxa/dxa-password.vectors.ts": "a4d969b24853188a13a1688d3c3e2527c6b178518d01c30ffcf25da69222da3a",
+    "src/app/dxa/dxa-password.vectors.ts": "e013538214c886acdcd7d29b4433c7089e52bbd808f8295360eb16bb586f40d9",
     "scripts/check-dxa-drift.mjs": "37cd950b71bfce5e65d42dab611ee45921b0ff83b1d11691654569489ec5eb2c",
     "scripts/dxa-token-lint.mjs": "e1fc8966f980a13f849dcc9722774c9b5f5264c3a0dba0dab2516f7901ce640b"
   }
