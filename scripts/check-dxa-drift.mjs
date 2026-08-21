@@ -34,6 +34,8 @@ const MANIFEST_NAME = ".dxa-ui-version";
 export const SOURCE_ARTIFACTS = [
   "tokens/dxa-tokens.css",
   "tokens/dxa-tokens.ts",
+  "tokens/dxa-password.ts",
+  "tokens/dxa-password.vectors.ts",
   "scripts/check-drift.mjs",
   "scripts/token-lint.mjs",
 ];
