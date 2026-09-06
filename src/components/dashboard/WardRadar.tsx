@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { WardProfile } from "@/types";
 import { CHART_COLORS } from "@/lib/chart-theme";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 interface WardRadarProps {
   profiles: WardProfile[];
@@ -63,6 +64,7 @@ export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
           <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
         </RadarChart>
       </ResponsiveContainer>
+      <SampleNote note="各軸は 0–100 に正規化した参考値" />
     </div>
   );
 }

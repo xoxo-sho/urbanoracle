@@ -1,17 +1,22 @@
 "use client";
 
 import type { DataLayer } from "@/types";
+import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 
 interface MapLegendProps {
   layers: DataLayer[];
+  /**
+   * Whether the station bubbles are sized from ODPT ridership. Defaults to
+   * false so an unwired caller labels the bubbles as sample rather than
+   * silently presenting them as measured.
+   */
+  transportIsLive?: boolean;
 }
 
-// Shown under a layer whose plotted positions are approximations rather
-// than surveyed locations. REINFOLIB publishes transactions by district
-// without coordinates, so each point sits near its ward's centre.
-const LEGEND_NOTES: Record<string, string> = {
-  "land-price": "表示位置は行政区の概算中心です（実際の取引地点とは異なります）",
-};
+// The ward fill under these layers is coloured from WARD_META in
+// ward-boundaries.ts — a hardcoded table, neither the live feed nor the
+// sample set. The legend says so under the ramp.
+const CHOROPLETH_LAYERS = new Set<string>(["land-price", "demographics", "disaster-risk"]);
 
 // Legend swatches mirror the map ramps, which are single-hue intensity
 // scales per semantic axis (design-spec-v1 §2).
@@ -33,6 +38,7 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
     ],
   },
   "disaster-risk": {
+    // The tiles are GSI rasters fetched client-side; this label is true.
     label: "ハザードマップ（実データ）",
     stops: [
       { color: "var(--down-fill)", label: "浅い" },
@@ -49,7 +55,7 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
   },
 };
 
-export default function MapLegend({ layers }: MapLegendProps) {
+export default function MapLegend({ layers, transportIsLive = false }: MapLegendProps) {
   const activeLayers = layers.filter((l) => l.enabled && LEGEND_CONFIG[l.id]);
   if (activeLayers.length === 0) return null;
 
@@ -75,11 +81,21 @@ export default function MapLegend({ layers }: MapLegendProps) {
                 <span key={i} className="text-[8px] text-muted-foreground">{s.label}</span>
               ))}
             </div>
-            {LEGEND_NOTES[layer.id] && (
-              <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
-                {LEGEND_NOTES[layer.id]}
+            {CHOROPLETH_LAYERS.has(layer.id) && (
+              <p className="sample-legend mt-1 text-[8px] leading-snug" data-provenance="fixed">
+                塗り分け: {CHOROPLETH_NOTE}
               </p>
             )}
+            {layer.id === "transportation" &&
+              (transportIsLive ? (
+                <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+                  出典: {SOURCES.odpt.label}
+                </p>
+              ) : (
+                <p className="sample-legend mt-1 text-[8px] leading-snug" data-provenance="sample">
+                  {SAMPLE_NOTICE}
+                </p>
+              ))}
           </div>
         );
       })}

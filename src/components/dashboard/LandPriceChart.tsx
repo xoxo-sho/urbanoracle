@@ -15,8 +15,7 @@ import {
 import type { LandPriceSummary, DemographicsData } from "@/types";
 import { hasValue } from "@/lib/format";
 import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS } from "@/lib/chart-theme";
-import SourceNote from "@/components/dashboard/SourceNote";
-import { APPROX_LOCATION_NOTE } from "@/lib/sources";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 interface LandPriceChartProps {
   prices: LandPriceSummary[];
@@ -75,7 +74,7 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-        <SourceNote source="reinfolib" unit="円/m²" year="2024年" note={APPROX_LOCATION_NOTE} />
+        <SampleNote note="単位: 円/m²" />
       </div>
 
       {/* Scatter: the cross-analysis — this is the real insight */}
@@ -112,7 +111,7 @@ export default function LandPriceChart({ prices, allPrices, demographics, select
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
-        <SourceNote source="reinfolib" unit="円/m² × 人/km²" year="2024年" />
+        <SampleNote note="単位: 円/m² × 人/km²" />
       </div>
     </div>
   );

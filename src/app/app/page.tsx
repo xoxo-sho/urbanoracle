@@ -33,7 +33,14 @@ import type {
 } from "@/types";
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
-import { APPROX_LOCATION_NOTE } from "@/lib/sources";
+import SampleNote, { SampleTag } from "@/components/dashboard/SampleNote";
+import {
+  BUNDLED_UNVERIFIED_NOTE,
+  CHOROPLETH_NOTE,
+  FETCHED_NOT_SHOWN,
+  SAMPLE_NOTICE,
+  SOURCES,
+} from "@/lib/sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import VerificationBanner from "@/components/auth/VerificationBanner";
 import { NO_DATA, byValueDesc, hasValue } from "@/lib/format";
@@ -177,7 +184,7 @@ export default function Home() {
                   {selectedWard ?? "全エリア"}
                 </div>
               </div>
-              <MapLegend layers={layers} />
+              <MapLegend layers={layers} transportIsLive={transport.isLive} />
             </div>
 
             {/* 3 Key Metrics */}
@@ -193,11 +200,13 @@ export default function Home() {
                   {selectedWard ? "成長率" : "成長率1位"}
                   {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
                 </span>
+                {!demographics.isLive && <SampleTag />}
               </div>
               <div className="key-metric">
                 <Shield className="h-4 w-4 text-down-text" />
                 <span className="text-xl font-bold tabular-nums">{highRiskCount}</span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">高リスク<br />{selectedWard ? "該当" : "地域"}</span>
+                {!disasterRisks.isLive && <SampleTag />}
               </div>
               <div className="key-metric">
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -205,6 +214,7 @@ export default function Home() {
                   {passengersKnown ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : NO_DATA}
                 </span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
+                {!transport.isLive && <SampleTag />}
               </div>
             </div>
 
@@ -249,6 +259,7 @@ export default function Home() {
                       demographics={demographics.data}
                       landPrices={sampleLandPriceSummary}
                       onSelectWard={setSelectedWard}
+                      isLive={demographics.isLive}
                     />
                   )}
                 </div>
@@ -261,6 +272,7 @@ export default function Home() {
                   allData={demographics.data}
                   populationTrends={samplePopulationTrends}
                   selectedWard={selectedWard}
+                  isLive={demographics.isLive}
                 />
               </TabsContent>
 
@@ -279,6 +291,7 @@ export default function Home() {
                   stations={selectedWard ? filteredStations : transport.data}
                   trends={sampleTransportTrends}
                   selectedWard={selectedWard}
+                  isLive={transport.isLive}
                 />
               </TabsContent>
 
@@ -303,6 +316,7 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
+                    <SampleNote note="単位: 面積 %" />
                   </div>
                   <div className="chart-section">
                     <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -332,6 +346,7 @@ export default function Home() {
                         <span className="flex-1 text-center">建蔽率</span>
                       </div>
                     </div>
+                    <SampleNote note="単位: %" />
                   </div>
                 </div>
               </TabsContent>
@@ -340,14 +355,41 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Attribution footer */}
-      <footer className="shrink-0 border-t border-border/50 px-6 py-2">
-        <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
-          出典: 不動産情報ライブラリ（国土交通省, 2024年） ／ e-Stat 国勢調査（総務省統計局, 2020年） ／
-          国土数値情報（国土交通省, 2024年） ／ ハザードマップポータルサイト（国土交通省） ／
-          OpenStreetMap contributors ／ CARTO
-          <span className="block mt-0.5">{APPROX_LOCATION_NOTE}</span>
-        </p>
+      {/* Provenance footer — per-surface truth, two groups (design-spec-v1 §9).
+          A surface moves between the groups with its endpoint's isLive, so the
+          footer describes what is on screen now, not what the code could show. */}
+      <footer className="shrink-0 border-t border-border/50 px-6 py-2 text-[9px] leading-relaxed text-muted-foreground">
+        <div className="grid gap-x-8 gap-y-1 md:grid-cols-2">
+          <div data-provenance="live">
+            <span className="font-medium text-foreground">実データ</span>
+            <ul>
+              {demographics.isLive && (
+                <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: {SOURCES.estat.label} 2020年国勢調査・2025年速報</li>
+              )}
+              {transport.isLive && (
+                <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）: {SOURCES.odpt.label}</li>
+              )}
+              <li>地図のハザード重ね（浸水・津波・土砂）: {SOURCES.hazard.label} タイル</li>
+              <li>取引価格: {SOURCES.reinfolib.label} 2024年 — {FETCHED_NOT_SHOWN}</li>
+              <li>区境界: dataofjapan/land ／ 地図タイル: OpenStreetMap contributors ／ CARTO</li>
+            </ul>
+          </div>
+          <div data-provenance="sample" className="sample-block">
+            <span className="font-semibold">{SAMPLE_NOTICE}</span>
+            <ul>
+              {!demographics.isLive && <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）</li>}
+              {!transport.isLive && <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）</li>}
+              <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
+              <li>人口推移</li>
+              <li>災害種別・リスク一覧・高リスク指標</li>
+              <li>用途地域</li>
+              <li>乗降客数推移</li>
+              <li>区別総合比較</li>
+              <li>地図の塗り分け: {CHOROPLETH_NOTE}</li>
+            </ul>
+          </div>
+        </div>
+        <p className="mt-1">駅の位置・路線: {BUNDLED_UNVERIFIED_NOTE}</p>
       </footer>
     </div>
   );

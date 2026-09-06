@@ -65,8 +65,8 @@ export default function OpengraphImage() {
             <div style={{ display: "flex", fontSize: 24, color: COPPER }}>下振れ 災害リスク</div>
           </div>
           <div style={{ display: "flex", height: 1, background: RULE, marginTop: 10 }} />
-          <div style={{ display: "flex", fontSize: 18, color: "#5C574E" }}>
-            出典: 不動産情報ライブラリ ／ e-Stat 国勢調査 ／ 国土数値情報
+          <div style={{ display: "flex", fontSize: 18, letterSpacing: 4, color: "#5C574E" }}>
+            TOKYO 23 WARDS — LAND VALUE × RISK
           </div>
         </div>
       </div>

@@ -100,9 +100,7 @@ export default function LoginPage() {
             東京23区の地価・人口・交通と、災害リスクを同一の意思決定面で読み解くための計器です。
           </p>
         </div>
-        <p className="text-[10px] text-muted-foreground">
-          出典: 不動産情報ライブラリ ／ e-Stat 国勢調査 ／ 国土数値情報
-        </p>
+        <p className="text-[10px] text-muted-foreground">UrbanOracle — DXA Labs</p>
       </section>
 
       <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
