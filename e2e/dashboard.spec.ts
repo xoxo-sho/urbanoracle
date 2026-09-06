@@ -57,8 +57,10 @@ test.describe("Dashboard", () => {
     await expect(toggle).toBeVisible();
   });
 
-  test("attribution footer is visible", async ({ page }) => {
-    await expect(page.getByText("国土数値情報")).toBeVisible();
+  test("provenance footer is visible and labels sample surfaces", async ({ page }) => {
+    await expect(page.locator('footer [data-provenance="sample"]')).toBeVisible();
+    await expect(page.locator('footer [data-provenance="live"]')).toBeVisible();
+    await expect(page.getByText("国土数値情報")).toHaveCount(0);
   });
 });
 
