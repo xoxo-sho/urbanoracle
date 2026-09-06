@@ -2,11 +2,15 @@
 
 import type { DemographicsData, LandPriceSummary } from "@/types";
 import { NO_DATA, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
+import { SOURCES } from "@/lib/sources";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 interface WardTableProps {
   demographics: DemographicsData[];
   landPrices: LandPriceSummary[];
   onSelectWard: (ward: string) => void;
+  /** Whether the demographics columns came from e-Stat; the 地価 column never does. */
+  isLive?: boolean;
 }
 
 // Intensity within one semantic axis: stronger value -> stronger step of the
@@ -26,7 +30,7 @@ function miniBar(value: number | null, max: number, color: string): string {
   return `linear-gradient(90deg, ${color} ${pct}%, transparent ${pct}%)`;
 }
 
-export default function WardTable({ demographics, landPrices, onSelectWard }: WardTableProps) {
+export default function WardTable({ demographics, landPrices, onSelectWard, isLive = false }: WardTableProps) {
   const sorted = [...demographics].sort((a, b) => byValueDesc(a.population, b.population)).slice(0, 12);
   const populations = sorted.map((d) => d.population).filter(hasValue);
   const maxPop = populations.length ? Math.max(...populations) : 0;
@@ -87,6 +91,13 @@ export default function WardTable({ demographics, landPrices, onSelectWard }: Wa
           })}
         </tbody>
       </table>
+      <SampleNote
+        note={
+          isLive
+            ? `地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`
+            : "全列"
+        }
+      />
     </div>
   );
 }

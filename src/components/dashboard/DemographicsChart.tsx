@@ -15,15 +15,31 @@ import type { DemographicsData, PopulationTrend } from "@/types";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import SourceNote from "@/components/dashboard/SourceNote";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
   allData: DemographicsData[];
   populationTrends: PopulationTrend[];
   selectedWard: string | null;
+  /** Whether `data`/`allData` came from e-Stat. The population trend never does. */
+  isLive?: boolean;
 }
 
-export default function DemographicsChart({ data, allData, populationTrends, selectedWard }: DemographicsChartProps) {
+export default function DemographicsChart({
+  data,
+  allData,
+  populationTrends,
+  selectedWard,
+  isLive = false,
+}: DemographicsChartProps) {
+  // The census columns are live or sample as a block; the note follows.
+  const censusNote = (unit: string) =>
+    isLive ? (
+      <SourceNote source="estat" unit={unit} year="2020年国勢調査・2025年速報" />
+    ) : (
+      <SampleNote note={`単位: ${unit}`} />
+    );
   const sorted = [...data].sort((a, b) => byValueDesc(a.population, b.population));
   const ward = selectedWard ? sorted[0] : null;
 
@@ -69,7 +85,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
             <AgeBar label={selectedWard} young={ward.ageGroups.young} working={ward.ageGroups.working} elderly={ward.ageGroups.elderly} />
             <AgeBar label="23区平均" young={averageOf(allData.map((d) => d.ageGroups.young))} working={averageOf(allData.map((d) => d.ageGroups.working))} elderly={avg.elderly} />
           </div>
-          <SourceNote source="estat" unit="%" year="2020年国勢調査" />
+          {censusNote("%")}
         </div>
       </div>
     );
@@ -129,7 +145,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
               <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.upside} strokeWidth={2} fill="url(#demoPopGrad)" />
             </AreaChart>
           </ResponsiveContainer>
-          <SourceNote source="estat" unit="人" year="2000–2025年" />
+          <SampleNote note="単位: 人" />
         </div>
       )}
 
@@ -150,6 +166,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
           <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
         </div>
       </div>
+      {censusNote("%")}
 
       <div className="chart-section">
         <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">年齢構成</h4>
@@ -164,7 +181,7 @@ export default function DemographicsChart({ data, allData, populationTrends, sel
             <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
           </BarChart>
         </ResponsiveContainer>
-        <SourceNote source="estat" unit="%" year="2020年国勢調査" />
+        {censusNote("%")}
       </div>
     </div>
   );

@@ -14,14 +14,18 @@ import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
+import SampleNote from "@/components/dashboard/SampleNote";
+import { BUNDLED_UNVERIFIED_NOTE } from "@/lib/sources";
 
 interface TransportPanelProps {
   stations: TransportStation[];
   trends: TransportTrend[];
   selectedWard: string | null;
+  /** Whether ridership came from ODPT. The ridership trend never does. */
+  isLive?: boolean;
 }
 
-export default function TransportPanel({ stations, trends }: TransportPanelProps) {
+export default function TransportPanel({ stations, trends, isLive = false }: TransportPanelProps) {
   // Stations without ODPT coverage sort last rather than as zero.
   const sorted = [...stations].sort((a, b) => byValueDesc(a.dailyPassengers, b.dailyPassengers));
   const known = sorted.map((s) => s.dailyPassengers).filter(hasValue);
@@ -95,6 +99,15 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
             </div>
           );
         })}
+        {isLive ? (
+          <SourceNote
+            source="odpt"
+            unit="乗降客数 人/日"
+            note={`駅の位置・路線は${BUNDLED_UNVERIFIED_NOTE}。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」`}
+          />
+        ) : (
+          <SampleNote note="単位: 乗降客数 人/日" />
+        )}
       </div>
 
       {/* Treemap: lines by aggregated passenger volume — unique chart type */}
@@ -126,12 +139,11 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
             }}
           />
         </ResponsiveContainer>
-        <SourceNote
-          source="odpt"
-          unit="乗降客数 人/日"
-          year="2024年調査"
-          note="駅の位置・路線は国土数値情報。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」"
-        />
+        {isLive ? (
+          <SourceNote source="odpt" unit="人/日" note={`路線名は${BUNDLED_UNVERIFIED_NOTE}`} />
+        ) : (
+          <SampleNote note="単位: 人/日" />
+        )}
       </div>
 
       {/* Transport trends */}
@@ -165,7 +177,7 @@ export default function TransportPanel({ stations, trends }: TransportPanelProps
               ))}
             </AreaChart>
           </ResponsiveContainer>
-          <SourceNote source="ksj" unit="人/日" year="2019–2024年" />
+          <SampleNote note="単位: 人/日" />
         </div>
       )}
     </div>

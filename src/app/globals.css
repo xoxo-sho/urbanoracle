@@ -406,3 +406,48 @@ html {
   font-size: 9px;
   line-height: 1.5;
 }
+
+/* ─── Sample / provisional warning (spec §9, truth fix) ───
+   A warning, not a citation: the downside hue on its own fill, bold, with a
+   tag — a reader must not be able to mistake it for the source line above. */
+.sample-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--down-aa);
+  background: var(--down-fill);
+  color: var(--down-text);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.sample-note-detail {
+  flex-basis: 100%;
+  font-weight: 400;
+}
+.sample-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--down-text);
+  color: var(--background);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+/* The same warning inside the map legend and the footer, where a boxed line
+   would not fit: colour and weight carry it. */
+.sample-legend {
+  color: var(--down-text);
+  font-weight: 600;
+}
+.sample-block {
+  border-left: 2px solid var(--down-strong);
+  padding-left: 8px;
+  color: var(--down-text);
+}

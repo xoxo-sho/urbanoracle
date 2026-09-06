@@ -1,14 +1,16 @@
 import Link from "next/link";
 import HeroSpread from "@/components/landing/HeroSpread";
-import { SOURCES } from "@/lib/sources";
+import { BUNDLED_UNVERIFIED_NOTE, CHOROPLETH_NOTE, FETCHED_NOT_SHOWN, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 
 /**
  * Landing page (design-spec-v1 §4).
  *
  * Editorial density rather than marketing abstraction: the hero shows the
- * actual upside×downside spread instead of describing it, and every section
- * below carries figures, units and provenance. A reader should be able to
- * check the claim on the page they are reading it on.
+ * upside×downside spread instead of describing it, and every section below
+ * carries figures, units and provenance. A reader should be able to check the
+ * claim on the page they are reading it on — which is why the hero says
+ * SAMPLE and the provenance table separates what the code path fetches from
+ * what is still a provisional sample.
  */
 
 export const metadata = {
@@ -27,15 +29,39 @@ const CAPABILITIES = [
     label: "上振れ",
     title: "資産価値が伸びる根拠",
     body: "公示地価・取引価格の前年比、人口と年齢構成の推移、鉄道乗降客数の集積。エリアの伸びを支える指標を、区単位で並べて比較します。",
-    sources: [SOURCES.reinfolib.label, SOURCES.estat.label, SOURCES.ksj.label],
+    sources: [SOURCES.reinfolib.label, SOURCES.estat.label, SOURCES.odpt.label],
   },
   {
     side: "down" as const,
     label: "下振れ",
     title: "価値を毀損する要因",
     body: "浸水・津波・土砂災害の想定規模をハザードマップ由来のデータで重ね、区ごとの災害リスクを地価と同じ画面で確認します。",
-    sources: [SOURCES.hazard.label, SOURCES.disastershield.label],
+    sources: [SOURCES.hazard.label],
   },
+];
+
+// What the current code path fetches (backend/routers/data.py + the tiles
+// MapView loads client-side). REINFOLIB is fetched and handed to the
+// dashboard, but no layer draws it yet; the row says exactly that.
+const LIVE_ROWS: [string, string, string][] = [
+  [SOURCES.reinfolib.label, `取引価格（対象 8 区・各 5 件まで）— ${FETCHED_NOT_SHOWN}`, "2024年"],
+  [SOURCES.estat.label, "人口・世帯・年齢構成、5年間の人口増減率", "2020年国勢調査・2025年速報"],
+  [SOURCES.odpt.label, "駅別乗降客数（交通タブ・地図の駅バブル）", "—"],
+  [SOURCES.hazard.label, "浸水・津波・土砂災害の想定区域（地図の重ね表示）", "—"],
+  ["dataofjapan/land", "行政区界（区境界ポリゴン）", "—"],
+  ["OpenStreetMap contributors ／ CARTO", "地図タイル", "—"],
+];
+
+// Surfaces still fed from src/data/sample.ts, or from a hardcoded table.
+const SAMPLE_ROWS: [string, string][] = [
+  ["LP ヒーロー（地価前年比 × 想定災害規模）", "—"],
+  ["区別平均地価・密度 vs 地価・区別テーブルの地価列", "—"],
+  ["人口推移", "—"],
+  ["災害種別・リスク一覧・高リスク指標", "—"],
+  ["用途地域（面積構成・容積率・建蔽率）", "—"],
+  ["乗降客数推移", "—"],
+  ["区別総合比較（レーダー）", "0–100"],
+  [`地図の塗り分け: ${CHOROPLETH_NOTE}`, "—"],
 ];
 
 export default function LandingPage() {
@@ -123,14 +149,16 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Provenance: the credibility section is a table, not a promise ── */}
+        {/* ── Provenance: the credibility section is a table, not a promise.
+               Two groups: what the current code path fetches, and what is
+               still a provisional sample. Years only where the code pins one. ── */}
         <section
           className="mx-auto max-w-5xl px-6 py-12"
           style={{ borderTop: "1px solid var(--rule)" }}
         >
           <h2 className="heading text-xl">データ出典</h2>
           <p className="mt-2 text-xs text-muted-foreground">
-            表示するすべての数値に、出典・単位・年次を明示します。
+            現在のコードパスで実際に取得しているデータと、暫定のサンプル値を分けて示します。
           </p>
           <div className="mt-5 overflow-x-auto">
             <table className="w-full text-[11px]">
@@ -141,14 +169,13 @@ export default function LandingPage() {
                   <th className="py-2 text-left font-medium">年次</th>
                 </tr>
               </thead>
-              <tbody>
-                {[
-                  [SOURCES.reinfolib.label, "取引価格・地価（円/m²）", "2024年"],
-                  [SOURCES.estat.label, "人口・世帯・年齢構成", "2020年"],
-                  [SOURCES.ksj.label, "鉄道駅・乗降客数・行政区界", "2024年"],
-                  [SOURCES.hazard.label, "浸水・津波・土砂災害の想定区域", "最新公開版"],
-                  [SOURCES.disastershield.label, "物件単位の想定損失（Beta）", "導入予定"],
-                ].map(([label, content, year]) => (
+              <tbody data-provenance="live">
+                <tr style={{ borderBottom: "1px solid var(--rule)" }}>
+                  <th colSpan={3} className="pt-4 pb-1 text-left text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                    実データ
+                  </th>
+                </tr>
+                {LIVE_ROWS.map(([label, content, year]) => (
                   <tr key={label} style={{ borderBottom: "1px solid var(--rule)" }}>
                     <td className="py-2 pr-3">{label}</td>
                     <td className="py-2 pr-3 text-muted-foreground">{content}</td>
@@ -156,11 +183,23 @@ export default function LandingPage() {
                   </tr>
                 ))}
               </tbody>
+              <tbody data-provenance="sample" className="sample-block">
+                <tr style={{ borderBottom: "1px solid var(--rule)" }}>
+                  <th colSpan={3} className="pt-4 pb-1 text-left text-[10px] tracking-[0.2em] uppercase">
+                    {SAMPLE_NOTICE}
+                  </th>
+                </tr>
+                {SAMPLE_ROWS.map(([content, scale]) => (
+                  <tr key={content} style={{ borderBottom: "1px solid var(--rule)" }}>
+                    <td className="py-2 pr-3">{SOURCES.sample.label}</td>
+                    <td className="py-2 pr-3">{content}</td>
+                    <td className="py-2 font-mono tabular-nums">{scale}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
-          <p className="source-note mt-3">
-            地価表示位置は行政区の概算中心です（実際の取引地点とは異なります）
-          </p>
+          <p className="source-note mt-3">駅の位置・路線: {BUNDLED_UNVERIFIED_NOTE}</p>
         </section>
       </main>
 

@@ -3,24 +3,23 @@ import {
   sampleLandPriceSummary,
   sampleWardProfiles,
 } from "@/data/sample";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 /**
  * The hero spread (design-spec-v1 §4): upside × downside symmetry.
  *
- * Both columns are real, per-ward figures — nothing here is invented for the
- * composition:
+ * Both columns come from the bundled sample set in src/data/sample.ts. They
+ * are per-ward and internally consistent, but they are NOT measured figures
+ * and no upstream can be cited for them:
  *
- *   upside   = changeRate from the land-price summary (signed %, REINFOLIB)
- *   downside = the highest recorded hazard level for that ward, and its
- *              safety score from the ward profile
+ *   upside   = changeRate from the sample land-price summary (signed %)
+ *   downside = the highest hazard level in the sample risk list for that
+ *              ward, and its safety score from the sample ward profile
  *
- * Neither side is decoration. The rows are ordered by upside, and the same
- * wards appear on both sides, so a reader can see that the ward with the
- * strongest price movement is not automatically the safest one — which is the
- * entire argument for looking at both at once.
- *
- * Stage 4.5 replaces the downside column with pml_pct (DisasterShield), a
- * true value-at-risk figure; the composition does not change, only the datum.
+ * The composition is the argument — rows ordered by upside, the same wards on
+ * both sides, so the ward with the strongest price movement is visibly not
+ * the safest one. The spread therefore says SAMPLE on its face and in its
+ * caption; real-data wiring is a later stage and does not change the layout.
  */
 
 const ROWS = 6;
@@ -58,7 +57,10 @@ export default function HeroSpread() {
         <span className="text-right" style={{ color: "var(--up-text)" }}>
           上振れ 地価前年比
         </span>
-        <span className="text-muted-foreground">区</span>
+        <span className="flex flex-col items-center gap-0.5 text-muted-foreground">
+          <span className="sample-tag">SAMPLE</span>
+          区
+        </span>
         <span style={{ color: "var(--down-text)" }}>下振れ 想定災害規模</span>
       </div>
 
@@ -112,10 +114,7 @@ export default function HeroSpread() {
         })}
       </ul>
 
-      <p className="source-note px-4 py-2">
-        出典: 不動産情報ライブラリ（国土交通省, 2024年） ／ ハザードマップポータルサイト（国土交通省）
-        ／ 単位: 前年比 % ・想定災害規模 Lv.1–5
-      </p>
+      <SampleNote className="m-3" note="単位: 前年比 % ・想定災害規模 Lv.1–5" />
     </div>
   );
 }

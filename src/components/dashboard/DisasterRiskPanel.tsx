@@ -12,7 +12,7 @@ import type { DisasterRisk, ZoningArea } from "@/types";
 import { TOOLTIP_STYLE } from "@/lib/chart-theme";
 import { AXIS, NEUTRAL, riskStep } from "@/lib/palette";
 import { AlertTriangle, Droplets, Mountain, Waves } from "lucide-react";
-import SourceNote from "@/components/dashboard/SourceNote";
+import SampleNote from "@/components/dashboard/SampleNote";
 
 const riskIcons = { flood: Droplets, earthquake: AlertTriangle, landslide: Mountain, tsunami: Waves };
 const riskLabels: Record<string, string> = { flood: "洪水", earthquake: "地震", landslide: "土砂災害", tsunami: "津波" };
@@ -64,7 +64,7 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
               <Legend iconSize={6} wrapperStyle={{ fontSize: "10px", color: "var(--muted-foreground)" }} />
             </PieChart>
           </ResponsiveContainer>
-          <SourceNote source="hazard" unit="件" year="2024年" />
+          <SampleNote note="単位: 件" />
         </div>
 
         {/* Zoning — stacked horizontal bar, not a chart library component */}
@@ -95,7 +95,7 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
               <span className="text-[9px] text-muted-foreground">他 {zoning.length - 5} 区分</span>
             )}
           </div>
-          <SourceNote source="ksj" unit="面積 %" year="2024年" />
+          <SampleNote note="単位: 面積 %" />
         </div>
       </div>
 
@@ -138,6 +138,7 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
             );
           })}
       </div>
+      <SampleNote note="想定災害規模 Lv.1–5" />
     </div>
   );
 }
