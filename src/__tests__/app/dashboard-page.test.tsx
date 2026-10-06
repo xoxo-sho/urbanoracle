@@ -6,7 +6,8 @@ import { SOURCES } from "@/lib/sources";
  * Dashboard page truth (truth fix, Stage 1a/1b/1c).
  *
  * The page is rendered for real; only the things jsdom cannot host are
- * stubbed (the MapLibre canvas, the theme store, the auth banner) and the
+ * stubbed (the MapLibre canvas, the theme store, the auth banner and the
+ * sign-out control — both need an AuthProvider this test does not mount) and the
  * gated fetch is replaced by a switch so each endpoint can be declared live
  * or fallback per test.
  */
@@ -21,6 +22,7 @@ vi.mock("next/dynamic", () => ({
 }));
 vi.mock("@/components/dashboard/ThemeToggle", () => ({ default: () => null }));
 vi.mock("@/components/auth/VerificationBanner", () => ({ default: () => null }));
+vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
 vi.mock("@/lib/use-gated-data", () => ({
   useGatedData: (endpoint: string, fallback: unknown) => ({
     data: fallback,

@@ -43,6 +43,7 @@ import {
 } from "@/lib/sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import VerificationBanner from "@/components/auth/VerificationBanner";
+import SignOutButton from "@/components/auth/SignOutButton";
 import { NO_DATA, byValueDesc, hasValue } from "@/lib/format";
 
 const MapView = dynamic(() => import("@/components/map/MapView"), {
@@ -161,7 +162,10 @@ export default function Home() {
               onSelect={setSelectedWard}
             />
           </div>
-          <ThemeToggle />
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+            <SignOutButton />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
