@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { sendEmailVerification } from "firebase/auth";
+import { sendEmailVerification, signOut } from "firebase/auth";
 import { useAuth } from "@/lib/auth-context";
 import { firebaseAuth } from "@/lib/firebase";
 
@@ -38,6 +38,7 @@ export default function VerifyEmailPage() {
   const [resent, setResent] = useState(false);
   const [checking, setChecking] = useState(false);
   const [stillUnverified, setStillUnverified] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const settled = useRef(false);
 
   const recheck = useCallback(async () => {
@@ -65,6 +66,21 @@ export default function VerifyEmailPage() {
     const id = setInterval(() => void recheck(), POLL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [recheck]);
+
+  // The way out for the wrong account — mirrors urbanagents' VerifyEmailScreen:
+  // drop the session, then the sign-in route with replace, so Back does not
+  // land on a verification screen for a session that has ended. If Firebase
+  // refuses, the user is still signed in and stays here.
+  const switchAccount = async () => {
+    setSwitching(true);
+    try {
+      await signOut(firebaseAuth());
+    } catch {
+      setSwitching(false);
+      return;
+    }
+    router.replace("/login");
+  };
 
   return (
     <main className="min-h-dvh grid lg:grid-cols-[1.1fr_1fr]">
@@ -156,6 +172,17 @@ export default function VerifyEmailPage() {
           <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
             迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。
           </p>
+
+          {user && (
+            <button
+              type="button"
+              onClick={switchAccount}
+              disabled={switching}
+              className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait disabled:opacity-60"
+            >
+              別のアカウントでサインインする
+            </button>
+          )}
 
           <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
             <Link href="/" className="underline underline-offset-2 hover:text-foreground">
