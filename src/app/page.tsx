@@ -28,14 +28,14 @@ const CAPABILITIES = [
     side: "up" as const,
     label: "上振れ",
     title: "資産価値が伸びる根拠",
-    body: "公示地価・取引価格の前年比、人口と年齢構成の推移、鉄道乗降客数の集積。エリアの伸びを支える指標を、区単位で並べて比較します。",
+    body: "国勢調査の人口と年齢構成、5年間の人口増減率、駅別の乗降客数。エリアの伸びを支える指標を、区単位で並べて比較します。地価の前年比は現在、サンプルデータ（暫定）で表示しています。",
     sources: [SOURCES.reinfolib.label, SOURCES.estat.label, SOURCES.odpt.label],
   },
   {
     side: "down" as const,
     label: "下振れ",
     title: "価値を毀損する要因",
-    body: "浸水・津波・土砂災害の想定規模をハザードマップ由来のデータで重ね、区ごとの災害リスクを地価と同じ画面で確認します。",
+    body: "浸水・津波・土砂災害の想定区域を、ハザードマップポータルサイトのタイルで地図に重ねて確認します。区ごとの災害リスク指標は現在、サンプルデータ（暫定）です。",
     sources: [SOURCES.hazard.label],
   },
 ];
@@ -45,7 +45,7 @@ const CAPABILITIES = [
 // dashboard, but no layer draws it yet; the row says exactly that.
 const LIVE_ROWS: [string, string, string][] = [
   [SOURCES.reinfolib.label, `取引価格（対象 8 区・各 5 件まで）— ${FETCHED_NOT_SHOWN}`, "2024年"],
-  [SOURCES.estat.label, "人口・世帯・年齢構成、5年間の人口増減率", "2020年国勢調査・2025年速報"],
+  [SOURCES.estat.label, "人口・年齢構成、5年間の人口増減率", "2020年国勢調査・2025年速報"],
   [SOURCES.odpt.label, "駅別乗降客数（交通タブ・地図の駅バブル）", "—"],
   [SOURCES.hazard.label, "浸水・津波・土砂災害の想定区域（地図の重ね表示）", "—"],
   ["dataofjapan/land", "行政区界（区境界ポリゴン）", "—"],
@@ -105,7 +105,7 @@ export default function LandingPage() {
               className="inline-block rounded-sm px-5 py-2.5 text-sm font-medium"
               style={{ background: "var(--up-text)", color: "var(--background)" }}
             >
-              アクセスを申請する
+              サインイン
             </Link>
             <p className="mt-3 text-[11px] text-muted-foreground">
               一つのアカウントで DXA Labs の全プロダクトにアクセスできます。

@@ -2,7 +2,9 @@
  * Firebase client for the shared dxalabs-platform tenant.
  *
  * The config values are public identifiers, not secrets — access is decided
- * server-side by RS256 verification plus the curated is_active gate. They are
+ * server-side by RS256 verification plus the is_active gate. Registration is
+ * open self-signup: a verified email is the only condition, and /pending
+ * waits for verification only (backend/core/provisioning.py:29-39). They are
  * NEXT_PUBLIC_* because Next inlines them at build time (design-spec-v1 §2 of
  * the migration config: build-args, not runtime env).
  *
