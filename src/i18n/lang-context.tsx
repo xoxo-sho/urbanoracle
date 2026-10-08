@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import {
   DEFAULT_LANG,
   URL_PARAM,
@@ -97,11 +106,17 @@ function createLangStore(): LangStore {
   };
 }
 
+/**
+ * Bring <html lang>, <title> and every description meta to `lang`, writing
+ * only what differs — so calling it again when nothing changed writes nothing.
+ */
 function applyToDocument(lang: Lang): void {
   const t = LP_COPY[lang];
-  document.documentElement.lang = lang;
-  document.title = t.metaTitle;
-  document.querySelector('meta[name="description"]')?.setAttribute("content", t.metaDescription);
+  if (document.documentElement.lang !== lang) document.documentElement.lang = lang;
+  if (document.title !== t.metaTitle) document.title = t.metaTitle;
+  for (const meta of document.querySelectorAll('meta[name="description"]')) {
+    if (meta.getAttribute("content") !== t.metaDescription) meta.setAttribute("content", t.metaDescription);
+  }
 }
 
 const serverLang = (): Lang => DEFAULT_LANG;
@@ -134,11 +149,35 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     store.resolve();
   }, [store]);
 
-  useEffect(() => {
+  // The route's Japanese metadata <title> and description are hoisted
+  // elements React mounts in its own commit (react-dom commitMutationEffects,
+  // HostHoistable): it claims the existing <title> and rewrites its text, and
+  // inserts a new description <meta>. That commit can land AFTER this effect
+  // has applied the visitor's language (measured: 12 of 40 loads of "click EN,
+  // then reload"), leaving an English page under the Japanese title. So the
+  // head is watched while the page is mounted, and anything that differs from
+  // the current language is put back — applyToDocument writes only what
+  // differs, so its own writes end the loop.
+  //
+  // Layout effect, not passive: on a client-side navigation away, the next
+  // route mounts its own <title> in the same commit, and the observer must be
+  // disconnected synchronously in that commit (disconnect discards the pending
+  // records) rather than in a later passive cleanup, or it would stamp this
+  // page's title onto the next one.
+  useLayoutEffect(() => {
     applyToDocument(lang);
+    const observer = new MutationObserver(() => applyToDocument(lang));
+    observer.observe(document.head, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["content"],
+    });
+    return () => observer.disconnect();
   }, [lang]);
 
-  useEffect(
+  useLayoutEffect(
     () => () => {
       document.documentElement.lang = DEFAULT_LANG;
     },
