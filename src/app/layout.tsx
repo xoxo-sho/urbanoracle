@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "UrbanOracle - 都市データ可視化ダッシュボード",
   description:
-    "東京23区の地価・人口統計・災害リスク・交通・用途地域などのオープンデータを可視化するWebダッシュボード",
+    "東京23区の地価・人口統計・災害リスク・交通などのオープンデータを可視化するWebダッシュボード",
   keywords: ["都市データ", "東京23区", "地価", "人口統計", "災害リスク", "オープンデータ", "ダッシュボード"],
   openGraph: {
     title: "UrbanOracle - 都市データ可視化ダッシュボード",

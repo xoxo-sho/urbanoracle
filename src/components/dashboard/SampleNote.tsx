@@ -9,14 +9,26 @@ import { cn } from "@/lib/utils";
  * in a ministry's name was the falsehood this component replaces. The
  * optional `note` carries what is still true about the surface — its unit,
  * its scale — never a source.
+ *
+ * `notice` replaces the warning's wording with the same warning in another
+ * language; only the landing page passes it (its JA/EN toggle). Every /app
+ * call site omits it and renders SAMPLE_NOTICE exactly as before.
  */
-export default function SampleNote({ note, className }: { note?: string; className?: string }) {
+export default function SampleNote({
+  note,
+  notice,
+  className,
+}: {
+  note?: string;
+  notice?: string;
+  className?: string;
+}) {
   return (
     <p role="note" data-provenance="sample" className={cn("sample-note mt-2", className)}>
       <span className="sample-tag" aria-hidden>
         SAMPLE
       </span>
-      <span>{SAMPLE_NOTICE}</span>
+      <span>{notice ?? SAMPLE_NOTICE}</span>
       {note ? <span className="sample-note-detail">{note}</span> : null}
     </p>
   );

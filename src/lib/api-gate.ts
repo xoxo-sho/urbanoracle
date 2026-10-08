@@ -9,9 +9,12 @@
  *   200                                 render
  *
  * Collapsing 401 and 403 into one "not allowed" branch would send a person
- * whose account is awaiting approval back to a sign-in screen they have
- * already used correctly, which reads as a broken login. They stay separate
- * all the way to the redirect.
+ * who signed in correctly but has not yet verified their email address back
+ * to a sign-in screen, which reads as a broken login. Registration is open
+ * self-signup and a verified email is the only condition, so /pending waits
+ * for verification only — there is no approval step
+ * (backend/core/provisioning.py:29-39). They stay separate all the way to
+ * the redirect.
  *
  * A 403 whose body is NOT pending_activation is deliberately NOT treated as
  * pending: an unrecognised denial must not be narrated as "you are in the

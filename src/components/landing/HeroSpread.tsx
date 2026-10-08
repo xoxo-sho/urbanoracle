@@ -4,6 +4,8 @@ import {
   sampleWardProfiles,
 } from "@/data/sample";
 import SampleNote from "@/components/dashboard/SampleNote";
+import type { Lang } from "@/i18n/lang";
+import { LP_COPY, wardName } from "@/i18n/lp";
 
 /**
  * The hero spread (design-spec-v1 §4): upside × downside symmetry.
@@ -20,7 +22,42 @@ import SampleNote from "@/components/dashboard/SampleNote";
  * both sides, so the ward with the strongest price movement is visibly not
  * the safest one. The spread therefore says SAMPLE on its face and in its
  * caption; real-data wiring is a later stage and does not change the layout.
+ *
+ * Its words come from the LP dictionary (src/i18n/lp.ts). Rendered on its own
+ * it reads in Japanese; the landing page passes `copy` for the visitor's
+ * language. Ward names are looked up by ward code, never transliterated.
  */
+
+export type HeroSpreadCopy = {
+  up: string;
+  sampleTag: string;
+  ward: string;
+  down: string;
+  level: string;
+  safety: string;
+  none: string;
+  units: string;
+  sampleNotice: string;
+  wardName: (region: string) => string;
+};
+
+export function heroSpreadCopy(lang: Lang): HeroSpreadCopy {
+  const t = LP_COPY[lang];
+  return {
+    up: t.spreadUp,
+    sampleTag: t.sampleTag,
+    ward: t.spreadWard,
+    down: t.spreadDown,
+    level: t.spreadLevel,
+    safety: t.spreadSafety,
+    none: t.none,
+    units: t.spreadUnits,
+    sampleNotice: t.sampleNotice,
+    wardName: (region) => wardName(region, lang),
+  };
+}
+
+const JA_COPY = heroSpreadCopy("ja");
 
 const ROWS = 6;
 
@@ -31,7 +68,7 @@ function maxHazardLevel(region: string): number | null {
   return levels.length ? Math.max(...levels) : null;
 }
 
-export default function HeroSpread() {
+export default function HeroSpread({ copy = JA_COPY }: { copy?: HeroSpreadCopy }) {
   const rows = [...sampleLandPriceSummary]
     .sort((a, b) => b.changeRate - a.changeRate)
     .slice(0, ROWS)
@@ -55,13 +92,13 @@ export default function HeroSpread() {
         style={{ borderBottom: "1px solid var(--rule)" }}
       >
         <span className="text-right" style={{ color: "var(--up-text)" }}>
-          上振れ 地価前年比
+          {copy.up}
         </span>
         <span className="flex flex-col items-center gap-0.5 text-muted-foreground">
-          <span className="sample-tag">SAMPLE</span>
-          区
+          <span className="sample-tag">{copy.sampleTag}</span>
+          {copy.ward}
         </span>
-        <span style={{ color: "var(--down-text)" }}>下振れ 想定災害規模</span>
+        <span style={{ color: "var(--down-text)" }}>{copy.down}</span>
       </div>
 
       <ul>
@@ -90,7 +127,7 @@ export default function HeroSpread() {
               </div>
 
               <span className="min-w-14 text-center text-[11px] font-medium">
-                {row.region.replace("区", "")}
+                {copy.wardName(row.region)}
               </span>
 
               {/* Downside — grows rightward from the same spine */}
@@ -103,10 +140,13 @@ export default function HeroSpread() {
                   className="font-mono text-[11px] tabular-nums"
                   style={{ color: "var(--down-text)" }}
                 >
-                  {row.hazard ? `Lv.${row.hazard}` : "—"}
+                  {row.hazard ? `${copy.level}${row.hazard}` : copy.none}
                 </span>
                 {row.safety !== null && (
-                  <span className="text-[10px] text-muted-foreground">安全度 {row.safety}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {`${copy.safety} `}
+                    {row.safety}
+                  </span>
                 )}
               </div>
             </li>
@@ -114,7 +154,7 @@ export default function HeroSpread() {
         })}
       </ul>
 
-      <SampleNote className="m-3" note="単位: 前年比 % ・想定災害規模 Lv.1–5" />
+      <SampleNote className="m-3" note={copy.units} notice={copy.sampleNotice} />
     </div>
   );
 }

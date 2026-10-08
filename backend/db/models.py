@@ -14,10 +14,13 @@ Identity rules (ported from the Parallel City / Landcast precedent):
     auth_uid = id::text is a bug, not a shortcut.
   - 1 user : 1 org — provisioning (Stage 2b) creates an Organization per
     user; ``org_id`` is NOT NULL from birth.
-  - ``is_active`` is a PRIMARY gate (curated access), not just a safety
-    net: the schema default is FALSE so a row that provisioning has not
-    explicitly evaluated can never be active. Protected routes require
-    is_active=true as a second gate after token verification.
+  - ``is_active`` is a PRIMARY gate, not just a safety net. Registration is
+    open self-signup and a verified email is the only condition
+    (backend/core/provisioning.py:29-39): a row is inactive only while its
+    email is unverified, and /pending waits for verification only. The
+    schema default is FALSE so a row that provisioning has not explicitly
+    evaluated can never be active. Protected routes require is_active=true
+    as a second gate after token verification.
 """
 
 import enum
@@ -78,8 +81,10 @@ class User(Base):
         String(20), nullable=False, default=UserRole.viewer.value, server_default="viewer"
     )
     # Row exists = account exists. is_active = the account may be used.
-    # Curated access: provisioning writes is_active=false (pending) and
-    # activation is a manual step — the schema default keeps every
+    # Open self-signup: a verified email is the only condition, so
+    # provisioning writes is_active=true for a verified address and false
+    # (pending) until verification; /pending waits for verification only
+    # (backend/core/provisioning.py:29-39). The schema default keeps every
     # un-evaluated row inert.
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
