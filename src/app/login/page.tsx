@@ -10,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { authErrorMessage } from "@/lib/auth-errors";
+import { authErrorCode, type AuthErrorCode } from "@/lib/auth-errors";
+import { AUTH_COPY, AUTH_META, PASSWORD_LABELS, authErrorText } from "@/i18n/auth";
+import { LanguageProvider, useLang } from "@/i18n/lang-context";
 import { BUILD_SHA, firebaseAuth } from "@/lib/firebase";
 import { checkPassword, isPasswordAcceptable } from "@/lib/password";
 
@@ -24,14 +26,24 @@ import { checkPassword, isPasswordAcceptable } from "@/lib/password";
 type Mode = "signin" | "signup";
 
 export default function LoginPage() {
+  return (
+    <LanguageProvider meta={AUTH_META}>
+      <LoginScreen />
+    </LanguageProvider>
+  );
+}
+
+function LoginScreen() {
+  const { lang } = useLang();
+  const t = AUTH_COPY[lang];
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthErrorCode | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const checks = checkPassword(password);
+  const checks = checkPassword(password, PASSWORD_LABELS[lang]);
   const passwordReady = isPasswordAcceptable(password);
 
   async function withBusy(action: () => Promise<void>) {
@@ -40,7 +52,7 @@ export default function LoginPage() {
     try {
       await action();
     } catch (err) {
-      setError(authErrorMessage(err));
+      setError(authErrorCode(err));
     } finally {
       setBusy(false);
     }
@@ -57,7 +69,7 @@ export default function LoginPage() {
     return withBusy(async () => {
       if (mode === "signup") {
         if (!passwordReady) {
-          setError("パスワードが要件を満たしていません");
+          setError("weak-password");
           return;
         }
         const credential = await createUserWithEmailAndPassword(
@@ -90,24 +102,26 @@ export default function LoginPage() {
         style={{ background: "var(--up-fill)" }}
       >
         <Link href="/" className="text-[11px] tracking-widest uppercase text-muted-foreground">
-          UrbanOracle
+          {t.brand}
         </Link>
         <div className="max-w-md">
           <h1 className="heading text-3xl leading-snug" style={{ color: "var(--up-text)" }}>
-            都市の資産価値を、<br />上振れと下振れの両面から。
+            {t.panelHeadline1}
+            <br />
+            {t.panelHeadline2}
           </h1>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            東京23区の地価・人口・交通と、災害リスクを同一の意思決定面で読み解くための計器です。
+            {t.panelBody}
           </p>
         </div>
-        <p className="text-[10px] text-muted-foreground">UrbanOracle — DXA Labs</p>
+        <p className="text-[10px] text-muted-foreground">{t.brandFooter}</p>
       </section>
 
       <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-sm mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">ACCESS</p>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t.eyebrowAccess}</p>
           <h2 className="heading mt-2 text-2xl">
-            {mode === "signin" ? "サインイン" : "アカウント作成"}
+            {mode === "signin" ? t.headingSignIn : t.headingSignUp}
           </h2>
 
           <button
@@ -116,18 +130,18 @@ export default function LoginPage() {
             disabled={busy}
             className="mt-6 w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
           >
-            Google で{mode === "signin" ? "サインイン" : "登録"}
+            {mode === "signin" ? t.googleSignIn : t.googleSignUp}
           </button>
 
           <div className="my-5 flex items-center gap-3">
             <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-            <span className="text-[10px] text-muted-foreground">または</span>
+            <span className="text-[10px] text-muted-foreground">{t.or}</span>
             <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
           </div>
 
           <form onSubmit={submitEmail} className="space-y-3">
             <label className="block">
-              <span className="text-[11px] text-muted-foreground">メールアドレス</span>
+              <span className="text-[11px] text-muted-foreground">{t.emailLabel}</span>
               <input
                 type="email"
                 required
@@ -139,7 +153,7 @@ export default function LoginPage() {
             </label>
 
             <label className="block">
-              <span className="text-[11px] text-muted-foreground">パスワード</span>
+              <span className="text-[11px] text-muted-foreground">{t.passwordLabel}</span>
               <input
                 type="password"
                 required
@@ -151,7 +165,7 @@ export default function LoginPage() {
             </label>
 
             {mode === "signup" && (
-              <ul className="space-y-1" aria-label="パスワード要件">
+              <ul className="space-y-1" aria-label={t.passwordRules}>
                 {checks.map((check) => (
                   <li
                     key={check.id}
@@ -175,7 +189,7 @@ export default function LoginPage() {
 
             {error && (
               <p role="alert" className="text-[11px] leading-relaxed" style={{ color: "var(--down-text)" }}>
-                {error}
+                {authErrorText(error, lang)}
               </p>
             )}
 
@@ -185,7 +199,7 @@ export default function LoginPage() {
               className="w-full rounded-sm px-4 py-2.5 text-sm font-medium transition-opacity disabled:opacity-50"
               style={{ background: "var(--up-text)", color: "var(--background)" }}
             >
-              {mode === "signin" ? "サインイン" : "アカウントを作成"}
+              {mode === "signin" ? t.submitSignIn : t.submitSignUp}
             </button>
           </form>
 
@@ -198,20 +212,22 @@ export default function LoginPage() {
               }}
               className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
-              {mode === "signin" ? "アカウントをお持ちでない方" : "既にアカウントをお持ちの方"}
+              {mode === "signin" ? t.toggleToSignUp : t.toggleToSignIn}
             </button>
             <Link
               href="/forgot-password"
               className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
-              パスワードをお忘れの方
+              {t.forgotLink}
             </Link>
           </div>
 
           <p className="mt-8 text-[10px] leading-relaxed text-muted-foreground">
-            一つのアカウントで DXA Labs の全プロダクトにアクセスできます。
+            {t.accountNote}
           </p>
-          <p className="mt-2 font-mono text-[9px] text-muted-foreground">BUILD {BUILD_SHA}</p>
+          <p className="mt-2 font-mono text-[9px] text-muted-foreground">
+            {t.build} {BUILD_SHA}
+          </p>
         </div>
       </section>
     </main>

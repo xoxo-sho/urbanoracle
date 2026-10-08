@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { sendEmailVerification, signOut } from "firebase/auth";
 import { useAuth } from "@/lib/auth-context";
 import { firebaseAuth } from "@/lib/firebase";
+import { AUTH_COPY, AUTH_META } from "@/i18n/auth";
+import { LanguageProvider, useLang } from "@/i18n/lang-context";
 
 /**
  * メールアドレスの確認 — the last step of an open signup.
@@ -33,6 +35,16 @@ import { firebaseAuth } from "@/lib/firebase";
 const POLL_INTERVAL_MS = 15_000;
 
 export default function VerifyEmailPage() {
+  return (
+    <LanguageProvider meta={AUTH_META}>
+      <VerifyEmailScreen />
+    </LanguageProvider>
+  );
+}
+
+function VerifyEmailScreen() {
+  const { lang } = useLang();
+  const t = AUTH_COPY[lang];
   const { user, refresh, getToken } = useAuth();
   const router = useRouter();
   const [resent, setResent] = useState(false);
@@ -90,33 +102,30 @@ export default function VerifyEmailPage() {
         style={{ background: "var(--up-fill)" }}
       >
         <Link href="/" className="text-[11px] tracking-widest uppercase text-muted-foreground">
-          UrbanOracle
+          {t.brand}
         </Link>
         <div className="max-w-md">
           <h1 className="heading text-3xl leading-snug" style={{ color: "var(--up-text)" }}>
-            あと一歩で、
+            {t.pendingHeadline1}
             <br />
-            計器が開きます。
+            {t.pendingHeadline2}
           </h1>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            確認できたメールアドレスだけを受け入れています。審査はありません——
-            リンクを開いた時点で、すべての機能がそのまま使えます。
+            {t.pendingBody}
           </p>
         </div>
-        <p className="text-[10px] text-muted-foreground">
-          一つのアカウントで DXA Labs の全プロダクトにアクセスできます。
-        </p>
+        <p className="text-[10px] text-muted-foreground">{t.accountNote}</p>
       </section>
 
       <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-sm mx-auto">
           <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-            VERIFICATION
+            {t.verifyEyebrow}
           </p>
-          <h2 className="heading mt-2 text-2xl">メールアドレスの確認</h2>
+          <h2 className="heading mt-2 text-2xl">{t.verifyTitle}</h2>
 
           <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-            確認メールをお送りしました。メール内のリンクを開くと認証が完了します。
+            {t.verifySent}
           </p>
 
           {user?.email && (
@@ -141,18 +150,18 @@ export default function VerifyEmailPage() {
             className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{ background: "var(--up-text)" }}
           >
-            {checking ? "確認しています…" : "認証を確認"}
+            {checking ? t.verifyChecking : t.verifyCheck}
           </button>
 
           {stillUnverified && (
             <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
-              まだ認証を確認できません。メール内のリンクを開いてから、もう一度お試しください。
+              {t.verifyStill}
             </p>
           )}
 
           <div className="my-5 flex items-center gap-3">
             <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-            <span className="text-[10px] text-muted-foreground">メールが届かない場合</span>
+            <span className="text-[10px] text-muted-foreground">{t.verifyNoMail}</span>
             <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
           </div>
 
@@ -166,11 +175,11 @@ export default function VerifyEmailPage() {
             }}
             className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
           >
-            {resent ? "確認メールを再送しました" : "確認メールを再送"}
+            {resent ? t.verifyResent : t.verifyResend}
           </button>
 
           <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
-            迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。
+            {t.verifySpam}
           </p>
 
           {user && (
@@ -180,13 +189,13 @@ export default function VerifyEmailPage() {
               disabled={switching}
               className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait disabled:opacity-60"
             >
-              別のアカウントでサインインする
+              {t.verifySwitch}
             </button>
           )}
 
           <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
             <Link href="/" className="underline underline-offset-2 hover:text-foreground">
-              UrbanOracle について
+              {t.aboutLink}
             </Link>
           </p>
         </div>

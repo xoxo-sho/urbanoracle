@@ -106,16 +106,25 @@ function createLangStore(): LangStore {
   };
 }
 
+/** A page's <title> and meta description in each language. */
+export type PageMeta = Record<Lang, { title: string; description: string }>;
+
+/** The landing page's own title and description (the default). */
+const LP_META: PageMeta = {
+  ja: { title: LP_COPY.ja.metaTitle, description: LP_COPY.ja.metaDescription },
+  en: { title: LP_COPY.en.metaTitle, description: LP_COPY.en.metaDescription },
+};
+
 /**
  * Bring <html lang>, <title> and every description meta to `lang`, writing
  * only what differs — so calling it again when nothing changed writes nothing.
  */
-function applyToDocument(lang: Lang): void {
-  const t = LP_COPY[lang];
+function applyToDocument(lang: Lang, meta: PageMeta): void {
+  const { title, description } = meta[lang];
   if (document.documentElement.lang !== lang) document.documentElement.lang = lang;
-  if (document.title !== t.metaTitle) document.title = t.metaTitle;
-  for (const meta of document.querySelectorAll('meta[name="description"]')) {
-    if (meta.getAttribute("content") !== t.metaDescription) meta.setAttribute("content", t.metaDescription);
+  if (document.title !== title) document.title = title;
+  for (const el of document.querySelectorAll('meta[name="description"]')) {
+    if (el.getAttribute("content") !== description) el.setAttribute("content", description);
   }
 }
 
@@ -140,7 +149,11 @@ const LangContext = createContext<LangContextValue>({
   t: LP_COPY[DEFAULT_LANG],
 });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+/**
+ * `meta` is the page's title and description per language — the landing
+ * page's by default; the auth screens pass theirs (src/i18n/auth.ts).
+ */
+export function LanguageProvider({ children, meta = LP_META }: { children: ReactNode; meta?: PageMeta }) {
   const [store] = useState(createLangStore);
   const lang = useSyncExternalStore(store.subscribe, store.get, serverLang);
   const ready = useSyncExternalStore(store.subscribe, store.isReady, serverReady);
@@ -165,8 +178,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // records) rather than in a later passive cleanup, or it would stamp this
   // page's title onto the next one.
   useLayoutEffect(() => {
-    applyToDocument(lang);
-    const observer = new MutationObserver(() => applyToDocument(lang));
+    applyToDocument(lang, meta);
+    const observer = new MutationObserver(() => applyToDocument(lang, meta));
     observer.observe(document.head, {
       subtree: true,
       childList: true,
@@ -175,7 +188,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       attributeFilter: ["content"],
     });
     return () => observer.disconnect();
-  }, [lang]);
+  }, [lang, meta]);
 
   useLayoutEffect(
     () => () => {
