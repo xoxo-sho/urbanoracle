@@ -93,6 +93,12 @@ jobs:
         # Serves out/ with a static server (own config, no dev server). Fonts
         # are self-hosted by next/font — no network needed.
         run: npm run test:fonts
+      # The landing page's JA/EN toggle, against the same out/ built above:
+      # python3's http.server on its own port, 1440×900 and 390×844 — default
+      # Japanese, zero Japanese left in English, persistence, ?lang=, overflow,
+      # keyboard, rendered contrast, no foreign requests (playwright.lp.config.ts).
+      - name: "LP — JA/EN toggle (1440×900, 390×844)"
+        run: npm run test:lp
       - name: Upload font check report on failure
         if: failure()
         uses: actions/upload-artifact@v4
