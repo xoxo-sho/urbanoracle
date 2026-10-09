@@ -225,6 +225,14 @@ function LoginScreen() {
           {t.accountNote}
         </p>
       )}
+
+      {/* The way back to the landing page — the same link /pending has. After
+          the register and forgot links, so the first Tab is still the email. */}
+      <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
+        <Link href="/" data-auth-about="" className="underline underline-offset-2 hover:text-foreground">
+          {t.aboutLink}
+        </Link>
+      </p>
     </AuthShell>
   );
 }

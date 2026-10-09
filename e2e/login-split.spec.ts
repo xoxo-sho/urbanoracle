@@ -171,6 +171,7 @@ const SIGN_IN_ORDER = [
   "[data-auth-google]",
   "[data-auth-mode-toggle]",
   'a[href="/forgot-password"]',
+  "[data-auth-about]",
 ];
 const SIGN_UP_ORDER = [
   "[data-auth-wordmark]",
@@ -183,6 +184,7 @@ const SIGN_UP_ORDER = [
   "[data-auth-google]",
   "[data-auth-mode-toggle]",
   "[data-auth-footnote]",
+  "[data-auth-about]",
 ];
 
 async function assertOrder(page: Page, selectors: string[], mode: string) {
@@ -210,6 +212,9 @@ test("L2 /login: form column order in both modes; wordmark, subtitle, labels, pl
   await expect(page.getByLabel(JA.passwordLabel)).toHaveAttribute("placeholder", JA.passwordPlaceholder);
   await expect(page.locator('button[type="submit"]')).toHaveText(JA.submitSignIn);
   await expect(page.locator("[data-auth-divider]")).toHaveText(JA.or);
+  // The way back to the landing page: the same link /pending has.
+  await expect(page.locator("[data-auth-about]")).toHaveText(JA.aboutLink);
+  await expect(page.locator("[data-auth-about]")).toHaveAttribute("href", "/");
   expect(await page.locator("body").innerText()).not.toContain("ACCESS");
   expect(await page.getByRole("heading", { level: 2 }).count(), "no 「サインイン」 h2").toBe(0);
 
@@ -229,10 +234,35 @@ test("L2 /pending: wordmark and subtitle, then the verification content in its o
   }
 });
 
-test("L3 keyboard: the first Tab lands on the email field; the panel has 0 focusable elements", async ({ page }) => {
+test("L3 keyboard: the first Tab lands on the email field, the back-link follows the register and forgot links; the panel has 0 focusable elements", async ({ page }) => {
   await open(page, LOGIN);
-  await page.keyboard.press("Tab");
-  expect(await page.evaluate(() => (document.activeElement as HTMLInputElement | null)?.type)).toBe("email");
+  const name = () =>
+    page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el === document.body) return "body";
+      for (const attr of ["data-auth-google", "data-auth-mode-toggle", "data-auth-about"]) if (el.hasAttribute(attr)) return attr;
+      if (el instanceof HTMLInputElement) return `input:${el.type}`;
+      if (el.getAttribute("href") === "/forgot-password") return "forgot";
+      if (el.closest("[data-lang-toggle]")) return `lang:${el.textContent}`;
+      return `${el.tagName.toLowerCase()}[type=${el.getAttribute("type")}]`;
+    });
+  const order: string[] = [];
+  for (let i = 0; i < 9; i++) {
+    await page.keyboard.press("Tab");
+    order.push(await name());
+  }
+  console.log(`[L3] /login Tab order: ${order.join(" → ")}`);
+  expect(order).toEqual([
+    "input:email",
+    "input:password",
+    "button[type=submit]",
+    "data-auth-google",
+    "data-auth-mode-toggle",
+    "forgot",
+    "data-auth-about",
+    "lang:JA",
+    "lang:EN",
+  ]);
   for (const route of [LOGIN, PENDING]) {
     await open(page, route);
     const panel = page.locator("[data-auth-panel]");
