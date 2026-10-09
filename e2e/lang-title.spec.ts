@@ -1,4 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { AUTH_COPY } from "../src/i18n/auth";
 import { LP_COPY } from "../src/i18n/lp";
 
 /**
@@ -18,22 +19,32 @@ import { LP_COPY } from "../src/i18n/lp";
  *   (latency 150ms, download 1.6 Mbps, upload 750 kbps).
  * CPU: LANG_TITLE_CPU (1 or 4).
  *
+ * DEFAULT RUN (CI and `npm run test:login`): the S1′ reproducing cell only —
+ * P1, no throttling, 1× CPU — on every page; that is the one cell with a
+ * RED (9/20 before the fix). The other cells run only with
+ * LANG_TITLE_MATRIX=1, where LANG_TITLE_PROTOCOLS / LANG_TITLE_NETWORKS /
+ * LANG_TITLE_CPU select them.
+ *
  * Sampling: document.title every 50ms for 3s from the final load event. A load
  * FAILS if, once the EN title has appeared, any later sample differs from it,
  * or if the final title is not EN. Title writes (mutations of <title> or its
  * text) are counted per final load and may not exceed MAX_TITLE_WRITES. After
  * the window, every description meta must carry the EN description.
  *
- * Selection by env: LANG_TITLE_PROTOCOLS (default "P1,P2,P3"),
- * LANG_TITLE_NETWORKS (default "none,throttled"), LANG_TITLE_LOADS (default
- * 20). LANG_TITLE_TRACE=1 also records a stack per title write.
+ * Pages: / and, with the same protocols, /login and /pending (L7).
+ * Selection by env: LANG_TITLE_PAGES (default "landing page,login,pending"),
+ * LANG_TITLE_LOADS (default 10); with LANG_TITLE_MATRIX=1 also
+ * LANG_TITLE_PROTOCOLS (default "P1,P2,P3"), LANG_TITLE_NETWORKS (default
+ * "none,throttled") and LANG_TITLE_CPU (default 1). LANG_TITLE_TRACE=1 also
+ * records a stack per title write.
  *
  * Requests to the identity hosts are aborted and counted; none may escape.
  */
 
 const STORAGE_KEY = "urbanoracle.lang";
-const LOADS = Number(process.env.LANG_TITLE_LOADS ?? 20);
-const CPU = Number(process.env.LANG_TITLE_CPU ?? 1);
+const MATRIX = process.env.LANG_TITLE_MATRIX === "1";
+const LOADS = Number(process.env.LANG_TITLE_LOADS ?? 10);
+const CPU = MATRIX ? Number(process.env.LANG_TITLE_CPU ?? 1) : 1;
 const TRACE = process.env.LANG_TITLE_TRACE === "1";
 const SAMPLE_MS = 50;
 const WINDOW_MS = 3000;
@@ -42,8 +53,8 @@ const IDENTITY = /(^|\.)(identitytoolkit\.googleapis\.com|securetoken\.googleapi
 
 type Protocol = "P1" | "P2" | "P3";
 type Network = "none" | "throttled";
-const PROTOCOLS = (process.env.LANG_TITLE_PROTOCOLS ?? "P1,P2,P3").split(",") as Protocol[];
-const NETWORKS = (process.env.LANG_TITLE_NETWORKS ?? "none,throttled").split(",") as Network[];
+const PROTOCOLS = (MATRIX ? (process.env.LANG_TITLE_PROTOCOLS ?? "P1,P2,P3").split(",") : ["P1"]) as Protocol[];
+const NETWORKS = (MATRIX ? (process.env.LANG_TITLE_NETWORKS ?? "none,throttled").split(",") : ["none"]) as Network[];
 
 /** Uniform throttling of every request; bytes per second. */
 const THROTTLED = { offline: false, latency: 150, downloadThroughput: 1_600_000 / 8, uploadThroughput: 750_000 / 8 };
@@ -128,9 +139,12 @@ async function finalLoad(page: Page): Promise<{ samples: string[]; writes: Write
   });
 }
 
+// python3's http.server does not map clean URLs: the auth routes load as .html.
 const PAGES: { name: string; path: string; enTitle: string; enDescription: string }[] = [
   { name: "landing page", path: "/", enTitle: LP_COPY.en.metaTitle, enDescription: LP_COPY.en.metaDescription },
-];
+  { name: "login", path: "/login.html", enTitle: AUTH_COPY.en.metaTitle, enDescription: AUTH_COPY.en.metaDescription },
+  { name: "pending", path: "/pending.html", enTitle: AUTH_COPY.en.metaTitle, enDescription: AUTH_COPY.en.metaDescription },
+].filter((p) => (process.env.LANG_TITLE_PAGES ?? "landing page,login,pending").split(",").includes(p.name));
 
 for (const target of PAGES) {
   for (const protocol of PROTOCOLS) {

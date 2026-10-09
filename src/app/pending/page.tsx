@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { sendEmailVerification, signOut } from "firebase/auth";
+import AuthShell from "@/components/auth/AuthShell";
 import { useAuth } from "@/lib/auth-context";
 import { firebaseAuth } from "@/lib/firebase";
 import { AUTH_COPY, AUTH_META } from "@/i18n/auth";
@@ -12,9 +13,11 @@ import { LanguageProvider, useLang } from "@/i18n/lang-context";
 /**
  * メールアドレスの確認 — the last step of an open signup.
  *
- * Deliberately built on the same two-column editorial ground as /login: this is
- * a step inside the product, not a system notice. The earlier version read like
+ * Deliberately built in the same split shell as /login (AuthShell): this is a
+ * step inside the product, not a system notice. The earlier version read like
  * an error page, which framed a routine wait as something having gone wrong.
+ * The form half opens with the wordmark and subtitle, then the verification
+ * content and actions in their original order.
  *
  * Registration is open, so there is no review and nobody to wait for — only an
  * unopened message. The copy says exactly that and nothing more reassuring than
@@ -95,111 +98,97 @@ function VerifyEmailScreen() {
   };
 
   return (
-    <main className="min-h-dvh grid lg:grid-cols-[1.1fr_1fr]">
-      {/* Editorial ground — the same 深紺 field the sign-in page stands on. */}
-      <section
-        className="hidden lg:flex flex-col justify-between p-10"
-        style={{ background: "var(--up-fill)" }}
+    <AuthShell>
+      <h1 data-auth-wordmark="" className="heading text-[28px] leading-tight">
+        {t.brand}
+      </h1>
+      <p data-auth-subtitle="" className="mt-1.5 text-[13px] text-muted-foreground">
+        {t.subtitle}
+      </p>
+
+      <p className="mt-8 text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+        {t.verifyEyebrow}
+      </p>
+      <h2 data-auth-verify-title="" className="heading mt-2 text-2xl">
+        {t.verifyTitle}
+      </h2>
+
+      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+        {t.verifySent}
+      </p>
+
+      {user?.email && (
+        <p
+          className="mt-3 rounded-sm border px-3 py-2 text-xs tabular-nums"
+          style={{ borderColor: "var(--rule)", background: "var(--surface)" }}
+        >
+          {user.email}
+        </p>
+      )}
+
+      <button
+        type="button"
+        data-auth-verify-check=""
+        disabled={checking}
+        onClick={async () => {
+          setChecking(true);
+          setStillUnverified(false);
+          const ok = await recheck();
+          if (!ok) setStillUnverified(true);
+          setChecking(false);
+        }}
+        className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
+        style={{ background: "var(--up-text)", color: "var(--background)" }}
       >
-        <Link href="/" className="text-[11px] tracking-widest uppercase text-muted-foreground">
-          {t.brand}
+        {checking ? t.verifyChecking : t.verifyCheck}
+      </button>
+
+      {stillUnverified && (
+        <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
+          {t.verifyStill}
+        </p>
+      )}
+
+      <div data-auth-divider="" className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+        <span className="text-[10px] text-muted-foreground">{t.verifyNoMail}</span>
+        <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+      </div>
+
+      <button
+        type="button"
+        data-auth-verify-resend=""
+        onClick={async () => {
+          const current = firebaseAuth().currentUser;
+          if (!current) return;
+          await sendEmailVerification(current).catch(() => undefined);
+          setResent(true);
+        }}
+        className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+      >
+        {resent ? t.verifyResent : t.verifyResend}
+      </button>
+
+      <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+        {t.verifySpam}
+      </p>
+
+      {user && (
+        <button
+          type="button"
+          onClick={switchAccount}
+          disabled={switching}
+          className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait"
+        >
+          {t.verifySwitch}
+        </button>
+      )}
+
+      <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
+        <Link href="/" className="underline underline-offset-2 hover:text-foreground">
+          {t.aboutLink}
         </Link>
-        <div className="max-w-md">
-          <h1 className="heading text-3xl leading-snug" style={{ color: "var(--up-text)" }}>
-            {t.pendingHeadline1}
-            <br />
-            {t.pendingHeadline2}
-          </h1>
-          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            {t.pendingBody}
-          </p>
-        </div>
-        <p className="text-[10px] text-muted-foreground">{t.accountNote}</p>
-      </section>
-
-      <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
-        <div className="w-full max-w-sm mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-            {t.verifyEyebrow}
-          </p>
-          <h2 className="heading mt-2 text-2xl">{t.verifyTitle}</h2>
-
-          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-            {t.verifySent}
-          </p>
-
-          {user?.email && (
-            <p
-              className="mt-3 rounded-sm border px-3 py-2 text-xs tabular-nums"
-              style={{ borderColor: "var(--rule)", background: "var(--surface)" }}
-            >
-              {user.email}
-            </p>
-          )}
-
-          <button
-            type="button"
-            disabled={checking}
-            onClick={async () => {
-              setChecking(true);
-              setStillUnverified(false);
-              const ok = await recheck();
-              if (!ok) setStillUnverified(true);
-              setChecking(false);
-            }}
-            className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: "var(--up-text)" }}
-          >
-            {checking ? t.verifyChecking : t.verifyCheck}
-          </button>
-
-          {stillUnverified && (
-            <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
-              {t.verifyStill}
-            </p>
-          )}
-
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-            <span className="text-[10px] text-muted-foreground">{t.verifyNoMail}</span>
-            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-          </div>
-
-          <button
-            type="button"
-            onClick={async () => {
-              const current = firebaseAuth().currentUser;
-              if (!current) return;
-              await sendEmailVerification(current).catch(() => undefined);
-              setResent(true);
-            }}
-            className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            {resent ? t.verifyResent : t.verifyResend}
-          </button>
-
-          <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
-            {t.verifySpam}
-          </p>
-
-          {user && (
-            <button
-              type="button"
-              onClick={switchAccount}
-              disabled={switching}
-              className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait disabled:opacity-60"
-            >
-              {t.verifySwitch}
-            </button>
-          )}
-
-          <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
-            <Link href="/" className="underline underline-offset-2 hover:text-foreground">
-              {t.aboutLink}
-            </Link>
-          </p>
-        </div>
-      </section>
-    </main>
+      </p>
+    </AuthShell>
   );
 }

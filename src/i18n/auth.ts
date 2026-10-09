@@ -25,23 +25,16 @@ const ja = {
   metaDescription: "東京23区の地価・人口統計・災害リスク・交通などのオープンデータを可視化するWebダッシュボード",
 
   brand: "UrbanOracle",
-  brandFooter: "UrbanOracle — DXA Labs",
+  subtitle: "都市データ可視化ダッシュボード",
   build: "BUILD",
 
-  // Editorial panel beside the sign-in and verification forms.
-  panelHeadline1: "都市の資産価値を、",
-  panelHeadline2: "上振れと下振れの両面から。",
-  panelBody: "東京23区の地価・人口・交通と、災害リスクを同一の意思決定面で読み解くための計器です。",
-
   // /login
-  eyebrowAccess: "ACCESS",
-  headingSignIn: "サインイン",
-  headingSignUp: "アカウント作成",
   googleSignIn: "Google でサインイン",
-  googleSignUp: "Google で登録",
   or: "または",
   emailLabel: "メールアドレス",
+  emailPlaceholder: "user@example.com",
   passwordLabel: "パスワード",
+  passwordPlaceholder: "8文字以上",
   passwordRules: "パスワード要件",
   passwordLength: "8文字以上",
   passwordLetter: "英字を1文字以上",
@@ -50,7 +43,7 @@ const ja = {
   submitSignUp: "アカウントを作成",
   toggleToSignUp: "アカウントをお持ちでない方",
   toggleToSignIn: "既にアカウントをお持ちの方",
-  forgotLink: "パスワードをお忘れの方",
+  forgotLink: "パスワードをお忘れですか？",
   accountNote: "一つのアカウントで DXA Labs の全プロダクトにアクセスできます。",
 
   // Error messages (src/lib/auth-errors.ts codes)
@@ -76,10 +69,6 @@ const ja = {
   backToSignIn: "サインインに戻る",
 
   // /pending
-  pendingHeadline1: "あと一歩で、",
-  pendingHeadline2: "計器が開きます。",
-  pendingBody:
-    "確認できたメールアドレスだけを受け入れています。審査はありません—— リンクを開いた時点で、すべての機能がそのまま使えます。",
   verifyEyebrow: "VERIFICATION",
   verifyTitle: "メールアドレスの確認",
   verifySent: "確認メールをお送りしました。メール内のリンクを開くと認証が完了します。",
@@ -92,6 +81,15 @@ const ja = {
   verifySpam: "迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。",
   verifySwitch: "別のアカウントでサインインする",
   aboutLink: "UrbanOracle について",
+
+  // The decorative panel beside /login and /pending (AuthPanel). No numerals.
+  panelLabel: "出力の形を示す模式図 — 実画面ではありません。数値は含みません。",
+  slideATitle: "区ごとの面",
+  slideACaption: "区の輪郭を、ひとつの指標で塗り分ける。",
+  slideBTitle: "年齢構成",
+  slideBCaption: "区ごとの年齢構成を、年齢層の帯で並べる。",
+  slideCTitle: "重ね合わせ",
+  slideCCaption: "ハザードの層と駅の規模を、同じ面に重ねる。",
 } satisfies Record<string, string>;
 
 const en = {
@@ -100,22 +98,15 @@ const en = {
     "A web dashboard that visualizes open data on land prices, population statistics, disaster risk, transport and more for Tokyo's 23 wards",
 
   brand: "UrbanOracle",
-  brandFooter: "UrbanOracle — DXA Labs",
+  subtitle: "Urban data visualization dashboard",
   build: "BUILD",
 
-  panelHeadline1: "A city's asset value,",
-  panelHeadline2: "from both the upside and the downside.",
-  panelBody:
-    "An instrument for reading land prices, population and transport across Tokyo's 23 wards together with disaster risk, on the same decision surface.",
-
-  eyebrowAccess: "ACCESS",
-  headingSignIn: "Sign in",
-  headingSignUp: "Create an account",
   googleSignIn: "Sign in with Google",
-  googleSignUp: "Sign up with Google",
   or: "or",
   emailLabel: "Email address",
+  emailPlaceholder: "user@example.com",
   passwordLabel: "Password",
+  passwordPlaceholder: "At least 8 characters",
   passwordRules: "Password requirements",
   passwordLength: "At least 8 characters",
   passwordLetter: "At least 1 letter",
@@ -147,10 +138,6 @@ const en = {
     "If the email address you entered is registered, we have sent a link to reset your password. If it does not arrive within a few minutes, please check your spam folder.",
   backToSignIn: "Back to sign in",
 
-  pendingHeadline1: "One more step,",
-  pendingHeadline2: "and the instrument opens.",
-  pendingBody:
-    "Only confirmed email addresses are accepted. There is no review — the moment you open the link, every feature is available as it is.",
   verifyEyebrow: "VERIFICATION",
   verifyTitle: "Confirm your email address",
   verifySent: "We have sent you a confirmation email. Open the link in it to complete verification.",
@@ -163,6 +150,14 @@ const en = {
   verifySpam: "Please also check your spam folder. The sender is noreply@send.dxalabs.com.",
   verifySwitch: "Sign in with a different account",
   aboutLink: "About UrbanOracle",
+
+  panelLabel: "Schematic of the output's shape — not a real screen. No figures included.",
+  slideATitle: "Ward by ward",
+  slideACaption: "Shades each ward's outline by a single indicator.",
+  slideBTitle: "Age composition",
+  slideBCaption: "Lines up each ward's age composition as bands by age group.",
+  slideCTitle: "Overlay",
+  slideCCaption: "Lays hazard areas and station scale over the same surface.",
 } satisfies Record<keyof typeof ja, string>;
 
 type Equal<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
