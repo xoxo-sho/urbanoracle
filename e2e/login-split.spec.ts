@@ -224,7 +224,7 @@ test("L2 /login: form column order in both modes; wordmark, subtitle, labels, pl
   expect(await page.locator("body").innerText()).not.toContain("ACCESS");
 });
 
-test("L2 /pending: wordmark and subtitle, then the verification content in its order; the escape hatch is DOM-last", async ({ page }) => {
+test("L2 /pending: wordmark, subtitle, verification title, check button, divider, resend button in DOM and visual order; wordmark and subtitle text; the three dropped editorial texts absent", async ({ page }) => {
   await open(page, PENDING);
   await assertOrder(page, ["[data-auth-wordmark]", "[data-auth-subtitle]", "[data-auth-verify-title]", "[data-auth-verify-check]", "[data-auth-divider]", "[data-auth-verify-resend]"], "pending");
   await expect(page.locator("[data-auth-wordmark]")).toHaveText(JA.brand);
