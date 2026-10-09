@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { authErrorMessage, shouldDiscloseResetError } from "@/lib/auth-errors";
+import { authErrorCode, shouldDiscloseResetError, type AuthErrorCode } from "@/lib/auth-errors";
+import { AUTH_COPY, AUTH_META, authErrorText } from "@/i18n/auth";
+import { LanguageProvider, useLang } from "@/i18n/lang-context";
 import { firebaseAuth } from "@/lib/firebase";
 
 /**
@@ -19,9 +21,19 @@ import { firebaseAuth } from "@/lib/firebase";
  */
 
 export default function ForgotPasswordPage() {
+  return (
+    <LanguageProvider meta={AUTH_META}>
+      <ForgotPasswordScreen />
+    </LanguageProvider>
+  );
+}
+
+function ForgotPasswordScreen() {
+  const { lang } = useLang();
+  const t = AUTH_COPY[lang];
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthErrorCode | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(event: React.FormEvent) {
@@ -33,7 +45,7 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       if (shouldDiscloseResetError(err)) {
-        setError(authErrorMessage(err));
+        setError(authErrorCode(err));
       } else {
         // Includes auth/user-not-found: same screen as success, by design.
         setSent(true);
@@ -46,31 +58,30 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-dvh flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">RESET</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t.resetEyebrow}</p>
 
         {sent ? (
           <div data-testid="reset-confirmation">
-            <h1 className="heading mt-2 text-2xl">確認メールを送信しました</h1>
+            <h1 className="heading mt-2 text-2xl">{t.resetSentTitle}</h1>
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              入力されたメールアドレスが登録されている場合、パスワード再設定用のリンクをお送りしました。
-              数分経っても届かない場合は、迷惑メールフォルダをご確認ください。
+              {t.resetSentBody}
             </p>
             <Link
               href="/login"
               className="mt-6 inline-block text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
-              サインインに戻る
+              {t.backToSignIn}
             </Link>
           </div>
         ) : (
           <>
-            <h1 className="heading mt-2 text-2xl">パスワードの再設定</h1>
+            <h1 className="heading mt-2 text-2xl">{t.resetTitle}</h1>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              ご登録のメールアドレスに再設定用のリンクをお送りします。
+              {t.resetIntro}
             </p>
             <form onSubmit={submit} className="mt-6 space-y-3">
               <label className="block">
-                <span className="text-[11px] text-muted-foreground">メールアドレス</span>
+                <span className="text-[11px] text-muted-foreground">{t.emailLabel}</span>
                 <input
                   type="email"
                   required
@@ -82,7 +93,7 @@ export default function ForgotPasswordPage() {
               </label>
               {error && (
                 <p role="alert" className="text-[11px]" style={{ color: "var(--down-text)" }}>
-                  {error}
+                  {authErrorText(error, lang)}
                 </p>
               )}
               <button
@@ -91,14 +102,14 @@ export default function ForgotPasswordPage() {
                 className="w-full rounded-sm px-4 py-2.5 text-sm font-medium disabled:opacity-50"
                 style={{ background: "var(--up-text)", color: "var(--background)" }}
               >
-                再設定リンクを送信
+                {t.resetSubmit}
               </button>
             </form>
             <Link
               href="/login"
               className="mt-5 inline-block text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
-              サインインに戻る
+              {t.backToSignIn}
             </Link>
           </>
         )}

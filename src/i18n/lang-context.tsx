@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import {
   DEFAULT_LANG,
   URL_PARAM,
@@ -97,11 +106,26 @@ function createLangStore(): LangStore {
   };
 }
 
-function applyToDocument(lang: Lang): void {
-  const t = LP_COPY[lang];
-  document.documentElement.lang = lang;
-  document.title = t.metaTitle;
-  document.querySelector('meta[name="description"]')?.setAttribute("content", t.metaDescription);
+/** A page's <title> and meta description in each language. */
+export type PageMeta = Record<Lang, { title: string; description: string }>;
+
+/** The landing page's own title and description (the default). */
+const LP_META: PageMeta = {
+  ja: { title: LP_COPY.ja.metaTitle, description: LP_COPY.ja.metaDescription },
+  en: { title: LP_COPY.en.metaTitle, description: LP_COPY.en.metaDescription },
+};
+
+/**
+ * Bring <html lang>, <title> and every description meta to `lang`, writing
+ * only what differs — so calling it again when nothing changed writes nothing.
+ */
+function applyToDocument(lang: Lang, meta: PageMeta): void {
+  const { title, description } = meta[lang];
+  if (document.documentElement.lang !== lang) document.documentElement.lang = lang;
+  if (document.title !== title) document.title = title;
+  for (const el of document.querySelectorAll('meta[name="description"]')) {
+    if (el.getAttribute("content") !== description) el.setAttribute("content", description);
+  }
 }
 
 const serverLang = (): Lang => DEFAULT_LANG;
@@ -125,7 +149,11 @@ const LangContext = createContext<LangContextValue>({
   t: LP_COPY[DEFAULT_LANG],
 });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+/**
+ * `meta` is the page's title and description per language — the landing
+ * page's by default; the auth screens pass theirs (src/i18n/auth.ts).
+ */
+export function LanguageProvider({ children, meta = LP_META }: { children: ReactNode; meta?: PageMeta }) {
   const [store] = useState(createLangStore);
   const lang = useSyncExternalStore(store.subscribe, store.get, serverLang);
   const ready = useSyncExternalStore(store.subscribe, store.isReady, serverReady);
@@ -134,11 +162,35 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     store.resolve();
   }, [store]);
 
-  useEffect(() => {
-    applyToDocument(lang);
-  }, [lang]);
+  // The route's Japanese metadata <title> and description are hoisted
+  // elements React mounts in its own commit (react-dom commitMutationEffects,
+  // HostHoistable): it claims the existing <title> and rewrites its text, and
+  // inserts a new description <meta>. That commit can land AFTER this effect
+  // has applied the visitor's language (measured: 12 of 40 loads of "click EN,
+  // then reload"), leaving an English page under the Japanese title. So the
+  // head is watched while the page is mounted, and anything that differs from
+  // the current language is put back — applyToDocument writes only what
+  // differs, so its own writes end the loop.
+  //
+  // Layout effect, not passive: on a client-side navigation away, the next
+  // route mounts its own <title> in the same commit, and the observer must be
+  // disconnected synchronously in that commit (disconnect discards the pending
+  // records) rather than in a later passive cleanup, or it would stamp this
+  // page's title onto the next one.
+  useLayoutEffect(() => {
+    applyToDocument(lang, meta);
+    const observer = new MutationObserver(() => applyToDocument(lang, meta));
+    observer.observe(document.head, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["content"],
+    });
+    return () => observer.disconnect();
+  }, [lang, meta]);
 
-  useEffect(
+  useLayoutEffect(
     () => () => {
       document.documentElement.lang = DEFAULT_LANG;
     },

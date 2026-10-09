@@ -4,15 +4,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { sendEmailVerification, signOut } from "firebase/auth";
+import AuthShell from "@/components/auth/AuthShell";
 import { useAuth } from "@/lib/auth-context";
 import { firebaseAuth } from "@/lib/firebase";
+import { AUTH_COPY, AUTH_META } from "@/i18n/auth";
+import { LanguageProvider, useLang } from "@/i18n/lang-context";
 
 /**
  * メールアドレスの確認 — the last step of an open signup.
  *
- * Deliberately built on the same two-column editorial ground as /login: this is
- * a step inside the product, not a system notice. The earlier version read like
+ * Deliberately built in the same split shell as /login (AuthShell): this is a
+ * step inside the product, not a system notice. The earlier version read like
  * an error page, which framed a routine wait as something having gone wrong.
+ * The form half opens with the wordmark and subtitle, then the verification
+ * content and actions in their original order.
  *
  * Registration is open, so there is no review and nobody to wait for — only an
  * unopened message. The copy says exactly that and nothing more reassuring than
@@ -33,6 +38,16 @@ import { firebaseAuth } from "@/lib/firebase";
 const POLL_INTERVAL_MS = 15_000;
 
 export default function VerifyEmailPage() {
+  return (
+    <LanguageProvider meta={AUTH_META}>
+      <VerifyEmailScreen />
+    </LanguageProvider>
+  );
+}
+
+function VerifyEmailScreen() {
+  const { lang } = useLang();
+  const t = AUTH_COPY[lang];
   const { user, refresh, getToken } = useAuth();
   const router = useRouter();
   const [resent, setResent] = useState(false);
@@ -83,114 +98,97 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <main className="min-h-dvh grid lg:grid-cols-[1.1fr_1fr]">
-      {/* Editorial ground — the same 深紺 field the sign-in page stands on. */}
-      <section
-        className="hidden lg:flex flex-col justify-between p-10"
-        style={{ background: "var(--up-fill)" }}
-      >
-        <Link href="/" className="text-[11px] tracking-widest uppercase text-muted-foreground">
-          UrbanOracle
-        </Link>
-        <div className="max-w-md">
-          <h1 className="heading text-3xl leading-snug" style={{ color: "var(--up-text)" }}>
-            あと一歩で、
-            <br />
-            計器が開きます。
-          </h1>
-          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            確認できたメールアドレスだけを受け入れています。審査はありません——
-            リンクを開いた時点で、すべての機能がそのまま使えます。
-          </p>
-        </div>
-        <p className="text-[10px] text-muted-foreground">
-          一つのアカウントで DXA Labs の全プロダクトにアクセスできます。
+    <AuthShell>
+      <h1 data-auth-wordmark="" className="heading text-[28px] leading-tight">
+        {t.brand}
+      </h1>
+      <p data-auth-subtitle="" className="mt-1.5 text-[13px] text-muted-foreground">
+        {t.subtitle}
+      </p>
+
+      <p className="mt-8 text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+        {t.verifyEyebrow}
+      </p>
+      <h2 data-auth-verify-title="" className="heading mt-2 text-2xl">
+        {t.verifyTitle}
+      </h2>
+
+      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+        {t.verifySent}
+      </p>
+
+      {user?.email && (
+        <p
+          className="mt-3 rounded-sm border px-3 py-2 text-xs tabular-nums"
+          style={{ borderColor: "var(--rule)", background: "var(--surface)" }}
+        >
+          {user.email}
         </p>
-      </section>
+      )}
 
-      <section className="flex flex-col justify-center px-6 py-12 sm:px-12">
-        <div className="w-full max-w-sm mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-            VERIFICATION
-          </p>
-          <h2 className="heading mt-2 text-2xl">メールアドレスの確認</h2>
+      <button
+        type="button"
+        data-auth-verify-check=""
+        disabled={checking}
+        onClick={async () => {
+          setChecking(true);
+          setStillUnverified(false);
+          const ok = await recheck();
+          if (!ok) setStillUnverified(true);
+          setChecking(false);
+        }}
+        className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
+        style={{ background: "var(--up-text)", color: "var(--background)" }}
+      >
+        {checking ? t.verifyChecking : t.verifyCheck}
+      </button>
 
-          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-            確認メールをお送りしました。メール内のリンクを開くと認証が完了します。
-          </p>
+      {stillUnverified && (
+        <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
+          {t.verifyStill}
+        </p>
+      )}
 
-          {user?.email && (
-            <p
-              className="mt-3 rounded-sm border px-3 py-2 text-xs tabular-nums"
-              style={{ borderColor: "var(--rule)", background: "var(--surface)" }}
-            >
-              {user.email}
-            </p>
-          )}
+      <div data-auth-divider="" className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+        <span className="text-[10px] text-muted-foreground">{t.verifyNoMail}</span>
+        <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
+      </div>
 
-          <button
-            type="button"
-            disabled={checking}
-            onClick={async () => {
-              setChecking(true);
-              setStillUnverified(false);
-              const ok = await recheck();
-              if (!ok) setStillUnverified(true);
-              setChecking(false);
-            }}
-            className="mt-6 w-full rounded-sm px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: "var(--up-text)" }}
-          >
-            {checking ? "確認しています…" : "認証を確認"}
-          </button>
+      <button
+        type="button"
+        data-auth-verify-resend=""
+        onClick={async () => {
+          const current = firebaseAuth().currentUser;
+          if (!current) return;
+          await sendEmailVerification(current).catch(() => undefined);
+          setResent(true);
+        }}
+        className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+      >
+        {resent ? t.verifyResent : t.verifyResend}
+      </button>
 
-          {stillUnverified && (
-            <p role="status" className="mt-3 text-[11px]" style={{ color: "var(--down-text)" }}>
-              まだ認証を確認できません。メール内のリンクを開いてから、もう一度お試しください。
-            </p>
-          )}
+      <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+        {t.verifySpam}
+      </p>
 
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-            <span className="text-[10px] text-muted-foreground">メールが届かない場合</span>
-            <span className="h-px flex-1" style={{ background: "var(--rule)" }} />
-          </div>
+      {user && (
+        <button
+          type="button"
+          onClick={switchAccount}
+          disabled={switching}
+          className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait"
+        >
+          {t.verifySwitch}
+        </button>
+      )}
 
-          <button
-            type="button"
-            onClick={async () => {
-              const current = firebaseAuth().currentUser;
-              if (!current) return;
-              await sendEmailVerification(current).catch(() => undefined);
-              setResent(true);
-            }}
-            className="w-full rounded-sm border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            {resent ? "確認メールを再送しました" : "確認メールを再送"}
-          </button>
-
-          <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
-            迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。
-          </p>
-
-          {user && (
-            <button
-              type="button"
-              onClick={switchAccount}
-              disabled={switching}
-              className="mt-5 w-full cursor-pointer text-center text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait disabled:opacity-60"
-            >
-              別のアカウントでサインインする
-            </button>
-          )}
-
-          <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
-            <Link href="/" className="underline underline-offset-2 hover:text-foreground">
-              UrbanOracle について
-            </Link>
-          </p>
-        </div>
-      </section>
-    </main>
+      <p className="mt-8 pt-5 text-[10px] text-muted-foreground" style={{ borderTop: "1px solid var(--rule)" }}>
+        <Link href="/" className="underline underline-offset-2 hover:text-foreground">
+          {t.aboutLink}
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

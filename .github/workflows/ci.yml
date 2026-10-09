@@ -99,6 +99,18 @@ jobs:
       # keyboard, rendered contrast, no foreign requests (playwright.lp.config.ts).
       - name: "LP — JA/EN toggle (1440×900, 390×844)"
         run: npm run test:lp
+      # The split sign-in screens (/login, /pending) and /forgot-password,
+      # against the same out/ (playwright.login.config.ts, its own port):
+      # 50/50 split and the 1080px breakpoint, form order, keyboard, mode
+      # rules, panel motion / ghosting / reduced motion / no numerals, JA/EN,
+      # rendered contrast in both themes, the <title> race in its reproducing
+      # cell (P1, no throttling, 1× CPU; 10 loads per page — the wider S1′
+      # matrix runs only locally with LANG_TITLE_MATRIX=1), and zero escaped
+      # identity requests.
+      - name: "Login — split shell, panel, JA/EN, title race"
+        env:
+          LANG_TITLE_LOADS: "10"
+        run: npm run test:login
       - name: Upload font check report on failure
         if: failure()
         uses: actions/upload-artifact@v4

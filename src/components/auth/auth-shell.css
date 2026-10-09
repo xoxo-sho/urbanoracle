@@ -1,0 +1,182 @@
+/*
+ * The sign-in family's split shell (/login, /pending) — AuthShell + AuthPanel.
+ *
+ * Every rule is scoped under [data-auth-shell]: App Router keeps a component's
+ * global stylesheet after navigating away, so nothing here may reach another
+ * route.
+ *
+ * Geometry (the family majority, RECON §3): form half left, panel half right,
+ * `flex: 1 1 50%` each with minimums of 484px / 540px, one 1px boundary — the
+ * panel's left edge — running top to bottom. The split starts at 1080px;
+ * below it the panel is removed (display:none, not stacked) and the form takes
+ * the full width.
+ */
+
+[data-auth-shell] {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+[data-auth-shell] [data-auth-form] {
+  position: relative;
+  flex: 1 1 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Room above for the language toggle and below for the BUILD tag. */
+  padding: 80px 24px 72px;
+}
+
+[data-auth-shell] [data-auth-column] {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* Top-right of the form half. Last in the DOM, so the first Tab is the form's. */
+[data-auth-shell] [data-auth-toggle] {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+
+/* Bottom-left of the form half (the face comes from the .font-mono utility). */
+[data-auth-shell] [data-auth-build] {
+  position: absolute;
+  left: 24px;
+  bottom: 20px;
+  margin: 0;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+/*
+ * Disabled buttons (carried over from origin/feat/login-panel): a fixed,
+ * AA-measured colour pair instead of opacity, which would fade the label into
+ * whatever the button sits on. `!important` beats the inline fills.
+ */
+[data-auth-shell] [data-auth-form] button:disabled {
+  opacity: 1;
+  background: var(--muted) !important;
+  color: var(--muted-foreground) !important;
+  border-color: var(--rule-strong);
+}
+
+[data-auth-shell] [data-auth-panel] {
+  display: none;
+}
+
+@media (min-width: 1080px) {
+  [data-auth-shell] [data-auth-form] {
+    flex: 1 1 50%;
+    min-width: 484px;
+  }
+
+  [data-auth-shell] [data-auth-panel] {
+    display: flex;
+    flex: 1 1 50%;
+    min-width: 540px;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 48px;
+    background: var(--muted);
+    border-left: 1px solid var(--rule-strong);
+  }
+}
+
+/* ─── Panel ─────────────────────────────────────────────────────────────── */
+
+[data-auth-shell] [data-auth-panel-inner] {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* Every slide occupies the same grid cell, so the stage is as tall as the
+   tallest slide whichever one is showing: the height never changes. */
+[data-auth-shell] [data-auth-stage] {
+  display: grid;
+}
+
+/*
+ * Fade 240ms out, then 240ms in. The incoming slide waits 260ms — the 240ms
+ * fade-out plus a 20ms hold at zero — so no frame carries two slides.
+ */
+[data-auth-shell] [data-auth-slide] {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 240ms ease 0s;
+}
+
+[data-auth-shell] [data-auth-slide][data-active="true"] {
+  opacity: 1;
+  transition: opacity 240ms ease 260ms;
+}
+
+[data-auth-shell] [data-auth-plate] {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 12px;
+}
+
+[data-auth-shell] [data-auth-slide-title] {
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--up-text);
+}
+
+[data-auth-shell] [data-auth-slide-caption] {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+[data-auth-shell] [data-auth-label] {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+[data-auth-shell] [data-auth-dots] {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+[data-auth-shell] [data-auth-dot] {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--rule-strong);
+}
+
+[data-auth-shell] [data-auth-dot][data-active="true"] {
+  background: var(--up-text);
+}
+
+/* Reduced motion: slide A, static — no transition or animation can run. */
+[data-auth-shell] [data-auth-panel][data-reduced-motion="true"],
+[data-auth-shell] [data-auth-panel][data-reduced-motion="true"] * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-auth-shell] [data-auth-panel],
+  [data-auth-shell] [data-auth-panel] * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}

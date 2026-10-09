@@ -3,8 +3,17 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   // The dxa-ui font-metrics spec has its own config (playwright.font.config.ts,
-  // static server over out/, no dev server) and runs as its own CI step.
-  testIgnore: /font-metrics\.spec\.ts/,
+  // static server over out/, no dev server) and runs as its own CI step. So do
+  // the landing-page language spec (playwright.lp.config.ts) and the title /
+  // login specs (playwright.login.config.ts): they test the built export.
+  testIgnore: [
+    /font-metrics\.spec\.ts/,
+    /lp-i18n\.spec\.ts/,
+    /lang-title\.spec\.ts/,
+    /login-split\.spec\.ts/,
+    /login-contrast\.spec\.ts/,
+    /login-captures\.spec\.ts/,
+  ],
   timeout: 30000,
   retries: 1,
   use: {
