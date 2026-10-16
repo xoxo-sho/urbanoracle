@@ -10,12 +10,11 @@ There is no CORS middleware: the frontend is a static export served from
 this same origin, so there is no legitimate cross-origin caller.
 """
 
-import logging
-
 from fastapi import APIRouter, Depends, FastAPI
 
 from core.authz import get_current_user, register_authz_handlers, require_active
 from core.config import settings
+from core.logging_setup import configure_logging
 from core.spa import mount_static_site
 from middleware.security_headers import SecurityHeadersMiddleware
 from routers.auth import router as auth_router
@@ -26,12 +25,10 @@ from routers.health import router as health_router
 # were being dropped and never reached Cloud Run — which silently removed the
 # provisioning audit trail (which layer admitted which scrubbed address).
 # Only WARNING and above were surfacing. This attaches a handler to the root
-# logger at INFO so the audit trail is visible in production.
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s %(name)s %(message)s",
-    force=True,
-)
+# logger at INFO so the audit trail is visible in production — while keeping
+# httpx's request-URL lines (which carried the e-Stat and ODPT keys) out, and
+# masking secret query parameters in every record (core/logging_setup.py).
+configure_logging()
 
 app = FastAPI(
     title="UrbanOracle API",
