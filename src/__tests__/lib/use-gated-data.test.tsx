@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, renderHook, waitFor } from "@testing-library/react";
 import { useGatedData } from "@/lib/use-gated-data";
 import { SOURCES } from "@/lib/sources";
+import { ESTAT_SOURCE } from "@/lib/credits";
 import {
   sampleDemographics,
   sampleLandPriceSummary,
@@ -119,7 +120,8 @@ describe("consumers render the sample label when isLive is false", () => {
         isLive={true}
       />
     );
-    expect(container.textContent).toContain(SOURCES.estat.label);
+    // e-Stat's own 出典 wording (e-Stat 利用規約 1)ア) heads the census note.
+    expect(container.textContent).toContain(ESTAT_SOURCE);
     // The population trend has no upstream at all — it is sample on every path.
     expect(container.textContent).toContain(SAMPLE);
   });

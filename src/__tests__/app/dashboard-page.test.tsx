@@ -37,14 +37,16 @@ const SAMPLE = SOURCES.sample.label;
 const REAL_SOURCE_STRINGS = ["不動産情報ライブラリ", "e-Stat", "国勢調査", "国土数値情報", "ハザードマップポータル"];
 
 // Live-fetched on the current code path (backend/routers/data.py + the
-// client-side tiles in MapView): REINFOLIB, e-Stat, ODPT, GSI hazard tiles,
-// CARTO/OSM basemap, dataofjapan boundaries. Nothing fetches these two.
+// client-side tiles in MapView): e-Stat, ODPT, GSI hazard tiles, the
+// 地理院タイル basemap, dataofjapan boundaries. Nothing fetches these two.
 const NOT_LIVE_SOURCES = [SOURCES.ksj.label, SOURCES.disastershield.label];
 
 const OLD_BLANKET_FOOTER = "出典: 不動産情報ライブラリ（国土交通省, 2024年） ／ e-Stat";
 
-// Ruling 1: REINFOLIB stays in the live group, but nothing draws it yet.
-const FETCHED_NOT_SHOWN = "取得済み・現時点では未表示";
+// Ruling 1 (revised 2026-10, RECON 2026-10-data-terms UO-3): REINFOLIB was
+// fetched and drawn nowhere, so the fetch was removed; the footer no longer
+// names it.
+const REMOVED_SOURCE = "不動産情報ライブラリ";
 
 function keyMetric(container: HTMLElement, caption: string): HTMLElement {
   const tiles = [...container.querySelectorAll<HTMLElement>(".key-metric")];
@@ -105,9 +107,8 @@ describe("dashboard footer — per-surface truth, two groups", () => {
     for (const label of NOT_LIVE_SOURCES) expect(text).not.toContain(label);
     expect(text).not.toContain(OLD_BLANKET_FOOTER);
 
-    // Ruling 1: REINFOLIB is fetched by the code path and shown nowhere.
-    expect(live!.textContent).toContain(SOURCES.reinfolib.label);
-    expect(live!.textContent).toContain(FETCHED_NOT_SHOWN);
+    // Ruling 1 (revised): the REINFOLIB fetch is gone, and so is its line.
+    expect(text).not.toContain(REMOVED_SOURCE);
     expect(text).not.toContain("概算中心");
     // Ruling 2: the bundled station file is not a real-data source.
     expect(live!.textContent).not.toContain("出典未確認");

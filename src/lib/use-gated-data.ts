@@ -9,6 +9,8 @@ export interface DataState<T> {
   data: T;
   isLoading: boolean;
   isLive: boolean;
+  /** When the server obtained the live data from upstream (ISO 8601), if it says. */
+  fetchedAt: string | null;
 }
 
 /**
@@ -26,6 +28,7 @@ export function useGatedData<T>(endpoint: string, fallback: T): DataState<T> {
     data: fallback,
     isLoading: true,
     isLive: false,
+    fetchedAt: null,
   });
 
   useEffect(() => {
@@ -42,16 +45,17 @@ export function useGatedData<T>(endpoint: string, fallback: T): DataState<T> {
       }
 
       if (outcome.kind === "ok") {
-        const body = outcome.data as { data: T; isLive: boolean } | null;
+        const body = outcome.data as { data: T; isLive: boolean; fetchedAt?: unknown } | null;
         setState({
           data: body?.data ?? fallback,
           isLoading: false,
           isLive: Boolean(body?.isLive),
+          fetchedAt: typeof body?.fetchedAt === "string" ? body.fetchedAt : null,
         });
         return;
       }
 
-      setState({ data: fallback, isLoading: false, isLive: false });
+      setState({ data: fallback, isLoading: false, isLive: false, fetchedAt: null });
     });
 
     return () => {

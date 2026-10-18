@@ -1,7 +1,7 @@
 """A tiny in-process TTL cache, replacing Next's ``next: {revalidate}``.
 
-The upstream sources move slowly (REINFOLIB publishes quarterly, the e-Stat
-census table is annual, the station GeoJSON is a committed file), so a
+The upstream sources move slowly (the e-Stat census table is annual, ODPT's
+passenger survey is yearly, the station GeoJSON is a committed file), so a
 24-hour TTL is generous while still bounding staleness to one day.
 
 This is a best-effort warm cache, not a correctness mechanism: with Cloud

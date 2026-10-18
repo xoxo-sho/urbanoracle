@@ -18,10 +18,6 @@ def _load() -> dict:
         return json.load(fh)
 
 
-def land_prices() -> list[dict]:
-    return list(_load()["sampleLandPrices"])
-
-
 def demographics() -> list[dict]:
     return list(_load()["sampleDemographics"])
 

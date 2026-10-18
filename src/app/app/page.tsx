@@ -13,7 +13,6 @@ import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import {
   dataLayers,
-  sampleLandPrices,
   sampleLandPriceSummary,
   sampleDemographics,
   sampleDisasterRisks,
@@ -25,7 +24,6 @@ import {
 } from "@/data/sample";
 import type {
   DataLayer,
-  LandPricePoint,
   DemographicsData,
   DisasterRisk,
   TransportStation,
@@ -37,10 +35,18 @@ import SampleNote, { SampleTag } from "@/components/dashboard/SampleNote";
 import {
   BUNDLED_UNVERIFIED_NOTE,
   CHOROPLETH_NOTE,
-  FETCHED_NOT_SHOWN,
   SAMPLE_NOTICE,
   SOURCES,
 } from "@/lib/sources";
+import {
+  ESTAT_API_CREDIT,
+  ESTAT_EDITED,
+  ESTAT_SOURCE,
+  GSI_PALE_PROCESSED,
+  GSI_TILE_LIST_URL,
+  GSI_TILES_NAME,
+  WARD_BOUNDARY_CREDIT,
+} from "@/lib/credits";
 import { useGatedData } from "@/lib/use-gated-data";
 import VerificationBanner from "@/components/auth/VerificationBanner";
 import SignOutButton from "@/components/auth/SignOutButton";
@@ -71,7 +77,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("land-price");
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
 
-  const landPrices = useGatedData<LandPricePoint[]>("/api/v1/land-prices", sampleLandPrices);
   const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics", sampleDemographics);
   const disasterRisks = useGatedData<DisasterRisk[]>("/api/v1/disaster-risks", sampleDisasterRisks);
   const transport = useGatedData<TransportStation[]>("/api/v1/transport", sampleTransportStations);
@@ -83,11 +88,6 @@ export default function Home() {
   }, [activeTab]);
 
   // Filtered data based on selectedWard
-  const filteredLandPrices = useMemo(() => {
-    if (!selectedWard) return landPrices.data;
-    return landPrices.data.filter((p) => p.address.includes(selectedWard.replace("区", "")));
-  }, [selectedWard, landPrices.data]);
-
   const filteredDemographics = useMemo(() => {
     if (!selectedWard) return demographics.data;
     return demographics.data.filter((d) => d.region === selectedWard);
@@ -171,17 +171,17 @@ export default function Home() {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto p-3 md:p-4">
-        <div className="grid grid-cols-12 gap-3 md:gap-4 h-full">
+        <div className="grid grid-cols-12 gap-3 md:gap-4 min-h-full">
           {/* Left column: Map + Key Metrics */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
             {/* Map */}
             <div className="relative overflow-hidden rounded-sm border border-border/50 bg-card/30" style={{ minHeight: "240px", flex: "1 1 280px" }}>
               <MapView
-                landPrices={filteredLandPrices}
                 selectedWard={selectedWard}
                 onSelectWard={setSelectedWard}
                 layers={layers}
                 stations={transport.data}
+                transportIsLive={transport.isLive}
               />
               <div className="absolute top-3 left-3 z-10">
                 <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
@@ -296,6 +296,7 @@ export default function Home() {
                   trends={sampleTransportTrends}
                   selectedWard={selectedWard}
                   isLive={transport.isLive}
+                  fetchedAt={transport.fetchedAt}
                 />
               </TabsContent>
 
@@ -357,44 +358,56 @@ export default function Home() {
             </Tabs>
           </div>
         </div>
+
+        {/* データ出典 / Data sources — per-surface truth, two groups (design-spec-v1 §9),
+            plus the credits the providers prescribe (RECON 2026-10-data-terms §7.1).
+            A surface moves between the groups with its endpoint's isLive, so the
+            area describes what is on screen now. In the scrolling content, at a
+            legible size, never collapsed. */}
+        <footer className="mt-4 border-t border-border/50 pt-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">
+          <h2 className="mb-2 text-[11px] font-semibold tracking-widest text-foreground">データ出典 / Data sources</h2>
+          <div className="grid gap-x-8 gap-y-2 md:grid-cols-2">
+            <div data-provenance="live">
+              <span className="font-medium text-foreground">実データ</span>
+              <ul className="space-y-1">
+                {demographics.isLive && (
+                  <li>
+                    人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: {ESTAT_SOURCE} 2020年国勢調査・2025年速報 ／ {ESTAT_EDITED}
+                  </li>
+                )}
+                <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>
+                {transport.isLive && (
+                  <li>
+                    駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）: {SOURCES.odpt.label} — 取得日時・注意事項・お問い合わせ先・東京都交通局データのクレジットは交通タブに表示
+                  </li>
+                )}
+                <li>地図のハザード重ね（浸水・津波・土砂）: {SOURCES.hazard.label} タイル</li>
+                <li>{WARD_BOUNDARY_CREDIT}</li>
+                <li>
+                  地図タイル: <a href={GSI_TILE_LIST_URL} target="_blank" rel="noopener noreferrer" className="underline">{GSI_TILES_NAME}</a>（淡色地図）
+                  ／ ダーク表示: {GSI_PALE_PROCESSED}
+                </li>
+              </ul>
+            </div>
+            <div data-provenance="sample" className="sample-block">
+              <span className="font-semibold">{SAMPLE_NOTICE}</span>
+              <ul>
+                {!demographics.isLive && <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）</li>}
+                {!transport.isLive && <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）</li>}
+                <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
+                <li>人口推移</li>
+                <li>災害種別・リスク一覧・高リスク指標</li>
+                <li>用途地域</li>
+                <li>乗降客数推移</li>
+                <li>区別総合比較</li>
+                <li>地図の塗り分け: {CHOROPLETH_NOTE}</li>
+              </ul>
+            </div>
+          </div>
+          <p className="mt-1">駅の位置・路線: {BUNDLED_UNVERIFIED_NOTE}</p>
+        </footer>
       </main>
 
-      {/* Provenance footer — per-surface truth, two groups (design-spec-v1 §9).
-          A surface moves between the groups with its endpoint's isLive, so the
-          footer describes what is on screen now, not what the code could show. */}
-      <footer className="shrink-0 border-t border-border/50 px-6 py-2 text-[9px] leading-relaxed text-muted-foreground">
-        <div className="grid gap-x-8 gap-y-1 md:grid-cols-2">
-          <div data-provenance="live">
-            <span className="font-medium text-foreground">実データ</span>
-            <ul>
-              {demographics.isLive && (
-                <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: {SOURCES.estat.label} 2020年国勢調査・2025年速報</li>
-              )}
-              {transport.isLive && (
-                <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）: {SOURCES.odpt.label}</li>
-              )}
-              <li>地図のハザード重ね（浸水・津波・土砂）: {SOURCES.hazard.label} タイル</li>
-              <li>取引価格: {SOURCES.reinfolib.label} 2024年 — {FETCHED_NOT_SHOWN}</li>
-              <li>区境界: dataofjapan/land ／ 地図タイル: OpenStreetMap contributors ／ CARTO</li>
-            </ul>
-          </div>
-          <div data-provenance="sample" className="sample-block">
-            <span className="font-semibold">{SAMPLE_NOTICE}</span>
-            <ul>
-              {!demographics.isLive && <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）</li>}
-              {!transport.isLive && <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）</li>}
-              <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
-              <li>人口推移</li>
-              <li>災害種別・リスク一覧・高リスク指標</li>
-              <li>用途地域</li>
-              <li>乗降客数推移</li>
-              <li>区別総合比較</li>
-              <li>地図の塗り分け: {CHOROPLETH_NOTE}</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-1">駅の位置・路線: {BUNDLED_UNVERIFIED_NOTE}</p>
-      </footer>
     </div>
   );
 }

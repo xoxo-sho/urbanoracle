@@ -17,7 +17,6 @@ from main import app
 from middleware.security_headers import SECURITY_HEADERS
 
 DATA_ROUTES = [
-    "/api/v1/land-prices",
     "/api/v1/demographics",
     "/api/v1/disaster-risks",
     "/api/v1/transport",
@@ -41,9 +40,8 @@ TOKENS = {"active-token": ACTIVE_CLAIMS, "pending-token": PENDING_CLAIMS}
 def client(db_session, monkeypatch):
     monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
-    # No upstream credentials in tests: land-prices/demographics take their
-    # fallback path, which is itself worth exercising.
-    monkeypatch.delenv("REINFOLIB_API_KEY", raising=False)
+    # No upstream credentials in tests: demographics takes its fallback path,
+    # which is itself worth exercising.
     monkeypatch.delenv("ESTAT_API_KEY", raising=False)
     monkeypatch.setattr(authz, "decode_auth_token", lambda tok: TOKENS.get(tok))
     cache.clear()
@@ -123,9 +121,56 @@ def test_transport_with_odpt_is_live_and_carries_ridership(client, monkeypatch):
     assert all(s["dailyPassengers"] is None for s in uncovered)
 
 
+def test_live_transport_response_carries_fetched_at_in_iso8601_with_an_offset(client, monkeypatch):
+    """ODPT developer guideline 2.2.1: show the 取得日時 of static data."""
+    from datetime import datetime
+
+    from services import odpt
+
+    async def fake_ridership():
+        return {odpt.normalize_station_name("東京"): 500000}, 2024
+
+    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
+
+    body = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"}).json()
+    assert body["isLive"] is True
+    assert datetime.fromisoformat(body["fetchedAt"]).utcoffset() is not None
+
+
+def test_cached_transport_response_keeps_the_original_fetched_at(client, monkeypatch):
+    from services import odpt
+
+    async def fake_ridership():
+        return {odpt.normalize_station_name("東京"): 500000}, 2024
+
+    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
+    headers = {"Authorization": "Bearer active-token"}
+
+    first = client.get("/api/v1/transport", headers=headers).json()
+    second = client.get("/api/v1/transport", headers=headers).json()
+    assert second["fetchedAt"] == first["fetchedAt"]
+
+
+def test_transport_without_odpt_carries_no_fetched_at(client):
+    body = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"}).json()
+    assert body["isLive"] is False
+    assert "fetchedAt" not in body
+
+
+def test_land_prices_route_is_not_served(client):
+    resp = client.get("/api/v1/land-prices", headers={"Authorization": "Bearer active-token"})
+    assert resp.status_code == 404
+
+
+def test_no_service_module_fetches_reinfolib():
+    import importlib.util
+
+    assert importlib.util.find_spec("services.land_prices") is None
+
+
 def test_upstream_failure_falls_back_with_is_live_false(client):
     """No API key configured ⇒ fallback data, honestly labelled."""
-    for route in ("/api/v1/land-prices", "/api/v1/demographics"):
+    for route in ("/api/v1/demographics",):
         body = client.get(route, headers={"Authorization": "Bearer active-token"}).json()
         assert body["isLive"] is False
         assert body["data"]

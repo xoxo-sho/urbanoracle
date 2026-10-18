@@ -360,13 +360,20 @@ html {
   opacity: 1;
 }
 
+/* Map credits stay expanded and readable over any tile: an opaque-enough
+   backdrop, 11px, links underlined (RECON 2026-10-data-terms §7.1). */
 .maplibregl-ctrl-attrib {
-  background: transparent !important;
-  color: var(--muted-foreground) !important;
-  font-size: 10px !important;
+  background: color-mix(in srgb, var(--card) 88%, transparent) !important;
+  color: var(--foreground) !important;
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+  border-radius: 2px;
+  /* Wraps clear of the ward label in the top-left corner. */
+  max-width: min(420px, 70vw);
 }
 .maplibregl-ctrl-attrib a {
-  color: var(--muted-foreground) !important;
+  color: var(--foreground) !important;
+  text-decoration: underline;
 }
 
 /* ─── Scrollbar ─── */
@@ -403,8 +410,24 @@ html {
 /* ─── Source / provenance line (spec §9) ─── */
 .source-note {
   color: var(--muted-foreground);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
+}
+
+/* Provider-prescribed notices beside the figures they cover. */
+.credit-block {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.credit-block p + p {
+  margin-top: 4px;
+}
+.credit-block a {
+  text-decoration: underline;
 }
 
 /* ─── Sample / provisional warning (spec §9, truth fix) ───

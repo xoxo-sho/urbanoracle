@@ -3,32 +3,25 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { LandPricePoint, DataLayer, TransportStation } from "@/types";
+import type { DataLayer, TransportStation } from "@/types";
 import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
 import { mapPalette } from "@/lib/palette";
 import type { WardFeatureCollection } from "@/data/ward-boundaries";
+import { basemapStyle } from "@/components/map/basemap";
+import { WARD_BOUNDARY_CREDIT } from "@/lib/credits";
+import { SOURCES } from "@/lib/sources";
 
 interface MapViewProps {
-  landPrices: LandPricePoint[];
   selectedWard: string | null;
   onSelectWard: (ward: string | null) => void;
   layers: DataLayer[];
   stations: TransportStation[];
+  /** Ridership on the station bubbles is ODPT data only when the feed is live. */
+  transportIsLive?: boolean;
 }
 
 function isDarkMode(): boolean {
   return document.documentElement.classList.contains("dark");
-}
-
-function getTileStyle(dark: boolean): maplibregl.StyleSpecification {
-  const tiles = dark
-    ? ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png", "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"]
-    : ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png", "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"];
-  return {
-    version: 8,
-    sources: { carto: { type: "raster", tiles, tileSize: 256, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>' } },
-    layers: [{ id: "carto", type: "raster", source: "carto" }],
-  };
 }
 
 const DEFAULT_CENTER: [number, number] = [139.745, 35.695];
@@ -46,7 +39,7 @@ function isLayerEnabled(layers: DataLayer[], id: string): boolean {
   return layers.find((l) => l.id === id)?.enabled ?? false;
 }
 
-export default function MapView({ selectedWard, onSelectWard, layers, stations }: MapViewProps) {
+export default function MapView({ selectedWard, onSelectWard, layers, stations, transportIsLive = false }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const popup = useRef<maplibregl.Popup | null>(null);
@@ -71,7 +64,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     if (!wardGeoJSON.current) return;
 
     // Add ward polygons source from real GeoJSON
-    m.addSource("wards", { type: "geojson", data: wardGeoJSON.current, promoteId: "name" });
+    m.addSource("wards", { type: "geojson", data: wardGeoJSON.current, promoteId: "name", attribution: WARD_BOUNDARY_CREDIT });
 
     // Determine which property to color by
     const landEnabled = isLayerEnabled(layers, "land-price");
@@ -155,7 +148,11 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
 
     // Station bubbles (when transportation layer is enabled)
     if (isLayerEnabled(layers, "transportation") && stations.length > 0) {
-      m.addSource("stations", { type: "geojson", data: buildStationGeoJSON(stations) });
+      m.addSource("stations", {
+        type: "geojson",
+        data: buildStationGeoJSON(stations),
+        ...(transportIsLive ? { attribution: `乗降客数: ${SOURCES.odpt.label}` } : {}),
+      });
 
       m.addLayer({
         id: "station-circles",
@@ -231,7 +228,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
         paint: { "raster-opacity": 0.45 },
       });
     }
-  }, [layers, selectedWard, stations]);
+  }, [layers, selectedWard, stations, transportIsLive]);
 
   // Initialize map
   useEffect(() => {
@@ -241,7 +238,10 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     try {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: getTileStyle(isDarkMode()),
+        style: basemapStyle(isDarkMode()),
+        // Added below as an expanded control: the credits must not collapse
+        // behind an (i) button on a narrow map.
+        attributionControl: false,
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
         maxBounds: TOKYO_BOUNDS,
@@ -254,6 +254,9 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     const m = map.current;
     popup.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12 });
 
+    // Top-right: the legend card owns the bottom-left and the zoom buttons the
+    // bottom-right, and a tall card would push a bottom control out of view.
+    m.addControl(new maplibregl.AttributionControl({ compact: false }), "top-right");
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
     m.on("load", () => {
@@ -356,7 +359,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations }
     // Theme watcher
     const observer = new MutationObserver(() => {
       if (cancelled || !map.current) return;
-      m.setStyle(getTileStyle(isDarkMode()));
+      m.setStyle(basemapStyle(isDarkMode()));
       m.once("styledata", () => {
         if (cancelled || !map.current || !initialized.current) return;
         if (!wardGeoJSON.current) {

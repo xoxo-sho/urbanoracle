@@ -1,5 +1,13 @@
 import { expect, test, type Browser, type Locator, type Page } from "@playwright/test";
 import { LP_COPY } from "../src/i18n/lp";
+import {
+  ESTAT_API_CREDIT,
+  ESTAT_API_CREDIT_EN,
+  ODPT_NOTICE,
+  ODPT_NOTICE_EN,
+  TOEI_CC_BY_CREDIT,
+  TOEI_CC_BY_CREDIT_EN,
+} from "../src/lib/credits";
 
 /**
  * Landing page: JA/EN toggle (ported from landcast tests/e2e/lp-i18n.spec.ts).
@@ -59,13 +67,30 @@ async function storedLang(page: Page): Promise<string | null> {
 }
 
 /** Every text node, aria-label, alt and title in the LP header, main and footer, in DOM order. */
-async function snapshot(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
+// The data providers' prescribed sentences: Japanese verbatim on BOTH pages
+// (Language decision, RECON 2026-10-data-terms §7.1), each followed on the
+// English page by its marked translation in a child span[lang="en"].
+const PRESCRIBED = '[data-credit="required"] p[lang="ja"]';
+const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
+  [ESTAT_API_CREDIT, ESTAT_API_CREDIT_EN],
+  [ODPT_NOTICE, ODPT_NOTICE_EN],
+  [TOEI_CC_BY_CREDIT, TOEI_CC_BY_CREDIT_EN],
+];
+
+/**
+ * Every visible text and label under header/main/footer. With
+ * exemptPrescribed, the text nodes that are DIRECT children of a prescribed
+ * <p lang="ja"> are left out — only those; the contact link and the
+ * translation inside the same paragraph are still collected.
+ */
+async function snapshot(page: Page, exemptPrescribed = false): Promise<string[]> {
+  return page.evaluate(([exempt, prescribed]) => {
     const out: string[] = [];
     for (const root of document.querySelectorAll("header, main, footer")) {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
       for (let node: Node | null = walker.currentNode; node; node = walker.nextNode()) {
         if (node.nodeType === Node.TEXT_NODE) {
+          if (exempt && node.parentElement?.matches(prescribed)) continue;
           const text = (node.textContent ?? "").replace(/\s+/g, " ").trim();
           if (text) out.push(`text:${text}`);
           continue;
@@ -78,7 +103,7 @@ async function snapshot(page: Page): Promise<string[]> {
       }
     }
     return out;
-  });
+  }, [exemptPrescribed, PRESCRIBED] as const);
 }
 
 function cjkCount(entries: string[]): { count: number; chars: string } {
@@ -182,17 +207,30 @@ test.describe("landing page — JA/EN toggle", () => {
     console.log(`(a) ${info.project.name}: ${snap.length} snapshot entries`);
   });
 
-  test("(b) EN: zero Japanese in header/main/footer, <html lang=en>, EN title and description", async ({ page }, info) => {
+  test("(b) EN: zero Japanese in header/main/footer except the providers' prescribed sentences, each verbatim and followed by its translation; <html lang=en>, EN title and description", async ({ page }, info) => {
     await page.goto("/");
     await ready(page);
     await langButton(page, "EN").click();
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
 
-    const snap = await snapshot(page);
+    // Zero Japanese everywhere except the prescribed sentences themselves.
+    const snap = await snapshot(page, true);
     const { count, chars } = cjkCount(snap);
     await info.attach("en-snapshot.json", { body: JSON.stringify(snap, null, 1), contentType: "application/json" });
-    console.log(`(b) ${info.project.name}: CJK/full-width characters after EN = ${count}`);
+    console.log(`(b) ${info.project.name}: CJK/full-width characters after EN (prescribed sentences exempt) = ${count}`);
     expect(count, `Japanese or full-width characters left in EN: ${chars}`).toBe(0);
+
+    // Each prescribed sentence is there verbatim and is followed by its translation.
+    const pairs = await page.locator(PRESCRIBED).evaluateAll((els) =>
+      els.map((p) => ({
+        own: [...p.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent ?? "").join(""),
+        translation: p.querySelector('span[lang="en"]')?.textContent ?? null,
+        translationIsLast: p.lastElementChild?.matches('span[lang="en"]') ?? false,
+      }))
+    );
+    expect(pairs.map((x) => x.own)).toEqual(PRESCRIBED_PAIRS.map(([ja]) => ja));
+    expect(pairs.map((x) => x.translation)).toEqual(PRESCRIBED_PAIRS.map(([, en]) => en));
+    expect(pairs.every((x) => x.translationIsLast)).toBe(true);
 
     const en = LP_COPY.en;
     await expect(page).toHaveTitle(en.metaTitle);

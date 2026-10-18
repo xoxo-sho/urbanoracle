@@ -35,10 +35,6 @@ class Settings:
         return os.environ.get("ESTAT_API_KEY", "")
 
     @property
-    def REINFOLIB_API_KEY(self) -> str:
-        return os.environ.get("REINFOLIB_API_KEY", "")
-
-    @property
     def ODPT_API_KEY(self) -> str:
         return os.environ.get("ODPT_API_KEY", "")
 
