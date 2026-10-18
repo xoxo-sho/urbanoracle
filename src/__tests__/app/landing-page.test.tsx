@@ -17,15 +17,17 @@ import LandingPage from "@/app/page";
 
 const SAMPLE = SOURCES.sample.label;
 
-// Live-fetched on the current code path: REINFOLIB (/api/v1/land-prices),
-// e-Stat (/api/v1/demographics), ODPT (/api/v1/transport), GSI hazard tiles,
-// CARTO/OSM basemap, dataofjapan boundaries. Nothing fetches these two.
+// Live-fetched on the current code path: e-Stat (/api/v1/demographics),
+// ODPT (/api/v1/transport), GSI hazard tiles, the 地理院タイル basemap,
+// dataofjapan boundaries. Nothing fetches these two.
 const NOT_LIVE_SOURCES = [SOURCES.ksj.label, SOURCES.disastershield.label];
 
 const FALSE_PROMISE = "表示するすべての数値に、出典・単位・年次を明示します";
 
-// Ruling 1: REINFOLIB stays in the live group, but nothing draws it yet.
-const FETCHED_NOT_SHOWN = "取得済み・現時点では未表示";
+// Ruling 1 (revised 2026-10, RECON 2026-10-data-terms UO-3): REINFOLIB was
+// fetched and drawn nowhere, so the fetch was removed; the table no longer
+// names it.
+const REMOVED_SOURCE = "不動産情報ライブラリ";
 
 describe("landing page hero", () => {
   it("carries the sample label", () => {
@@ -47,9 +49,8 @@ describe("landing page データ出典 table", () => {
     expect(text).toContain(SAMPLE);
     for (const label of NOT_LIVE_SOURCES) expect(text).not.toContain(label);
 
-    // Ruling 1: REINFOLIB is fetched by the code path and shown nowhere.
-    expect(live!.textContent).toContain(SOURCES.reinfolib.label);
-    expect(live!.textContent).toContain(FETCHED_NOT_SHOWN);
+    // Ruling 1 (revised): the REINFOLIB fetch is gone, and so is its row.
+    expect(text).not.toContain(REMOVED_SOURCE);
     // Ruling 2: the bundled station file is not a real-data source.
     expect(live!.textContent).not.toContain("出典未確認");
   });

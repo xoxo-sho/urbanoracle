@@ -20,8 +20,7 @@ import re
 
 # Query parameters that carry a credential in this service's outbound URLs:
 # e-Stat sends appId (services/demographics.py), ODPT sends acl:consumerKey
-# (services/odpt.py). REINFOLIB's key travels in a request header, never in a
-# URL, and httpx does not log headers.
+# (services/odpt.py). httpx does not log headers.
 SECRET_QUERY_PARAMS = ("appId", "acl:consumerKey")
 MASK = "***"
 

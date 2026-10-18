@@ -5,6 +5,24 @@ import HeroSpread, { heroSpreadCopy } from "@/components/landing/HeroSpread";
 import LangToggle from "@/components/landing/LangToggle";
 import { useLang } from "@/i18n/lang-context";
 import type { LpKey } from "@/i18n/lp";
+import {
+  CONTACT_EMAIL,
+  ESTAT_API_CREDIT,
+  ESTAT_API_CREDIT_EN,
+  ODPT_NOTICE,
+  ODPT_NOTICE_EN,
+  TOEI_CC_BY_CREDIT,
+  TOEI_CC_BY_CREDIT_EN,
+} from "@/lib/credits";
+
+// The prescribed Japanese sentence, and on the English page its translation
+// (marked as one) right after it. They live in lib/credits.ts, not in the
+// LP dictionary: the Japanese is the same in both languages by rule.
+const REQUIRED_NOTICES: { ja: string; en: string; contact?: boolean }[] = [
+  { ja: ESTAT_API_CREDIT, en: ESTAT_API_CREDIT_EN },
+  { ja: ODPT_NOTICE, en: ODPT_NOTICE_EN, contact: true },
+  { ja: TOEI_CC_BY_CREDIT, en: TOEI_CC_BY_CREDIT_EN },
+];
 
 /**
  * Landing page body (design-spec-v1 §4), in the visitor's language.
@@ -26,7 +44,7 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
     label: "upLabel",
     title: "upTitle",
     body: "upBody",
-    sources: ["srcReinfolib", "srcEstat", "srcOdpt"],
+    sources: ["srcEstat", "srcOdpt"],
   },
   {
     side: "down",
@@ -38,10 +56,8 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
 ];
 
 // What the current code path fetches (backend/routers/data.py + the tiles
-// MapView loads client-side). REINFOLIB is fetched and handed to the
-// dashboard, but no layer draws it yet; the row says exactly that.
+// MapView loads client-side).
 const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
-  ["srcReinfolib", "liveReinfolib", "liveReinfolibYear"],
   ["srcEstat", "liveEstat", "liveEstatYear"],
   ["srcOdpt", "liveOdpt", "none"],
   ["srcHazard", "liveHazard", "none"],
@@ -194,11 +210,34 @@ export default function LandingContent() {
             {t.stationNoteLabel}
             {t.stationNote}
           </p>
+          {/* The providers' own wording, verbatim in both languages; the English
+              page adds a translation after each sentence (RECON 2026-10-data-terms §7.1). */}
+          <div className="mt-6 space-y-3 text-[11px] leading-relaxed text-muted-foreground" data-credit="required">
+            <h3 className="text-[11px] font-semibold tracking-widest text-foreground">{t.provRequiredTitle}</h3>
+            {REQUIRED_NOTICES.map((notice) => (
+              <p key={notice.ja} lang="ja">
+                {notice.ja}
+                {notice.contact && (
+                  <>
+                    <br />
+                    <a href={`mailto:${CONTACT_EMAIL}`} className="underline">
+                      {CONTACT_EMAIL}
+                    </a>
+                  </>
+                )}
+                {lang === "en" && (
+                  <span className="block" lang="en">
+                    {notice.en}
+                  </span>
+                )}
+              </p>
+            ))}
+          </div>
         </section>
       </main>
 
       <footer className="px-6 py-4" style={{ borderTop: "1px solid var(--rule)" }}>
-        <p className="text-[10px] text-muted-foreground">{t.footer}</p>
+        <p className="text-[11px] text-muted-foreground">{t.footer}</p>
       </footer>
     </div>
   );

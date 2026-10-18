@@ -17,7 +17,6 @@ from main import app
 from middleware.security_headers import SECURITY_HEADERS
 
 DATA_ROUTES = [
-    "/api/v1/land-prices",
     "/api/v1/demographics",
     "/api/v1/disaster-risks",
     "/api/v1/transport",
@@ -41,9 +40,8 @@ TOKENS = {"active-token": ACTIVE_CLAIMS, "pending-token": PENDING_CLAIMS}
 def client(db_session, monkeypatch):
     monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
-    # No upstream credentials in tests: land-prices/demographics take their
-    # fallback path, which is itself worth exercising.
-    monkeypatch.delenv("REINFOLIB_API_KEY", raising=False)
+    # No upstream credentials in tests: demographics takes its fallback path,
+    # which is itself worth exercising.
     monkeypatch.delenv("ESTAT_API_KEY", raising=False)
     monkeypatch.setattr(authz, "decode_auth_token", lambda tok: TOKENS.get(tok))
     cache.clear()
@@ -172,7 +170,7 @@ def test_no_service_module_fetches_reinfolib():
 
 def test_upstream_failure_falls_back_with_is_live_false(client):
     """No API key configured ⇒ fallback data, honestly labelled."""
-    for route in ("/api/v1/land-prices", "/api/v1/demographics"):
+    for route in ("/api/v1/demographics",):
         body = client.get(route, headers={"Authorization": "Bearer active-token"}).json()
         assert body["isLive"] is False
         assert body["data"]

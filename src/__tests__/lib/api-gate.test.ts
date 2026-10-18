@@ -78,7 +78,7 @@ describe("routeFor — destinations stay distinct", () => {
 describe("fetchGated — end-to-end wiring against mocked responses", () => {
   it("401 mock routes to /login", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json(401, {})));
-    const outcome = await fetchGated("/api/v1/land-prices", token);
+    const outcome = await fetchGated("/api/v1/demographics", token);
     expect(outcome.kind).toBe("unauthenticated");
     expect(routeFor(outcome)).toBe("/login");
     vi.unstubAllGlobals();
@@ -86,7 +86,7 @@ describe("fetchGated — end-to-end wiring against mocked responses", () => {
 
   it("403+pending mock routes to /pending", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json(403, { status: PENDING_STATUS })));
-    const outcome = await fetchGated("/api/v1/land-prices", token);
+    const outcome = await fetchGated("/api/v1/demographics", token);
     expect(outcome.kind).toBe("pending");
     expect(routeFor(outcome)).toBe("/pending");
     vi.unstubAllGlobals();
@@ -94,7 +94,7 @@ describe("fetchGated — end-to-end wiring against mocked responses", () => {
 
   it("200 mock renders in place (no redirect)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json(200, { data: [], isLive: false })));
-    const outcome = await fetchGated("/api/v1/land-prices", token);
+    const outcome = await fetchGated("/api/v1/demographics", token);
     expect(outcome.kind).toBe("ok");
     expect(routeFor(outcome)).toBeNull();
     vi.unstubAllGlobals();

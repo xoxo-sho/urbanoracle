@@ -1,4 +1,5 @@
 import { SOURCES, type SourceKey } from "@/lib/sources";
+import { ESTAT_SOURCE } from "@/lib/credits";
 
 /**
  * Provenance line for a panel (design-spec-v1 §9).
@@ -19,7 +20,8 @@ export default function SourceNote({
   note?: string;
 }) {
   const s = SOURCES[source];
-  const parts = [`出典: ${s.label}`];
+  // e-Stat prescribes its own 出典 wording; the other sources keep the label.
+  const parts = [source === "estat" ? ESTAT_SOURCE : `出典: ${s.label}`];
   if (year) parts.push(year);
   if (unit) parts.push(`単位: ${unit}`);
 

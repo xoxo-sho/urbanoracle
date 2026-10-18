@@ -16,6 +16,7 @@ import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import SourceNote from "@/components/dashboard/SourceNote";
 import SampleNote from "@/components/dashboard/SampleNote";
+import { EstatCredits } from "@/components/dashboard/RequiredCredits";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
@@ -87,6 +88,7 @@ export default function DemographicsChart({
           </div>
           {censusNote("%")}
         </div>
+        {isLive && <EstatCredits />}
       </div>
     );
   }
@@ -183,6 +185,7 @@ export default function DemographicsChart({
         </ResponsiveContainer>
         {censusNote("%")}
       </div>
+      {isLive && <EstatCredits />}
     </div>
   );
 }

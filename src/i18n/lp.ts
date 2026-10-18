@@ -2,10 +2,10 @@ import type { Lang } from "@/i18n/lang";
 import {
   BUNDLED_UNVERIFIED_NOTE,
   CHOROPLETH_NOTE,
-  FETCHED_NOT_SHOWN,
   SAMPLE_NOTICE,
   SOURCES,
 } from "@/lib/sources";
+import { BOUNDARY_SOURCE } from "@/lib/credits";
 
 /**
  * Every string the landing page renders, in Japanese and English.
@@ -79,21 +79,18 @@ const ja = {
   thContent: "内容",
   thYear: "年次",
   groupLive: "実データ",
-  srcReinfolib: SOURCES.reinfolib.label,
   srcEstat: SOURCES.estat.label,
   srcOdpt: SOURCES.odpt.label,
   srcHazard: SOURCES.hazard.label,
-  srcBoundaries: "dataofjapan/land",
-  srcTiles: "OpenStreetMap contributors ／ CARTO",
+  srcBoundaries: BOUNDARY_SOURCE,
+  srcTiles: "地理院タイル（国土地理院）",
   srcSample: SOURCES.sample.label,
-  liveReinfolib: `取引価格（対象 8 区・各 5 件まで）— ${FETCHED_NOT_SHOWN}`,
-  liveReinfolibYear: "2024年",
   liveEstat: "人口・年齢構成、5年間の人口増減率",
   liveEstatYear: "2020年国勢調査・2025年速報",
   liveOdpt: "駅別乗降客数（交通タブ・地図の駅バブル）",
   liveHazard: "浸水・津波・土砂災害の想定区域（地図の重ね表示）",
   liveBoundaries: "行政区界（区境界ポリゴン）",
-  liveTiles: "地図タイル",
+  liveTiles: "地図タイル（淡色地図）",
   sampleHero: "LP ヒーロー（地価前年比 × 想定災害規模）",
   sampleLandPrice: "区別平均地価・密度 vs 地価・区別テーブルの地価列",
   samplePopulation: "人口推移",
@@ -106,7 +103,9 @@ const ja = {
   stationNoteLabel: "駅の位置・路線: ",
   stationNote: BUNDLED_UNVERIFIED_NOTE,
 
-  footer: "UrbanOracle — DXA Labs ／ OpenStreetMap contributors ／ CARTO",
+  provRequiredTitle: "データ提供元が求める表示",
+
+  footer: "UrbanOracle — DXA Labs ／ 地図: 地理院タイル",
 } satisfies Record<string, string>;
 
 const en = {
@@ -154,21 +153,18 @@ const en = {
   thContent: "Content",
   thYear: "Year",
   groupLive: "Real data",
-  srcReinfolib: "Real Estate Information Library (Ministry of Land, Infrastructure, Transport and Tourism)",
   srcEstat: "e-Stat Population Census (Statistics Bureau, Ministry of Internal Affairs and Communications)",
   srcOdpt: "Public Transportation Open Data Center (ODPT)",
   srcHazard: "Hazard Map Portal Site (Ministry of Land, Infrastructure, Transport and Tourism)",
-  srcBoundaries: "dataofjapan/land",
-  srcTiles: "OpenStreetMap contributors / CARTO",
+  srcBoundaries: "dataofjapan/land (source: Global Map Japan)",
+  srcTiles: "GSI Tiles (Geospatial Information Authority of Japan)",
   srcSample: "Sample data (provisional)",
-  liveReinfolib: "Transaction prices (8 target wards, up to 5 each) — fetched, not shown at present",
-  liveReinfolibYear: "2024",
   liveEstat: "Population and age composition, 5-year population change rate",
   liveEstatYear: "2020 Population Census, 2025 preliminary count",
   liveOdpt: "Ridership by station (Transport tab, station bubbles on the map)",
   liveHazard: "Assumed flood, tsunami and landslide hazard areas (map overlay)",
   liveBoundaries: "Administrative boundaries (ward boundary polygons)",
-  liveTiles: "Map tiles",
+  liveTiles: "Map tiles (pale map)",
   sampleHero: "LP hero (year-on-year land price × projected disaster scale)",
   sampleLandPrice: "Average land price by ward, density vs land price, land price column of the ward table",
   samplePopulation: "Population trend",
@@ -181,7 +177,9 @@ const en = {
   stationNoteLabel: "Station locations and lines: ",
   stationNote: "bundled data (source unverified)",
 
-  footer: "UrbanOracle — DXA Labs / OpenStreetMap contributors / CARTO",
+  provRequiredTitle: "Notices the data providers require (the prescribed Japanese text, each followed by a translation)",
+
+  footer: "UrbanOracle — DXA Labs / Map: GSI Tiles",
 } satisfies Record<keyof typeof ja, string>;
 
 type Equal<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;

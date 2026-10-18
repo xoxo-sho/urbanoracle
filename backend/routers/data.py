@@ -1,43 +1,38 @@
-"""The four data endpoints, ported from the Next route handlers.
+"""The three data endpoints, ported from the Next route handlers.
 
 All responses share the ``{"data": [...], "isLive": bool}`` envelope the
 client already expects. ``isLive`` means "this came from the upstream
-source"; a fallback payload always reports False.
+source"; a fallback payload always reports False. A live /transport answer
+also carries ``fetchedAt``, when the ODPT data was obtained (ODPT developer
+guideline 2.2.1 asks for that 取得日時 on screen).
+
+The REINFOLIB (/land-prices) endpoint was removed: its data was fetched but
+nothing on screen ever drew it (RECON 2026-10-data-terms §7.1 UO-3).
 
 Every response goes through ``json_safe`` — the last line of defense against
 a non-finite float reaching the client as an invalid-JSON ``NaN`` literal.
 """
 
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from core import cache
 from core.boundary import json_safe
-from services import demographics, disaster_risks, land_prices, odpt, transport
+from services import demographics, disaster_risks, odpt, transport
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-def _envelope(data: list[dict], is_live: bool) -> JSONResponse:
-    return JSONResponse(json_safe({"data": data, "isLive": is_live}))
-
-
-@router.get("/land-prices")
-async def get_land_prices() -> JSONResponse:
-    cached = cache.get("land-prices")
-    if cached is not None:
-        return _envelope(cached, True)
-    try:
-        data = await land_prices.fetch_land_prices()
-    except Exception:
-        logger.warning("land price upstream unavailable — serving fallback", exc_info=True)
-        return _envelope(land_prices.fallback(), False)
-    cache.set("land-prices", data)
-    return _envelope(data, True)
+def _envelope(data: list[dict], is_live: bool, fetched_at: str | None = None) -> JSONResponse:
+    body: dict = {"data": data, "isLive": is_live}
+    if fetched_at is not None:
+        body["fetchedAt"] = fetched_at
+    return JSONResponse(json_safe(body))
 
 
 @router.get("/demographics")
@@ -73,10 +68,11 @@ async def get_transport() -> JSONResponse:
     """
     cached = cache.get("transport")
     if cached is not None:
-        return _envelope(cached, True)
+        return _envelope(cached["data"], True, fetched_at=cached["fetchedAt"])
 
     try:
         ridership, _year = await odpt.fetch_ridership()
+        fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     except Exception:
         logger.warning(
             "ODPT ridership unavailable — station ridership will be データなし",
@@ -94,5 +90,5 @@ async def get_transport() -> JSONResponse:
         # Stations are real, ridership is not available: do not claim live.
         return _envelope(data, False)
 
-    cache.set("transport", data)
-    return _envelope(data, True)
+    cache.set("transport", {"data": data, "fetchedAt": fetched_at})
+    return _envelope(data, True, fetched_at=fetched_at)

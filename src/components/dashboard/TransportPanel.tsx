@@ -14,6 +14,7 @@ import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
+import { OdptNotice } from "@/components/dashboard/RequiredCredits";
 import SampleNote from "@/components/dashboard/SampleNote";
 import { BUNDLED_UNVERIFIED_NOTE } from "@/lib/sources";
 
@@ -23,9 +24,11 @@ interface TransportPanelProps {
   selectedWard: string | null;
   /** Whether ridership came from ODPT. The ridership trend never does. */
   isLive?: boolean;
+  /** When the server obtained the ODPT data (ISO 8601). */
+  fetchedAt?: string | null;
 }
 
-export default function TransportPanel({ stations, trends, isLive = false }: TransportPanelProps) {
+export default function TransportPanel({ stations, trends, isLive = false, fetchedAt = null }: TransportPanelProps) {
   // Stations without ODPT coverage sort last rather than as zero.
   const sorted = [...stations].sort((a, b) => byValueDesc(a.dailyPassengers, b.dailyPassengers));
   const known = sorted.map((s) => s.dailyPassengers).filter(hasValue);
@@ -100,11 +103,14 @@ export default function TransportPanel({ stations, trends, isLive = false }: Tra
           );
         })}
         {isLive ? (
-          <SourceNote
-            source="odpt"
-            unit="乗降客数 人/日"
-            note={`駅の位置・路線は${BUNDLED_UNVERIFIED_NOTE}。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」`}
-          />
+          <>
+            <SourceNote
+              source="odpt"
+              unit="乗降客数 人/日"
+              note={`駅の位置・路線は${BUNDLED_UNVERIFIED_NOTE}。ODPT 未収録の駅（JR東日本・京王・小田急等）は「データなし」`}
+            />
+            <OdptNotice fetchedAt={fetchedAt} />
+          </>
         ) : (
           <SampleNote note="単位: 乗降客数 人/日" />
         )}

@@ -18,5 +18,5 @@ alembic==1.16.1
 # to check securetoken signatures.
 pyjwt[crypto]==2.10.1
 
-# Outbound calls to REINFOLIB / e-Stat
+# Outbound calls to e-Stat / ODPT
 httpx==0.28.1
