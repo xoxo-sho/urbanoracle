@@ -13,6 +13,7 @@ export default defineConfig({
     /login-split\.spec\.ts/,
     /login-contrast\.spec\.ts/,
     /login-captures\.spec\.ts/,
+    /app-credits\.spec\.ts/,
   ],
   timeout: 30000,
   retries: 1,
