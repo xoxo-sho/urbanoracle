@@ -21,7 +21,7 @@ import type { User } from "firebase/auth";
  *   (c)            → router.replace("/login"); push is never called
  *   (e) anonymous  → nothing renders: /app shows sample data to anyone, so
  *                    the control must not imply a session that does not exist
- *   (f) /pending   → 「ログアウト」 (Stage 2: Parti's verify.logout): signOut,
+ *   (f) /pending   → 「サインアウト」 (Stage 2, A1: the product's own term): signOut,
  *                    then replace("/login")
  */
 
@@ -80,7 +80,7 @@ const SIGNED_IN = {
 const UNVERIFIED = { ...SIGNED_IN, emailVerified: false } as unknown as User;
 
 const SIGN_OUT = { name: "サインアウト" };
-const LOG_OUT = { name: "ログアウト" };
+const SIGN_OUT_PENDING = { name: "サインアウト" };
 
 /** What Firebase would do: tell every subscriber the session changed. */
 function fireAuthState(user: User | null) {
@@ -163,11 +163,11 @@ describe("/app — the signed-in header", () => {
 
 describe("/pending — the way out", () => {
   // Replaces "(f) 「別のアカウントでサインインする」 signs out …" — the label is Parti's verify.logout.
-  it("(f) 「ログアウト」 signs out with the app's auth instance, then replace('/login')", async () => {
+  it("(f) 「サインアウト」 signs out with the app's auth instance, then replace('/login')", async () => {
     mount(<VerifyEmailPage />);
     fireAuthState(UNVERIFIED);
 
-    fireEvent.click(await screen.findByRole("button", LOG_OUT));
+    fireEvent.click(await screen.findByRole("button", SIGN_OUT_PENDING));
 
     await waitFor(() => expect(h.router.replace).toHaveBeenCalledWith("/login"));
     expect(h.signOut).toHaveBeenCalledTimes(1);
@@ -182,7 +182,7 @@ describe("/pending — the way out", () => {
   it("(e) the way out is not offered to an anonymous visitor — a way to sign in is", () => {
     mount(<VerifyEmailPage />);
     fireAuthState(null);
-    expect(screen.queryByRole("button", LOG_OUT)).toBeNull();
+    expect(screen.queryByRole("button", SIGN_OUT_PENDING)).toBeNull();
     expect(screen.getByRole("link", { name: "サインインに戻る" })).toHaveAttribute("href", "/login");
   });
 });

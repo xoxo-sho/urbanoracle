@@ -17,6 +17,8 @@ import { STORAGE_KEY } from "@/i18n/lang";
  *   R-F6  the webmail shortcut for a known domain, in a new tab
  *   R-F7  the change-address link signs out, then /login (this product's
  *         sign-up entry is /login's in-place toggle)
+ *   A1    the new flow says サインイン / サインアウト (Sign in / Sign out), the
+ *         product's own terms (/login, /app) — never Parti's ログイン / ログアウト
  *   R-F13 no manual 「認証を確認」 button (D2: detection is automatic)
  *   UO    the screen still renders anonymously, without redirecting, with a
  *         way to sign in; the shell's data-auth-* structure stays
@@ -160,7 +162,7 @@ afterEach(() => {
 });
 
 describe("the waiting screen (R-F13, UO structure)", () => {
-  it("in English: pill, heading, lead, the address in <strong>, sign up again, resend, the hints, Log out — and no manual verify button", async () => {
+  it("in English: pill, heading, lead, the address in <strong>, sign up again, resend, the hints, Sign out — and no manual verify button", async () => {
     mount();
     await settle();
     expect(screen.getByText("Waiting for confirmation")).toBeDefined();
@@ -170,7 +172,7 @@ describe("the waiting screen (R-F13, UO structure)", () => {
     expect(screen.getByRole("link", { name: "Wrong address? Sign up again" }).getAttribute("href")).toBe("/login");
     expect(screen.getByRole("button", { name: "Resend confirmation email" })).toBeDefined();
     expect(screen.getByText("Didn't get the email?").tagName).toBe("SUMMARY");
-    expect(screen.getByRole("button", { name: "Log out" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeDefined();
     expect(screen.queryByRole("button", { name: "Check verification" }), "R-F13: no manual button").toBeNull();
     expect(screen.queryByRole("button", { name: "認証を確認" })).toBeNull();
     expect(document.querySelector("[data-auth-verify-check]")).toBeNull();
@@ -187,7 +189,7 @@ describe("the waiting screen (R-F13, UO structure)", () => {
     expect(document.querySelector("[data-auth-divider]")?.tagName).toBe("DETAILS");
   });
 
-  it("anonymous: renders without redirecting — the placeholder address, a disabled resend, a way to sign in, no Log out", async () => {
+  it("anonymous: renders without redirecting — the placeholder address, a disabled resend, a way to sign in, no Sign out", async () => {
     h.auth.currentUser = null;
     mount();
     await settle();
@@ -197,7 +199,7 @@ describe("the waiting screen (R-F13, UO structure)", () => {
     expect(screen.getByText("your address").tagName).toBe("STRONG");
     expect((screen.getByRole("button", { name: "Resend confirmation email" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByRole("link", { name: "Back to sign in" }).getAttribute("href")).toBe("/login");
-    expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Wrong address? Sign up again" })).toBeNull();
     expect(mailPosts()).toEqual([]);
   });
@@ -448,11 +450,11 @@ describe("the webmail shortcut (R-F6) and the way to sign up again (R-F7)", () =
   });
 });
 
-describe("Log out", () => {
+describe("Sign out", () => {
   it("signs out with the app's auth instance, then replace('/login')", async () => {
     mount();
     await settle();
-    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
     await vi.waitFor(() => expect(h.router.replace).toHaveBeenCalledWith("/login"));
     expect(h.signOut).toHaveBeenCalledTimes(1);
     expect(h.router.push).not.toHaveBeenCalled();
@@ -463,7 +465,7 @@ describe("Log out", () => {
     h.signOut = vi.fn(() => Promise.reject(failure));
     mount();
     await settle();
-    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
     const note = await screen.findByRole("alert");
     expect(note.textContent).toContain("FirebaseError: Firebase: Error (auth/network-request-failed).");
     expect(h.router.replace).not.toHaveBeenCalled();
@@ -493,7 +495,7 @@ describe("/pending in Japanese — the default: the same paths, the dictionary's
     );
     expect(details.textContent).toContain("会社のメールでは、セキュリティ確認のため届くまで数分かかることがあります。");
     expect(Array.from(details.querySelectorAll("code")).map((c) => c.textContent)).toEqual(["noreply@send.dxalabs.com", "send.dxalabs.com"]);
-    expect(screen.getByRole("button", { name: "ログアウト" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "サインアウト" })).toBeDefined();
     expect(screen.queryByRole("button", { name: "認証を確認" }), "R-F13").toBeNull();
   });
 
@@ -530,9 +532,9 @@ describe("/pending in Japanese — the default: the same paths, the dictionary's
     h.signOut = () => Promise.reject(firebaseFailure());
     mount();
     await settle();
-    fireEvent.click(screen.getByRole("button", { name: "ログアウト" }));
+    fireEvent.click(screen.getByRole("button", { name: "サインアウト" }));
     const note = await screen.findByRole("alert");
-    expect(note.textContent).toContain("ログアウトできませんでした");
+    expect(note.textContent).toContain("サインアウトできませんでした");
     expect(h.router.replace).not.toHaveBeenCalled();
   });
 

@@ -18,7 +18,7 @@ import type { ReactNode } from "react";
  *   forgot          a link to /forgot-password (sign-in mode)
  *   register toggle in place: no navigation, no Firebase call
  *   errors          the code's Japanese message, verbatim
- *   /pending        「ログアウト」: signOut(auth) → replace("/login")
+ *   /pending        「サインアウト」: signOut(auth) → replace("/login")
  *
  * firebase/auth is mocked; the auth instance is a sentinel so "the same
  * auth" is checked by identity.
@@ -219,12 +219,12 @@ describe("/login — the same Firebase calls as origin/main", () => {
 
 describe("/pending — the way out", () => {
   // Replaces "「別のアカウントでサインインする」: signOut(auth), then replace('/login')".
-  it("「ログアウト」: signOut(auth), then replace('/login')", async () => {
+  it("「サインアウト」: signOut(auth), then replace('/login')", async () => {
     mount(<VerifyEmailPage />);
     await act(async () => {
       for (const l of h.listeners) l({ uid: "u2", email: EMAIL, emailVerified: false, getIdToken: async () => "t", reload: async () => undefined });
     });
-    fireEvent.click(await screen.findByRole("button", { name: "ログアウト" }));
+    fireEvent.click(await screen.findByRole("button", { name: "サインアウト" }));
     await waitFor(() => expect(h.router.replace).toHaveBeenCalledWith("/login"));
     expect(h.signOut).toHaveBeenCalledWith(firebaseAuth());
     expect(h.signOut.mock.invocationCallOrder[0]).toBeLessThan(h.router.replace.mock.invocationCallOrder[0]);

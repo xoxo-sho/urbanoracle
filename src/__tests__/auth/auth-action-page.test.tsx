@@ -162,7 +162,7 @@ describe("a good code (R-F8, R-F9)", () => {
     expect(screen.getByText("UrbanOracle を開いている元の画面は、自動で次へ進みます。この画面は閉じてかまいません。")).toBeDefined();
     expect(screen.getByRole("img", { name: "この端末で確認すると、元の画面が進みます" })).toBeDefined();
     expect(screen.getByRole("link", { name: "この端末で続ける" }).getAttribute("href")).toBe("/login");
-    expect(screen.getByText("ログイン画面が開きます")).toBeDefined();
+    expect(screen.getByText("サインイン画面が開きます")).toBeDefined();
     expect(screen.getByRole("link", { name: "contact@dxalabs.com" }).getAttribute("href")).toBe("mailto:contact@dxalabs.com");
     await advance(5000);
     expect(h.router.replace, "nothing moves by itself here").not.toHaveBeenCalled();
@@ -202,9 +202,9 @@ describe("a used or expired code (R-F10)", () => {
     await open("?mode=verifyEmail&oobCode=USED&lang=ja");
     await advance(0);
     expect(heading()).toBe("このリンクは使えなくなっています");
-    expect(screen.getByText("有効期限が切れたか、すでに使われたリンクです。確認が済んでいれば、そのままログインできます。")).toBeDefined();
-    expect(screen.getByRole("link", { name: "ログインして確認する" }).getAttribute("href")).toBe("/login");
-    expect(screen.getByText("ログイン後、まだ確認が済んでいなければ、新しいリンクをその場でお送りします。")).toBeDefined();
+    expect(screen.getByText("有効期限が切れたか、すでに使われたリンクです。確認が済んでいれば、そのままサインインできます。")).toBeDefined();
+    expect(screen.getByRole("link", { name: "サインインして確認する" }).getAttribute("href")).toBe("/login");
+    expect(screen.getByText("サインイン後、まだ確認が済んでいなければ、新しいリンクをその場でお送りします。")).toBeDefined();
   });
 });
 
@@ -218,7 +218,7 @@ describe("a link that cannot work (R-F11)", () => {
     await advance(0);
     expect(heading()).toBe("このリンクは開けません");
     expect(h.applyActionCode).not.toHaveBeenCalled();
-    expect(screen.getByRole("link", { name: "ログイン" }).getAttribute("href")).toBe("/login");
+    expect(screen.getByRole("link", { name: "サインイン" }).getAttribute("href")).toBe("/login");
   });
 
   it("a network failure → ERROR; 'Try again' re-applies the same code", async () => {

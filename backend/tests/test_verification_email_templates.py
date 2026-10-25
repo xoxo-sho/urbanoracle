@@ -28,7 +28,7 @@ COPY = {
         "UrbanOracle を開いたままの画面は、確認が終わると自動で次へ進みます。",
         "有効期限について",
         "リンクには有効期限があります。期限が切れた場合は、"
-        "UrbanOracle にログインすると新しいリンクを受け取れます。",
+        "UrbanOracle にサインインすると新しいリンクを受け取れます。",
         "心当たりがない場合",
         "このメールは削除してください。何もしなければ、メールアドレスは確認されません。",
         "ボタンが押せない場合",
@@ -133,6 +133,21 @@ def test_rb10_every_substituted_value_is_escaped_in_html_raw_in_text():
     assert html.escape(email, quote=True) in mail.html
     assert html.escape(link, quote=True) in mail.html
     assert email in mail.text and link in mail.text
+
+
+@pytest.mark.parametrize("lang", ["ja", "en"])
+def test_a1_the_mail_uses_the_products_sign_in_term(lang):
+    """A1: UrbanOracle says サインイン / sign in (as /login does), never Parti's
+    ログイン / log in — in the HTML and the text part alike."""
+    t = _templates()
+    mail = t.render_verification_email(lang, email="a@example.com", link=LINK.format(lang=lang))
+    body = mail.html + "\n" + mail.text
+    assert "ログイン" not in body and "ログアウト" not in body
+    assert not re.search(r"\blog\s?(in|out)\b", body, re.IGNORECASE), body
+    if lang == "ja":
+        assert "UrbanOracle にサインインすると新しいリンクを受け取れます。" in mail.text
+    else:
+        assert "sign in to UrbanOracle to get a new one." in mail.text
 
 
 def test_rb10_an_unknown_language_is_refused():

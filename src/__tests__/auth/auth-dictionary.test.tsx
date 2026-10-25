@@ -272,6 +272,15 @@ describe("auth dictionary", () => {
     for (const key of ["verifyCheck", "verifyChecking", "verifyStill", "verifySent", "verifySpam", "verifySwitch", "verifyNoMail", "verifyEyebrow"]) {
       expect(key in dict, `${key} retired`).toBe(false);
     }
+    // A1: the product's own terms (/login says サインイン, /app says サインアウト;
+    // "Sign in"), never Parti's ログイン / ログアウト / Log in / Log out.
+    const newFlow = required;
+    expect(newFlow.filter((k) => /ログイン|ログアウト/.test(dict[k])).map((k) => `${k}: ${dict[k]}`)).toEqual([]);
+    expect(newFlow.filter((k) => /\blog\s?(in|out)\b/i.test(dictEn[k])).map((k) => `${k}: ${dictEn[k]}`)).toEqual([]);
+    expect(dict.verifyLogout).toBe("サインアウト");
+    expect(dictEn.verifyLogout).toBe("Sign out");
+    expect(dict.actionInvalidButton).toBe("サインイン");
+    expect(dictEn.actionInvalidButton).toBe("Sign in");
   });
 
   it("leaves no Japanese literal in the screens, the shell, the panel or auth-errors.ts (comments aside)", () => {
