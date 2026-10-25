@@ -19,6 +19,8 @@ import { AUTH_COPY } from "../src/i18n/auth";
 const LOGIN = "/login.html";
 const PENDING = "/pending.html";
 const FORGOT = "/forgot-password.html";
+// Stage 2: the link in the verification mail. Loaded without a code → INVALID.
+const ACTION = "/auth/action.html";
 const STORAGE_KEY = "urbanoracle.lang";
 const IDENTITY = /(^|\.)(identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|www\.googleapis\.com|firebaseapp\.com)$/;
 /** Landcast's numeral class: ASCII and full-width digits, kanji numerals. */
@@ -224,9 +226,14 @@ test("L2 /login: form column order in both modes; wordmark, subtitle, labels, pl
   expect(await page.locator("body").innerText()).not.toContain("ACCESS");
 });
 
-test("L2 /pending: wordmark, subtitle, verification title, check button, divider, resend button in DOM and visual order; wordmark and subtitle text; the three dropped editorial texts absent", async ({ page }) => {
+// Stage 2: the manual check button is gone (D2); the details block ("if the
+// email does not arrive") is the divider and follows the resend button.
+test("L2 /pending: wordmark, subtitle, verification title, resend button, details divider in DOM and visual order; no check button; wordmark and subtitle text; the three dropped editorial texts absent", async ({ page }) => {
   await open(page, PENDING);
-  await assertOrder(page, ["[data-auth-wordmark]", "[data-auth-subtitle]", "[data-auth-verify-title]", "[data-auth-verify-check]", "[data-auth-divider]", "[data-auth-verify-resend]"], "pending");
+  await assertOrder(page, ["[data-auth-wordmark]", "[data-auth-subtitle]", "[data-auth-verify-title]", "[data-auth-verify-resend]", "[data-auth-divider]"], "pending");
+  await expect(page.locator("[data-auth-verify-check]"), "D2: no manual check button").toHaveCount(0);
+  await expect(page.locator("[data-auth-verify-title]")).toHaveText(JA.verifyHeading);
+  await expect(page.locator("[data-auth-divider] summary")).toHaveText(JA.verifyDetails);
   await expect(page.locator("[data-auth-wordmark]")).toHaveText(JA.brand);
   await expect(page.locator("[data-auth-subtitle]")).toHaveText(JA.subtitle);
   for (const removed of ["あと一歩で、", "計器が開きます。", "審査はありません"]) {
@@ -487,6 +494,8 @@ test("L7 English: zero Japanese / full-width characters on /login (both modes), 
   await check("/login sign-up");
   await open(page, PENDING);
   await check("/pending");
+  await open(page, ACTION);
+  await check("/auth/action");
   await page.goto(FORGOT, { waitUntil: "networkidle" });
   await check("/forgot-password");
   await expect(page.locator("[data-lang-toggle]"), "/forgot-password has no toggle").toHaveCount(0);
