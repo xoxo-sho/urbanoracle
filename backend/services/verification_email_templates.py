@@ -19,7 +19,9 @@ fallback link.
 
 The copy is Parti's email copy (backend/verification_email_templates.py
 @origin/main) with the spec's substitutions only (F6): "Parti" -> "UrbanOracle",
-the subject and the footer line. The HTML below is mail markup: one element
+the subject and the footer line — and, per the review amendment A1, the
+product's own term サインイン where Parti said ログイン (the English already
+says "sign in"). The HTML below is mail markup: one element
 per line, each with its inline style, so its lines run long on purpose.
 """
 
@@ -48,7 +50,7 @@ COPY: dict[str, dict[str, str]] = {
         "note1_title": "有効期限について",
         "note1_body": (
             "リンクには有効期限があります。期限が切れた場合は、"
-            "UrbanOracle にログインすると新しいリンクを受け取れます。"
+            "UrbanOracle にサインインすると新しいリンクを受け取れます。"
         ),
         "note2_title": "心当たりがない場合",
         "note2_body": "このメールは削除してください。何もしなければ、メールアドレスは確認されません。",

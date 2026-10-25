@@ -22,7 +22,7 @@ import "@/components/auth/verify-flow.css";
  *
  * WAITING: the pill, the emblem, the address, a webmail shortcut for a known
  * domain, the two steps, a resend button held by the server's countdown, the
- * delivery hints, Log out. The mail is UrbanOracle's own — POST
+ * delivery hints, Sign out. The mail is UrbanOracle's own — POST
  * /api/v1/auth/verification-email (lib/verify-flow.ts); arriving with the
  * one-shot flag (/login) asks for it exactly once. Detection is automatic
  * (D2: no manual button): reload() + emailVerified every 4 s while the tab is

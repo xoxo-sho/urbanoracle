@@ -29,6 +29,10 @@ import type { AuthErrorCode } from "@/lib/auth-errors";
  * and the English "…" → "..." (this dictionary's ASCII rule). The two
  * verify*Failed lines are this product's own: Parti shows them as bilingual
  * literals in the screen, which this dictionary's tests forbid.
+ *
+ * A1 (review amendment): where Parti's entries say ログイン / ログアウト /
+ * "Log out", this product says サインイン / サインアウト / "Sign in" / "Sign out"
+ * — the terms /login (submitSignIn) and /app (SignOutButton) already use.
  */
 
 const ja = {
@@ -101,7 +105,7 @@ const ja = {
   verifyHintSpam: "迷惑メールフォルダを確認してください。送信元は noreply@send.dxalabs.com です。",
   verifyHintCarrier: "携帯会社のメール（ドコモ・au・ソフトバンク）をお使いの場合は、send.dxalabs.com からの受信を許可してください。",
   verifyHintCompany: "会社のメールでは、セキュリティ確認のため届くまで数分かかることがあります。",
-  verifyLogout: "ログアウト",
+  verifyLogout: "サインアウト",
   verifyDetectedPill: "確認できました",
   verifyDetectedHeading: "メールアドレスを確認しました",
   verifyDetectedLead: "{email} の確認が完了しました。",
@@ -109,7 +113,7 @@ const ja = {
   verifyFallback: "自動で移動しない場合は",
   verifyFallbackLink: "ダッシュボードを開く",
   verifyFinishFailed: "確認に失敗しました — もう一度お試しください",
-  verifySignOutFailed: "ログアウトできませんでした — まだサインインしたままです",
+  verifySignOutFailed: "サインアウトできませんでした — まだサインインしたままです",
   aboutLink: "UrbanOracle について",
 
   // /auth/action (Stage 2): the link in the verification mail, per state
@@ -124,15 +128,15 @@ const ja = {
   actionCaptionOriginal: "元の画面",
   actionDiagramLabel: "この端末で確認すると、元の画面が進みます",
   actionContinueHere: "この端末で続ける",
-  actionContinueHint: "ログイン画面が開きます",
+  actionContinueHint: "サインイン画面が開きます",
   actionExpiredHeading: "このリンクは使えなくなっています",
-  actionExpiredLead: "有効期限が切れたか、すでに使われたリンクです。確認が済んでいれば、そのままログインできます。",
-  actionExpiredButton: "ログインして確認する",
-  actionExpiredNote: "ログイン後、まだ確認が済んでいなければ、新しいリンクをその場でお送りします。",
+  actionExpiredLead: "有効期限が切れたか、すでに使われたリンクです。確認が済んでいれば、そのままサインインできます。",
+  actionExpiredButton: "サインインして確認する",
+  actionExpiredNote: "サインイン後、まだ確認が済んでいなければ、新しいリンクをその場でお送りします。",
   actionExpiredSendNew: "新しいリンクを送る",
   actionInvalidHeading: "このリンクは開けません",
-  actionInvalidLead: "リンクが途中で切れている可能性があります。メールのボタンから開き直すか、ログインして新しいリンクを受け取ってください。",
-  actionInvalidButton: "ログイン",
+  actionInvalidLead: "リンクが途中で切れている可能性があります。メールのボタンから開き直すか、サインインして新しいリンクを受け取ってください。",
+  actionInvalidButton: "サインイン",
   actionErrorHeading: "確認できませんでした",
   actionErrorLead: "通信に失敗しました。もう一度お試しください。",
   actionErrorButton: "もう一度試す",
@@ -215,7 +219,7 @@ const en = {
   verifyHintSpam: "Check your spam folder. It comes from noreply@send.dxalabs.com.",
   verifyHintCarrier: "If you use a Japanese mobile carrier address (docomo, au, SoftBank), allow mail from send.dxalabs.com.",
   verifyHintCompany: "Company mail systems may take a few minutes to deliver it while they scan it.",
-  verifyLogout: "Log out",
+  verifyLogout: "Sign out",
   verifyDetectedPill: "Confirmed",
   verifyDetectedHeading: "Email address confirmed",
   verifyDetectedLead: "{email} is confirmed.",
