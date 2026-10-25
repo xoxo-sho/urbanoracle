@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { sendEmailVerification } from "firebase/auth";
 import { useAuth } from "@/lib/auth-context";
-import { firebaseAuth } from "@/lib/firebase";
 
 /**
  * Email-verification notice (design-spec-v1 §6).
@@ -21,13 +19,16 @@ import { firebaseAuth } from "@/lib/firebase";
  * This banner is the in-app case: an active user whose address is merely
  * unconfirmed. The full-screen sibling at /pending handles the other case —
  * not yet active *because* unverified — and is where a 403 lands.
+ *
+ * Stage 2 (2026-10-25): the banner no longer offers a resend. The mail is
+ * UrbanOracle's own, requested from /pending (lib/verify-flow.ts); the client
+ * never calls Firebase's own verification mail any more (F1).
  */
 
 const POLL_INTERVAL_MS = 30_000;
 
 export default function VerificationBanner() {
   const { user, refresh, getToken } = useAuth();
-  const [resent, setResent] = useState(false);
   const [reevaluated, setReevaluated] = useState<string | null>(null);
   const triggered = useRef(false);
 
@@ -81,18 +82,6 @@ export default function VerificationBanner() {
       <span className="text-muted-foreground">
         確認は機能の利用を妨げません。完了後、アクセス権が自動的に見直されます。
       </span>
-      <button
-        type="button"
-        onClick={async () => {
-          const current = firebaseAuth().currentUser;
-          if (!current) return;
-          await sendEmailVerification(current).catch(() => undefined);
-          setResent(true);
-        }}
-        className="underline underline-offset-2 text-muted-foreground hover:text-foreground"
-      >
-        {resent ? "確認メールを再送しました" : "確認メールを再送"}
-      </button>
       {reevaluated && <span className="sr-only">{reevaluated}</span>}
     </div>
   );

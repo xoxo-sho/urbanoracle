@@ -273,6 +273,14 @@ else
   fail "/pending page missing from the build — a pending user has nowhere to land"
 fi
 
+# /auth/action is where the link in the verification mail lands (Stage 2):
+# a mail that points at a 404 is a signup that can never complete.
+if find_html auth/action >/dev/null; then
+  pass "/auth/action page present"
+else
+  fail "/auth/action page missing from the build — the link in the verification mail has nowhere to land"
+fi
+
 # --------------------------------------------------------------------------
 # 7. Crawlability — robots / sitemap / 404 agree with the origin
 # --------------------------------------------------------------------------

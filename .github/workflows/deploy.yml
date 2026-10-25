@@ -219,4 +219,5 @@ jobs:
           check /                     200
           check /app                  200
           check /login                200
+          check /auth/action          200
           check /no-such-page         404

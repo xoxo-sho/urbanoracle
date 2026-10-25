@@ -143,8 +143,7 @@ async function finalLoad(page: Page): Promise<{ samples: string[]; writes: Write
 const PAGES: { name: string; path: string; enTitle: string; enDescription: string }[] = [
   { name: "landing page", path: "/", enTitle: LP_COPY.en.metaTitle, enDescription: LP_COPY.en.metaDescription },
   { name: "login", path: "/login.html", enTitle: AUTH_COPY.en.metaTitle, enDescription: AUTH_COPY.en.metaDescription },
-  // Stage 2: /pending carries its own title (Parti's verify.title); the description stays the site's.
-  { name: "pending", path: "/pending.html", enTitle: AUTH_COPY.en.verifyTitle, enDescription: AUTH_COPY.en.metaDescription },
+  { name: "pending", path: "/pending.html", enTitle: AUTH_COPY.en.metaTitle, enDescription: AUTH_COPY.en.metaDescription },
 ].filter((p) => (process.env.LANG_TITLE_PAGES ?? "landing page,login,pending").split(",").includes(p.name));
 
 for (const target of PAGES) {
