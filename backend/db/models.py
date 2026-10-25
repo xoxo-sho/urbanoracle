@@ -27,7 +27,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, false, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, String, false, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -102,3 +102,31 @@ class User(Base):
     __table_args__ = (Index("idx_users_org_id", "org_id"),)
 
     organization: Mapped[Organization] = relationship(back_populates="users")
+
+
+class VerificationEmailSend(Base):
+    """One row per verification mail UrbanOracle sent (alembic revision 002).
+
+    The ledger behind POST /api/v1/auth/verification-email: its 60-second
+    cooldown and its five-per-24-hours limit are read from here, under a
+    per-uid advisory lock, inside the transaction that records the send. A row
+    exists only for a mail Resend accepted.
+
+    Keyed by ``auth_uid`` — the GIP uid, ``users.auth_uid``'s type — with NO
+    foreign key: the sender is by definition unverified and the endpoint never
+    provisions a users row. No email column: the address stays in the identity
+    tenant and in the caller's token. The endpoint deletes a uid's rows older
+    than seven days whenever it records a new send.
+    """
+
+    __tablename__ = "verification_email_sends"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    auth_uid: Mapped[str] = mapped_column(String(128), nullable=False)
+    sent_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        Index("ix_verification_email_sends_auth_uid_sent_at", "auth_uid", text("sent_at DESC")),
+    )

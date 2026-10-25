@@ -41,7 +41,10 @@ def migrated_engine(database_url):
     # Disposable DB: reset so repeated local runs start from a clean slate.
     with engine.begin() as conn:
         conn.execute(
-            text("DROP TABLE IF EXISTS users, organizations, alembic_version CASCADE")
+            text(
+                "DROP TABLE IF EXISTS users, organizations, verification_email_sends, "
+                "alembic_version CASCADE"
+            )
         )
     cfg = Config(str(BACKEND / "alembic.ini"))
     cfg.set_main_option("script_location", str(BACKEND / "alembic"))
@@ -58,7 +61,7 @@ def session_factory(migrated_engine):
 @pytest.fixture()
 def db_session(migrated_engine, session_factory):
     with migrated_engine.begin() as conn:
-        conn.execute(text("TRUNCATE users, organizations CASCADE"))
+        conn.execute(text("TRUNCATE users, organizations, verification_email_sends CASCADE"))
     session = session_factory()
     try:
         yield session

@@ -160,7 +160,7 @@ jobs:
             --min-instances 0 \
             --max-instances 5 \
             --add-cloudsql-instances "${CLOUDSQL_INSTANCE}" \
-            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest,ODPT_API_KEY=ODPT_API_KEY:latest" \
+            --set-secrets "DATABASE_URL=urbanoracle-db-url:latest,ESTAT_API_KEY=ESTAT_API_KEY:latest,ODPT_API_KEY=ODPT_API_KEY:latest,RESEND_API_KEY=urbanoracle-resend-api-key:latest" \
             --set-env-vars "ENVIRONMENT=production,STATIC_DIR=/app/static,GIP_PROJECT_ID=dxalabs-platform"
           # No custom delimiter needed any more: the freemail/allowlist values
           # were the only ones containing commas, and registration is now open

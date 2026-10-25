@@ -22,7 +22,13 @@ from db.models import Base  # noqa: E402
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # disable_existing_loggers=False: fileConfig's default silences every
+    # logger that already exists in the process. Harmless in the migration
+    # job (nothing else runs there), but the test suite applies this
+    # migration INSIDE the app's process (tests/conftest.py), where it muted
+    # the application loggers — including the audit-trail and the
+    # verification-mail errors the tests assert on.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

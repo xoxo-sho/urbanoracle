@@ -20,6 +20,7 @@ from middleware.security_headers import SecurityHeadersMiddleware
 from routers.auth import router as auth_router
 from routers.data import router as data_router
 from routers.health import router as health_router
+from routers.verification import router as verification_router
 
 # uvicorn configures only its own loggers, so application logger.info() calls
 # were being dropped and never reached Cloud Run — which silently removed the
@@ -56,6 +57,14 @@ app.include_router(protected)
 authenticated = APIRouter(prefix="/api/v1", dependencies=[Depends(get_current_user)])
 authenticated.include_router(auth_router)
 app.include_router(authenticated)
+
+# The verification mail is for a caller who is signed in but NOT yet verified
+# and therefore may not even have a row. It sits under /api/v1 on its own:
+# outside `authenticated` (get_current_user would provision a pending row and
+# refuse an unverified re-registration) and outside `protected`. Its only gate
+# is the decode-only require_token_claims (401 for anonymous/invalid, as
+# everywhere else); it never provisions.
+app.include_router(verification_router, prefix="/api/v1")
 
 # The built front-end registers a catch-all, so it must come after every API
 # route — matching is by registration order. With no build output present
