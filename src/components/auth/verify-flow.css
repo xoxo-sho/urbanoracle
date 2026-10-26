@@ -1,0 +1,458 @@
+/*
+ * The verification flow (Stage 2, 2026-10-25): /pending (WAITING, DETECTED)
+ * inside the split shell, and /auth/action (every state) on its own.
+ *
+ * Every rule is scoped under [data-verify-flow]: App Router keeps a
+ * component's global stylesheet after navigating away, so nothing here may
+ * reach another route. Theme tokens only (globals.css :root / .dark), so both
+ * themes hold and every text pair clears AA: --foreground, --muted-foreground
+ * (6.71:1 / 6.79:1), --up-strong as the "ok" colour (6.99:1 / 7.02:1),
+ * --down-strong as the "warn" colour (6.98:1 / 7.00:1). Radii stay at or
+ * under the H項 ceiling (near-square plates, no pills); no gradient, no blur.
+ * Touch targets are 44 px or more. prefers-reduced-motion stops every motion.
+ */
+
+[data-verify-flow] {
+  --vf-ok: var(--up-strong);
+  --vf-warn: var(--down-strong);
+  /* The dxa-ui mono token: Geist Mono, then the JA fallback faces — every stack must end in CJK coverage (check-font-cjk). */
+  --vf-mono: var(--dxa-font-mono);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  text-align: left;
+}
+
+/* The language toggle is a 44 px target on these two screens. */
+[data-verify-flow] [data-lang-toggle] button,
+[data-auth-shell]:has([data-verify-flow]) [data-lang-toggle] button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ─── Status pill ──────────────────────────────────────────────────────── */
+
+[data-verify-flow] .vf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin: 0;
+  padding: 5px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+[data-verify-flow] .vf-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--vf-ok);
+  animation: vf-pulse 1.6s ease-in-out infinite;
+}
+[data-verify-flow] .vf-pill--ok {
+  color: var(--vf-ok);
+  border-color: var(--vf-ok);
+}
+[data-verify-flow] .vf-pill--ok svg {
+  width: 14px;
+  height: 14px;
+}
+@keyframes vf-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
+}
+
+/* ─── The 104 px emblem: base circle r 44, 1 px; four 11 px ticks ──────── */
+
+[data-verify-flow] .vf-emblem {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--foreground);
+}
+[data-verify-flow] .vf-ring {
+  position: absolute;
+  inset: 0;
+  width: 104px;
+  height: 104px;
+  overflow: visible;
+}
+[data-verify-flow] .vf-ring-base { fill: none; stroke: var(--rule-strong); stroke-width: 1; }
+[data-verify-flow] .vf-ring-ticks { fill: none; stroke: var(--foreground); stroke-width: 1; }
+[data-verify-flow] .vf-ring-arc {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 58 219;
+  transform-origin: 52px 52px;
+  animation: vf-spin 1.8s linear infinite;
+}
+[data-verify-flow] .vf-ring-done {
+  fill: none;
+  stroke: var(--vf-ok);
+  stroke-width: 2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform: rotate(-90deg);
+  transform-origin: 52px 52px;
+  animation: vf-draw 0.7s ease-out forwards;
+}
+[data-verify-flow] .vf-ring-check {
+  fill: none;
+  stroke: var(--vf-ok);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: vf-draw 0.35s ease-out 0.7s forwards;
+}
+[data-verify-flow] .vf-emblem--warning .vf-ring-base { stroke: var(--vf-warn); stroke-dasharray: 6 6; }
+[data-verify-flow] .vf-emblem-icon {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+[data-verify-flow] .vf-emblem--warning .vf-emblem-icon { color: var(--vf-warn); }
+@keyframes vf-spin { to { transform: rotate(360deg); } }
+@keyframes vf-draw { to { stroke-dashoffset: 0; } }
+
+/* ─── Type ─────────────────────────────────────────────────────────────── */
+
+[data-verify-flow] .vf-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.35;
+  color: var(--foreground);
+  text-wrap: balance;
+  word-break: auto-phrase;
+}
+[data-verify-flow] .vf-lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+  text-wrap: balance;
+  word-break: auto-phrase;
+}
+[data-verify-flow] .vf-address {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--vf-mono);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  word-break: break-all;
+  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+}
+[data-verify-flow] .vf-text-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+[data-verify-flow] .vf-text-link:hover { text-decoration-thickness: 2px; }
+
+/* ─── Actions ──────────────────────────────────────────────────────────── */
+
+/* Primary (the webmail shortcut, Open now, Sign in to check, Send a new link,
+   Sign in, Try again): full width, 48 px, the product's 深紺 fill. Secondary
+   (Continue on this device): an outline. */
+[data-verify-flow] .vf-primary,
+[data-verify-flow] .vf-secondary,
+[data-verify-flow] .vf-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--up-text);
+  border-radius: 2px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 120ms ease, background-color 120ms ease;
+}
+[data-verify-flow] .vf-primary { background: var(--up-text); color: var(--background); }
+[data-verify-flow] .vf-primary:hover { opacity: 0.9; }
+[data-verify-flow] .vf-secondary,
+[data-verify-flow] .vf-outline {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--rule-strong);
+}
+[data-verify-flow] .vf-secondary:hover,
+[data-verify-flow] .vf-outline:hover:not(:disabled) { background: var(--accent); }
+[data-verify-flow] .vf-primary svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ─── The two steps ────────────────────────────────────────────────────── */
+
+[data-verify-flow] .vf-steps {
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+[data-verify-flow] .vf-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+[data-verify-flow] .vf-step-num {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--foreground);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Resend, countdown, notices ───────────────────────────────────────── */
+
+[data-verify-flow] .vf-resend { width: 100%; display: grid; gap: 8px; }
+[data-verify-flow] .vf-countdown {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+[data-verify-flow] .vf-mono { font-family: var(--vf-mono); font-variant-numeric: tabular-nums; }
+[data-verify-flow] .vf-notice { margin: 0; font-size: 12px; line-height: 1.6; }
+[data-verify-flow] .vf-notice--resent { color: var(--vf-ok); }
+[data-verify-flow] .vf-notice--dailyLimit { color: var(--vf-warn); }
+[data-verify-flow] .vf-notice--sendFailed { color: var(--vf-warn); }
+
+/* ─── The hints ────────────────────────────────────────────────────────── */
+
+[data-verify-flow] .vf-details {
+  width: 100%;
+  text-align: left;
+  border-top: 1px solid var(--rule);
+}
+[data-verify-flow] .vf-details summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+}
+[data-verify-flow] .vf-details ul {
+  margin: 0;
+  padding: 0 0 8px 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+  list-style: disc;
+}
+/* The sender address is something a reader copies (to allow mail from it):
+   it moves to the next line whole, and breaks inside only when it cannot fit
+   a line by itself. */
+[data-verify-flow] .vf-details code {
+  font-family: var(--vf-mono);
+  font-size: 11.5px;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+[data-verify-flow] .vf-logout {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ─── DETECTED / SAME: a 4 px bar filling over 2 s ─────────────────────── */
+
+[data-verify-flow] .vf-progress {
+  width: 100%;
+  height: 4px;
+  border-radius: 1px;
+  overflow: hidden;
+  background: var(--up-fill);
+}
+[data-verify-flow] .vf-progress-bar {
+  width: 0;
+  height: 100%;
+  background: var(--vf-ok);
+  animation: vf-fill 2s linear forwards;
+}
+@keyframes vf-fill { to { width: 100%; } }
+[data-verify-flow] .vf-progress-label { margin: -8px 0 0; font-size: 12px; color: var(--muted-foreground); }
+[data-verify-flow] .vf-note { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted-foreground); }
+/* Inline text links (the fallback link, the help mailto, the way back to the
+   landing page) keep their place in the line but offer a 44 px target: the
+   padding grows the hit area and the negative margin gives the height back. */
+[data-verify-flow] .vf-note .vf-text-link,
+[data-verify-flow] .vf-help a,
+[data-verify-flow] .vf-about a {
+  display: inline-block;
+  min-height: 0;
+  padding: 14px 4px;
+  margin: -14px -4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ─── OTHER: this device → the original screen, a dashed line between ─── */
+
+[data-verify-flow] .vf-diagram {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+}
+[data-verify-flow] .vf-device {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+[data-verify-flow] .vf-device svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+[data-verify-flow] .vf-diagram-line {
+  width: 100%;
+  height: 2px;
+  overflow: visible;
+}
+[data-verify-flow] .vf-diagram-line line {
+  stroke: var(--foreground);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  animation: vf-dash 0.8s linear infinite;
+}
+@keyframes vf-dash { to { stroke-dashoffset: -8; } }
+
+[data-verify-flow] .vf-help { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted-foreground); }
+[data-verify-flow] .vf-help a { color: var(--foreground); text-decoration: underline; text-underline-offset: 2px; }
+[data-verify-flow] .vf-about { margin: 0; padding-top: 20px; border-top: 1px solid var(--rule); font-size: 10px; color: var(--muted-foreground); }
+[data-verify-flow] .vf-about a { font-size: 10px; color: var(--muted-foreground); text-decoration: underline; text-underline-offset: 2px; }
+[data-verify-flow] .vf-about a:hover { color: var(--foreground); }
+
+/* ─── /auth/action: on its own, card-less on phones ────────────────────── */
+
+[data-verify-flow="action"] {
+  min-height: 100dvh;
+  gap: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+[data-verify-flow="action"] .vf-action-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 0 16px;
+}
+@media (min-width: 1024px) {
+  [data-verify-flow="action"] .vf-action-header { min-height: 88px; padding: 0 24px; }
+}
+[data-verify-flow="action"] .vf-wordmark {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--foreground);
+}
+[data-verify-flow="action"] .vf-action-card {
+  width: 100%;
+  max-width: 480px;
+  margin: 8px auto 48px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+@media (min-width: 480px) {
+  [data-verify-flow="action"] .vf-action-card {
+    padding: 40px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--card);
+  }
+}
+[data-verify-flow="action"] .vf-title,
+[data-verify-flow="action"] .vf-lead { text-align: center; }
+[data-verify-flow="action"] .vf-pill { align-self: center; }
+
+/* ─── Reduced motion: nothing moves ────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-verify-flow],
+  [data-verify-flow] * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+  }
+  [data-verify-flow] .vf-ring-done,
+  [data-verify-flow] .vf-ring-check { stroke-dashoffset: 0; }
+  [data-verify-flow] .vf-progress-bar { width: 100%; }
+}

@@ -51,6 +51,22 @@ def _verified_claims(token: str = Depends(_bearer_token)) -> dict:
     return payload
 
 
+def require_token_claims(claims: dict = Depends(_verified_claims)) -> dict:
+    """The claims of a valid token WITHOUT the activation gate and WITHOUT
+    provisioning — for the one route that serves unverified callers
+    (POST /api/v1/auth/verification-email, routers/verification.py).
+
+    401s exactly as get_current_user's: anonymous -> "Not authenticated",
+    invalid -> "Invalid or expired token". The session dependency is never
+    declared here, so the database is not touched and no users/organizations
+    row is created. Every other route keeps get_current_user / require_active:
+    never use this where a verified address or an account is the point.
+    """
+    if not claims.get("sub"):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return claims
+
+
 def get_current_user(
     # Declared BEFORE the session on purpose. FastAPI resolves dependencies in
     # signature order and stops at the first that raises, so an anonymous or

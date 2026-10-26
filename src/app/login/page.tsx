@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
@@ -15,6 +14,7 @@ import { authErrorCode, type AuthErrorCode } from "@/lib/auth-errors";
 import { AUTH_COPY, AUTH_META, PASSWORD_LABELS, authErrorText } from "@/i18n/auth";
 import { LanguageProvider, useLang } from "@/i18n/lang-context";
 import { BUILD_SHA, firebaseAuth } from "@/lib/firebase";
+import { clearAutoSendFlag, setAutoSendFlag } from "@/lib/verify-flow";
 import { checkPassword, isPasswordAcceptable } from "@/lib/password";
 
 /**
@@ -26,7 +26,14 @@ import { checkPassword, isPasswordAcceptable } from "@/lib/password";
  * The form column follows the family majority (RECON §3): wordmark and
  * subtitle, the email form, then the divider and Google, then the in-place
  * mode toggle; the forgot link in sign-in mode only, the shared-account note
- * in sign-up mode only. The Firebase calls are unchanged.
+ * in sign-up mode only.
+ *
+ * Stage 2 (2026-10-25): the client no longer asks Firebase to send the
+ * verification mail. Sign-up only creates the account; the one-shot flag
+ * (lib/verify-flow.ts) is set immediately before creation — and removed if
+ * creation throws — so /pending asks UrbanOracle's backend for the mail
+ * exactly once. An unverified sign-in takes the same route to /pending with
+ * the flag, instead of /app and the 403 bounce.
  */
 
 type Mode = "signin" | "signup";
@@ -78,12 +85,17 @@ function LoginScreen() {
           setError("weak-password");
           return;
         }
-        const credential = await createUserWithEmailAndPassword(
-          firebaseAuth(),
-          email,
-          password
-        );
-        await sendEmailVerification(credential.user);
+        // The flag goes down before the account exists, so a /pending that
+        // mounts the instant the account is created finds it; a creation that
+        // throws takes it back, or the next visit to /pending would send a
+        // mail for an account that was never made.
+        setAutoSendFlag();
+        try {
+          await createUserWithEmailAndPassword(firebaseAuth(), email, password);
+        } catch (err) {
+          clearAutoSendFlag();
+          throw err;
+        }
         // Straight to the verification screen rather than via /app.
         //
         // Routing to /app worked only by accident: the dashboard would fetch,
@@ -95,7 +107,13 @@ function LoginScreen() {
         router.push("/pending");
         return;
       }
-      await signInWithEmailAndPassword(firebaseAuth(), email, password);
+      const credential = await signInWithEmailAndPassword(firebaseAuth(), email, password);
+      if (!credential.user.emailVerified) {
+        // Routed to the verify screen: it sends the mail once (F1).
+        setAutoSendFlag();
+        router.push("/pending");
+        return;
+      }
       router.push("/app");
     });
   };

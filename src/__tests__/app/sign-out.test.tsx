@@ -21,14 +21,14 @@ import type { User } from "firebase/auth";
  *   (c)            → router.replace("/login"); push is never called
  *   (e) anonymous  → nothing renders: /app shows sample data to anyone, so
  *                    the control must not imply a session that does not exist
- *   (f) /pending   → 「別のアカウントでサインインする」: signOut, then
- *                    replace("/login") — mirroring urbanagents' verify screen
+ *   (f) /pending   → 「サインアウト」 (Stage 2, A1: the product's own term): signOut,
+ *                    then replace("/login")
  */
 
 const h = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), prefetch: vi.fn(), back: vi.fn() },
   listeners: [] as Array<(user: unknown) => void>,
-  FAKE_AUTH: { name: "the-app-auth-instance", currentUser: null as unknown },
+  FAKE_AUTH: { name: "the-app-auth-instance", currentUser: null as unknown, authStateReady: async () => undefined },
   signOut: vi.fn(async () => undefined),
 }));
 
@@ -62,6 +62,8 @@ vi.mock("firebase/auth", () => ({
     };
   },
   signOut: h.signOut,
+  applyActionCode: vi.fn(async () => undefined),
+  // Kept only to prove it is never called: Stage 2 moved the mail to the backend.
   sendEmailVerification: vi.fn(async () => undefined),
 }));
 
@@ -78,7 +80,7 @@ const SIGNED_IN = {
 const UNVERIFIED = { ...SIGNED_IN, emailVerified: false } as unknown as User;
 
 const SIGN_OUT = { name: "サインアウト" };
-const SWITCH_ACCOUNT = { name: "別のアカウントでサインインする" };
+const SIGN_OUT_PENDING = { name: "サインアウト" };
 
 /** What Firebase would do: tell every subscriber the session changed. */
 function fireAuthState(user: User | null) {
@@ -159,12 +161,13 @@ describe("/app — the signed-in header", () => {
   });
 });
 
-describe("/pending — the escape hatch", () => {
-  it("(f) 「別のアカウントでサインインする」 signs out with the app's auth instance, then replace('/login')", async () => {
+describe("/pending — the way out", () => {
+  // Replaces "(f) 「別のアカウントでサインインする」 signs out …" — the label is Parti's verify.logout.
+  it("(f) 「サインアウト」 signs out with the app's auth instance, then replace('/login')", async () => {
     mount(<VerifyEmailPage />);
     fireAuthState(UNVERIFIED);
 
-    fireEvent.click(await screen.findByRole("button", SWITCH_ACCOUNT));
+    fireEvent.click(await screen.findByRole("button", SIGN_OUT_PENDING));
 
     await waitFor(() => expect(h.router.replace).toHaveBeenCalledWith("/login"));
     expect(h.signOut).toHaveBeenCalledTimes(1);
@@ -176,9 +179,10 @@ describe("/pending — the escape hatch", () => {
     );
   });
 
-  it("(e) the hatch is not offered to an anonymous visitor", () => {
+  it("(e) the way out is not offered to an anonymous visitor — a way to sign in is", () => {
     mount(<VerifyEmailPage />);
     fireAuthState(null);
-    expect(screen.queryByRole("button", SWITCH_ACCOUNT)).toBeNull();
+    expect(screen.queryByRole("button", SIGN_OUT_PENDING)).toBeNull();
+    expect(screen.getByRole("link", { name: "サインインに戻る" })).toHaveAttribute("href", "/login");
   });
 });

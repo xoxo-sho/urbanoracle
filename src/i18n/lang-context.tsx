@@ -45,6 +45,11 @@ import { LP_COPY, type Copy } from "@/i18n/lp";
  *
  * <html lang>, <title> and the meta description follow the language; on
  * unmount <html lang> returns to Japanese, because every other route is.
+ *
+ * OVERRIDE (Stage 2). /auth/action passes the link's `lang` as `overrideLang`:
+ * it applies for that page load exactly as ?lang= would, but is NEVER written
+ * to storage — the link was written for one reader, and following it must not
+ * change the choice the visitor made. A press on the toggle still stores.
  */
 
 type LangStore = {
@@ -74,7 +79,7 @@ function syncUrlLang(lang: Lang): void {
   }
 }
 
-function createLangStore(): LangStore {
+function createLangStore(overrideLang: Lang | null): LangStore {
   let lang: Lang = DEFAULT_LANG;
   let ready = false;
   const listeners = new Set<() => void>();
@@ -90,10 +95,14 @@ function createLangStore(): LangStore {
       };
     },
     resolve() {
-      const search = readSearch();
-      lang = resolveLang(search, readStoredLang());
-      const forced = new URLSearchParams(search).get(URL_PARAM);
-      if (isLang(forced)) writeStoredLang(forced);
+      if (overrideLang) {
+        lang = overrideLang;
+      } else {
+        const search = readSearch();
+        lang = resolveLang(search, readStoredLang());
+        const forced = new URLSearchParams(search).get(URL_PARAM);
+        if (isLang(forced)) writeStoredLang(forced);
+      }
       ready = true;
       emit();
     },
@@ -152,9 +161,18 @@ const LangContext = createContext<LangContextValue>({
 /**
  * `meta` is the page's title and description per language — the landing
  * page's by default; the auth screens pass theirs (src/i18n/auth.ts).
+ * `overrideLang` is the link's language on /auth/action: applied, never stored.
  */
-export function LanguageProvider({ children, meta = LP_META }: { children: ReactNode; meta?: PageMeta }) {
-  const [store] = useState(createLangStore);
+export function LanguageProvider({
+  children,
+  meta = LP_META,
+  overrideLang = null,
+}: {
+  children: ReactNode;
+  meta?: PageMeta;
+  overrideLang?: Lang | null;
+}) {
+  const [store] = useState(() => createLangStore(overrideLang));
   const lang = useSyncExternalStore(store.subscribe, store.get, serverLang);
   const ready = useSyncExternalStore(store.subscribe, store.isReady, serverReady);
 

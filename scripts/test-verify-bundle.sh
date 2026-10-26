@@ -36,7 +36,7 @@ sedi() { if sed --version >/dev/null 2>&1; then sed -i "$@"; else sed -i '' "$@"
 build_fixture() {
   local dir="$1"
   rm -rf "$dir"
-  mkdir -p "$dir/_next/static/chunks" "$dir/app" "$dir/login" "$dir/pending"
+  mkdir -p "$dir/_next/static/chunks" "$dir/app" "$dir/login" "$dir/pending" "$dir/auth"
 
   # Config chunk, shaped like a real inlined build.
   cat > "$dir/_next/static/chunks/config.js" <<EOF
@@ -67,7 +67,12 @@ EOF
 EOF
 
   cat > "$dir/pending.html" <<'EOF'
-<!doctype html><html lang="ja"><body><h1>アクセスを審査中です</h1></body></html>
+<!doctype html><html lang="ja"><body><h1>メールを確認してください</h1></body></html>
+EOF
+
+  # The link in the verification mail lands here (Stage 2).
+  cat > "$dir/auth/action.html" <<'EOF'
+<!doctype html><html lang="ja"><body><h1>確認しています…</h1></body></html>
 EOF
 
   cat > "$dir/404.html" <<'EOF'
@@ -209,6 +214,10 @@ expect_fail "/login missing — the sign-in route is unreachable" "$WORK/f21"
 build_fixture "$WORK/f22"
 rm -f "$WORK/f22/pending.html"
 expect_fail "/pending missing — a pending user has nowhere to land" "$WORK/f22"
+
+build_fixture "$WORK/f29"
+rm -f "$WORK/f29/auth/action.html"
+expect_fail "/auth/action missing — the link in the verification mail has nowhere to land" "$WORK/f29"
 
 # --- crawlability ---------------------------------------------------------
 build_fixture "$WORK/f23"

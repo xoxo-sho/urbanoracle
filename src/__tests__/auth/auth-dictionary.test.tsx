@@ -29,8 +29,11 @@ vi.mock("next/font/local", () => ({
  *   - the Japanese title and description equal layout.tsx's metadata;
  *   - every Japanese literal the screens and auth-errors.ts carried
  *     (the RECON's 56) is in the dictionary — except the 8 the split rebuild
- *     removed on purpose (REMOVED_IN_SPLIT), which are gone from the
- *     dictionary and the sources alike — and none is left in those files;
+ *     removed on purpose (REMOVED_IN_SPLIT) and the 5 the Stage 2 verify
+ *     rebuild removed (REMOVED_IN_REBUILD: the manual check button and its
+ *     messages, the old sent/spam lines, the switch-account hatch), all gone
+ *     from the dictionary and the sources alike — and none is left in those
+ *     files;
  *   - the panel (L6, static half): no numeral in its strings or its render,
  *     in either language, no 再現 / "recreat", no svg text.
  */
@@ -133,6 +136,21 @@ const REMOVED_IN_SPLIT = [
   "計器が開きます。",
   "確認できたメールアドレスだけを受け入れています。審査はありません—— リンクを開いた時点で、すべての機能がそのまま使えます。",
 ];
+/**
+ * Removed by the Stage 2 verify rebuild (D2: detection is automatic; the copy
+ * is Parti's verify.* / action.*), each replaced by a dictionary entry:
+ *   - 「認証を確認」 and its two messages (the manual check button);
+ *   - the old "sent" line and the old spam line (now the lead and hintSpam);
+ *   - 「別のアカウントでサインインする」 (now verifyLogout / verifyChangeAddress).
+ */
+const REMOVED_IN_REBUILD = [
+  "確認メールをお送りしました。メール内のリンクを開くと認証が完了します。",
+  "認証を確認",
+  "まだ認証を確認できません。メール内のリンクを開いてから、もう一度お試しください。",
+  "迷惑メールフォルダもご確認ください。送信元は noreply@send.dxalabs.com です。",
+  "別のアカウントでサインインする",
+];
+const REMOVED = [...REMOVED_IN_SPLIT, ...REMOVED_IN_REBUILD];
 /** Whole labels the split rebuild retired that are not RECON literals on their own. */
 const RETIRED_LABELS = ["Google で登録", "ACCESS", "UrbanOracle — DXA Labs"];
 
@@ -149,8 +167,10 @@ const PANEL_KEYS: AuthKey[] = [
 const SCREEN_FILES = [
   "src/app/login/page.tsx",
   "src/app/pending/page.tsx",
+  "src/app/auth/action/page.tsx",
   "src/app/forgot-password/page.tsx",
   "src/lib/auth-errors.ts",
+  "src/lib/verify-flow.ts",
   "src/components/auth/AuthShell.tsx",
   "src/components/auth/AuthPanel.tsx",
 ];
@@ -205,22 +225,62 @@ describe("auth dictionary", () => {
     expect(ja.metaDescription).toBe(layoutMetadata.description);
   });
 
-  it("covers every Japanese literal the RECON counted (56), less the 8 the split removed", () => {
+  it("covers every Japanese literal the RECON counted (56), less the 8 the split and the 5 the rebuild removed", () => {
     expect(RECON_LITERALS).toHaveLength(56);
-    expect(REMOVED_IN_SPLIT.every((r) => RECON_LITERALS.includes(r))).toBe(true);
+    expect(REMOVED.every((r) => RECON_LITERALS.includes(r))).toBe(true);
     const values = Object.values(ja);
-    const kept = RECON_LITERALS.filter((literal) => !REMOVED_IN_SPLIT.includes(literal));
-    expect(kept).toHaveLength(48);
+    const kept = RECON_LITERALS.filter((literal) => !REMOVED.includes(literal));
+    expect(kept).toHaveLength(43);
     const missing = kept.filter((literal) => !values.some((v) => v.includes(literal)));
     expect(missing).toEqual([]);
   });
 
   it("the removed literals and retired labels are gone from the dictionary and the sources", () => {
-    const gone = [...REMOVED_IN_SPLIT, ...RETIRED_LABELS];
+    const gone = [...REMOVED, ...RETIRED_LABELS];
     const values = [...Object.values(ja), ...Object.values(en)];
     expect(gone.filter((g) => values.some((v) => v.includes(g)))).toEqual([]);
     const sources = SCREEN_FILES.map((file) => stripComments(readFileSync(path.join(process.cwd(), file), "utf8")));
     expect(gone.filter((g) => sources.some((s) => s.includes(g)))).toEqual([]);
+  });
+
+  it("the verify screens take their copy from the dictionary: Parti's verify.* and action.* keys, in both languages", () => {
+    const required: AuthKey[] = [
+      "verifyTitle", "verifyPill", "verifyHeading", "verifyLead", "verifyYourAddress", "verifyChangeAddress",
+      "verifyProviderGmail", "verifyProviderOutlook", "verifyProviderYahoo", "verifyProviderIcloud",
+      "verifyStep1", "verifyStep2", "verifyResend", "verifyCountdown", "verifyResent", "verifyDailyLimit",
+      "verifySendFailed", "verifyDetails", "verifyHintSpam", "verifyHintCarrier", "verifyHintCompany",
+      "verifyLogout", "verifyDetectedPill", "verifyDetectedHeading", "verifyDetectedLead", "verifyPreparing",
+      "verifyFallback", "verifyFallbackLink", "verifyFinishFailed", "verifySignOutFailed",
+      "actionTitle", "actionVerifying", "actionSameHeading", "actionSameLead", "actionOpenNow",
+      "actionOtherHeading", "actionOtherLead", "actionCaptionThisDevice", "actionCaptionOriginal",
+      "actionDiagramLabel", "actionContinueHere", "actionContinueHint", "actionExpiredHeading",
+      "actionExpiredLead", "actionExpiredButton", "actionExpiredNote", "actionExpiredSendNew",
+      "actionInvalidHeading", "actionInvalidLead", "actionInvalidButton", "actionErrorHeading",
+      "actionErrorLead", "actionErrorButton", "actionHelp",
+    ];
+    const dict = ja as Record<string, string>;
+    const dictEn = en as Record<string, string>;
+    expect(required.filter((k) => !(k in dict) || !(k in dictEn))).toEqual([]);
+    // The landing word (F6 substitution): ダッシュボード / the dashboard, never Parti's projects.
+    expect(dict.verifyPreparing).toBe("ダッシュボードを開いています");
+    expect(dictEn.verifyFallbackLink).toBe("Open the dashboard");
+    expect(dict.actionSameLead).toBe("まもなくダッシュボードへ移動します。");
+    expect(dictEn.actionSameLead).toBe("Taking you to the dashboard...");
+    expect(Object.values(dict).some((v) => v.includes("プロジェクト"))).toBe(false);
+    expect(Object.values(dictEn).some((v) => /projects|Parti/.test(v))).toBe(false);
+    // Removed with the manual button (D2) and the old banner copy.
+    for (const key of ["verifyCheck", "verifyChecking", "verifyStill", "verifySent", "verifySpam", "verifySwitch", "verifyNoMail", "verifyEyebrow"]) {
+      expect(key in dict, `${key} retired`).toBe(false);
+    }
+    // A1: the product's own terms (/login says サインイン, /app says サインアウト;
+    // "Sign in"), never Parti's ログイン / ログアウト / Log in / Log out.
+    const newFlow = required;
+    expect(newFlow.filter((k) => /ログイン|ログアウト/.test(dict[k])).map((k) => `${k}: ${dict[k]}`)).toEqual([]);
+    expect(newFlow.filter((k) => /\blog\s?(in|out)\b/i.test(dictEn[k])).map((k) => `${k}: ${dictEn[k]}`)).toEqual([]);
+    expect(dict.verifyLogout).toBe("サインアウト");
+    expect(dictEn.verifyLogout).toBe("Sign out");
+    expect(dict.actionInvalidButton).toBe("サインイン");
+    expect(dictEn.actionInvalidButton).toBe("Sign in");
   });
 
   it("leaves no Japanese literal in the screens, the shell, the panel or auth-errors.ts (comments aside)", () => {

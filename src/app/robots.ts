@@ -17,8 +17,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Authenticated surfaces: nothing for a crawler to index.
-      disallow: ["/api/", "/app", "/pending"],
+      // Authenticated surfaces, and the single-use link target: nothing for a crawler to index.
+      disallow: ["/api/", "/app", "/pending", "/auth/action"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

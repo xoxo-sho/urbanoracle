@@ -99,6 +99,10 @@ async function clipOf(target: Locator) {
 /** Measure one element's own text (or its placeholder) on composited pixels. */
 async function measure(page: Page, target: Locator, hide: "text" | "placeholder"): Promise<ReturnType<typeof glyphContrast>> {
   await target.evaluate((el, mark) => el.setAttribute(mark, ""), MARK);
+  // Stage 2: /pending is taller than the 900 px viewport, and the clip is in
+  // viewport coordinates — an element below the fold must be scrolled into
+  // view first or the clip falls outside the captured image.
+  await target.scrollIntoViewIfNeeded();
   const clip = await clipOf(target);
   const withText = await decode(page, await page.screenshot({ clip }));
   const css =
