@@ -7,11 +7,12 @@ const js = src
   .replace(/^export /gm, "")
   .replace(/\bas const\b/g, "");
 
+// Only the sets the server still serves. sampleDemographics and
+// sampleTransportStations left with real-data plan PR 1: the two live
+// endpoints answer 503 on failure instead of falling back to them.
 const wanted = [
   "sampleLandPrices",
-  "sampleDemographics",
   "sampleDisasterRisks",
-  "sampleTransportStations",
 ];
 const body = `${js}\nreturn { ${wanted.join(", ")} };`;
 const out = new Function(body)();

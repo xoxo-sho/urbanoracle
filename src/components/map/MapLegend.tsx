@@ -1,16 +1,19 @@
 "use client";
 
 import type { DataLayer } from "@/types";
-import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
+import type { DataStatus } from "@/lib/use-gated-data";
+import { CHOROPLETH_NOTE, SOURCES } from "@/lib/sources";
+import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 
 interface MapLegendProps {
   layers: DataLayer[];
   /**
-   * Whether the station bubbles are sized from ODPT ridership. Defaults to
-   * false so an unwired caller labels the bubbles as sample rather than
-   * silently presenting them as measured.
+   * State of the /transport answer that sizes the station bubbles. Required:
+   * an unwired caller is a type error, not a silent claim about the data.
    */
-  transportIsLive?: boolean;
+  transportStatus: DataStatus;
+  /** The ridership field was not delivered (status partial): no bubble can be sized. */
+  ridershipUnavailable?: boolean;
 }
 
 // The ward fill under these layers is coloured from WARD_META in
@@ -55,7 +58,40 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
   },
 };
 
-export default function MapLegend({ layers, transportIsLive = false }: MapLegendProps) {
+/**
+ * Under the 乗降客数 ramp: the ODPT citation when the ridership arrived, else
+ * the state the bubbles are in. A partial answer (ODPT down) is 取得失敗, not
+ * sample — the stations are real, their ridership was not fetched.
+ */
+function TransportNote({
+  status,
+  ridershipUnavailable,
+}: {
+  status: DataStatus;
+  ridershipUnavailable: boolean;
+}) {
+  if (status === "loading") {
+    return (
+      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+        乗降客数: {LOADING_TEXT}
+      </p>
+    );
+  }
+  if (status !== "ok" || ridershipUnavailable) {
+    return (
+      <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+        乗降客数: {FAILED_TEXT}
+      </p>
+    );
+  }
+  return (
+    <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+      出典: {SOURCES.odpt.label}
+    </p>
+  );
+}
+
+export default function MapLegend({ layers, transportStatus, ridershipUnavailable = false }: MapLegendProps) {
   const activeLayers = layers.filter((l) => l.enabled && LEGEND_CONFIG[l.id]);
   if (activeLayers.length === 0) return null;
 
@@ -86,16 +122,9 @@ export default function MapLegend({ layers, transportIsLive = false }: MapLegend
                 塗り分け: {CHOROPLETH_NOTE}
               </p>
             )}
-            {layer.id === "transportation" &&
-              (transportIsLive ? (
-                <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
-                  出典: {SOURCES.odpt.label}
-                </p>
-              ) : (
-                <p className="sample-legend mt-1 text-[8px] leading-snug" data-provenance="sample">
-                  {SAMPLE_NOTICE}
-                </p>
-              ))}
+            {layer.id === "transportation" && (
+              <TransportNote status={transportStatus} ridershipUnavailable={ridershipUnavailable} />
+            )}
           </div>
         );
       })}

@@ -1,17 +1,23 @@
 "use client";
 
 import type { DemographicsData, LandPriceSummary } from "@/types";
+import type { DataStatus } from "@/lib/use-gated-data";
 import { NO_DATA, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
 import SampleNote from "@/components/dashboard/SampleNote";
+import { FAILED_TEXT, StateNotice, isPending } from "@/components/dashboard/DataState";
 
 interface WardTableProps {
   demographics: DemographicsData[];
   landPrices: LandPriceSummary[];
   onSelectWard: (ward: string) => void;
-  /** Whether the demographics columns came from e-Stat; the 地価 column never does. */
-  isLive?: boolean;
+  /** State of the /demographics answer that fills the census columns; the 地価 column is still sample. */
+  status: DataStatus;
+  /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
+  unavailable?: readonly string[];
 }
+
+const GROWTH_FIELD = "growthRate";
 
 // Intensity within one semantic axis: stronger value -> stronger step of the
 // same hue. Two hues would imply a distinction the data does not make.
@@ -30,7 +36,16 @@ function miniBar(value: number | null, max: number, color: string): string {
   return `linear-gradient(90deg, ${color} ${pct}%, transparent ${pct}%)`;
 }
 
-export default function WardTable({ demographics, landPrices, onSelectWard, isLive = false }: WardTableProps) {
+export default function WardTable({
+  demographics,
+  landPrices,
+  onSelectWard,
+  status,
+  unavailable = [],
+}: WardTableProps) {
+  // The growth table did not answer: the 増減 column is 取得失敗 in every row,
+  // not the データなし a suppressed cell gets.
+  const growthFailed = unavailable.includes(GROWTH_FIELD);
   const sorted = [...demographics].sort((a, b) => byValueDesc(a.population, b.population)).slice(0, 12);
   const populations = sorted.map((d) => d.population).filter(hasValue);
   const maxPop = populations.length ? Math.max(...populations) : 0;
@@ -41,63 +56,75 @@ export default function WardTable({ demographics, landPrices, onSelectWard, isLi
       <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         区別データテーブル
       </h4>
-      <table className="w-full text-[11px]">
-        <thead>
-          <tr className="text-muted-foreground border-b border-border/50">
-            <th className="text-left py-1.5 pr-2 font-medium">区</th>
-            <th className="text-right py-1.5 px-2 font-medium">人口</th>
-            <th className="text-right py-1.5 px-2 font-medium">密度</th>
-            <th className="text-right py-1.5 px-2 font-medium">増減</th>
-            <th className="text-right py-1.5 px-2 font-medium">高齢率</th>
-            <th className="text-right py-1.5 px-2 font-medium">地価</th>
-            <th className="py-1.5 pl-2 font-medium w-20">規模</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((d, i) => {
-            const price = prices.get(d.region);
-            return (
-              <tr
-                key={d.region}
-                className="border-b border-border/30 transition-colors hover:bg-accent/30 cursor-pointer animate-fade-in-up"
-                style={{ animationDelay: `${i * 0.03}s`, opacity: 0 }}
-                onClick={() => onSelectWard(d.region)}
-              >
-                <td className="py-1.5 pr-2 font-medium text-primary hover:underline">{d.region.replace("区", "")}</td>
-                <td className="text-right py-1.5 px-2 tabular-nums">{formatMan(d.population)}</td>
-                <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: heatColor(d.density, 5000, 24000, "up") }}>
-                    {formatK(d.density)}
-                  </span>
-                </td>
-                <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: (d.growthRate ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
-                    {hasValue(d.growthRate) ? `${d.growthRate > 0 ? "+" : ""}${d.growthRate.toFixed(1)}%` : NO_DATA}
-                  </span>
-                </td>
-                <td className="text-right py-1.5 px-2 tabular-nums">
-                  <span style={{ color: heatColor(d.ageGroups.elderly, 15, 30, "down") }}>
-                    {formatPct(d.ageGroups.elderly)}
-                  </span>
-                </td>
-                <td className="text-right py-1.5 px-2 tabular-nums">
-                  {price ? `${(price.avgPrice / 10000).toFixed(0)}万` : NO_DATA}
-                </td>
-                <td className="py-1.5 pl-2">
-                  <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "var(--up-ui)") }} />
-                </td>
+      {isPending(status) ? (
+        // The rows are the census; without it there is no table to hang the
+        // 地価 column on.
+        <StateNotice status={status} source={SOURCES.estat.label} />
+      ) : (
+        <>
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="text-muted-foreground border-b border-border/50">
+                <th className="text-left py-1.5 pr-2 font-medium">区</th>
+                <th className="text-right py-1.5 px-2 font-medium">人口</th>
+                <th className="text-right py-1.5 px-2 font-medium">密度</th>
+                <th className="text-right py-1.5 px-2 font-medium">増減</th>
+                <th className="text-right py-1.5 px-2 font-medium">高齢率</th>
+                <th className="text-right py-1.5 px-2 font-medium">地価</th>
+                <th className="py-1.5 pl-2 font-medium w-20">規模</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <SampleNote
-        note={
-          isLive
-            ? `地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`
-            : "全列"
-        }
-      />
+            </thead>
+            <tbody>
+              {sorted.map((d, i) => {
+                const price = prices.get(d.region);
+                return (
+                  <tr
+                    key={d.region}
+                    className="border-b border-border/30 transition-colors hover:bg-accent/30 cursor-pointer animate-fade-in-up"
+                    style={{ animationDelay: `${i * 0.03}s`, opacity: 0 }}
+                    onClick={() => onSelectWard(d.region)}
+                  >
+                    <td className="py-1.5 pr-2 font-medium text-primary hover:underline">{d.region.replace("区", "")}</td>
+                    <td className="text-right py-1.5 px-2 tabular-nums">{formatMan(d.population)}</td>
+                    <td className="text-right py-1.5 px-2 tabular-nums">
+                      <span style={{ color: heatColor(d.density, 5000, 24000, "up") }}>
+                        {formatK(d.density)}
+                      </span>
+                    </td>
+                    <td className="text-right py-1.5 px-2 tabular-nums">
+                      {growthFailed ? (
+                        <span style={{ color: "var(--down-text)" }}>{FAILED_TEXT}</span>
+                      ) : (
+                        <span style={{ color: (d.growthRate ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
+                          {hasValue(d.growthRate) ? `${d.growthRate > 0 ? "+" : ""}${d.growthRate.toFixed(1)}%` : NO_DATA}
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-right py-1.5 px-2 tabular-nums">
+                      <span style={{ color: heatColor(d.ageGroups.elderly, 15, 30, "down") }}>
+                        {formatPct(d.ageGroups.elderly)}
+                      </span>
+                    </td>
+                    <td className="text-right py-1.5 px-2 tabular-nums">
+                      {price ? `${(price.avgPrice / 10000).toFixed(0)}万` : NO_DATA}
+                    </td>
+                    <td className="py-1.5 pl-2">
+                      <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "var(--up-ui)") }} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <SampleNote
+            note={
+              growthFailed
+                ? `地価列。人口・密度・高齢率は ${SOURCES.estat.label}（2020年国勢調査）`
+                : `地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`
+            }
+          />
+        </>
+      )}
     </div>
   );
 }

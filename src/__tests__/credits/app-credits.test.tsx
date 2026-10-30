@@ -23,17 +23,30 @@ vi.mock("next/dynamic", () => ({
 vi.mock("@/components/dashboard/ThemeToggle", () => ({ default: () => null }));
 vi.mock("@/components/auth/VerificationBanner", () => ({ default: () => null }));
 vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
-vi.mock("@/lib/use-gated-data", () => ({
-  useGatedData: (endpoint: string, fallback: unknown) => {
-    gate.requested.push(endpoint);
-    return {
-      data: fallback,
-      isLoading: false,
-      isLive: endpoint !== "/api/v1/disaster-risks",
-      fetchedAt: endpoint === "/api/v1/transport" ? "2026-10-17T05:30:00+00:00" : null,
-    };
-  },
-}));
+// Every endpoint answered: the two live ones with real-shaped fixtures,
+// /disaster-risks with nothing (the page keeps its sample set for that one
+// until real-data plan PR 7).
+vi.mock("@/lib/use-gated-data", async () => {
+  const { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE } = await import("@/__tests__/fixtures/live-data");
+  return {
+    useGatedData: (endpoint: string) => {
+      gate.requested.push(endpoint);
+      const live = endpoint !== "/api/v1/disaster-risks";
+      return {
+        status: "ok",
+        data:
+          endpoint === "/api/v1/demographics"
+            ? DEMOGRAPHICS_FIXTURE
+            : endpoint === "/api/v1/transport"
+              ? STATIONS_FIXTURE
+              : null,
+        unavailable: [],
+        isLive: live,
+        fetchedAt: endpoint === "/api/v1/transport" ? "2026-10-17T05:30:00+00:00" : null,
+      };
+    },
+  };
+});
 
 import Home from "@/app/app/page";
 

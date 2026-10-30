@@ -19,11 +19,15 @@ const GSI_TILE_LIST = "https://maps.gsi.go.jp/development/ichiran.html";
 const PROCESSED = "地理院タイル（淡色地図）を加工して作成";
 const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 
+// The two live endpoints answer with real-shaped fixtures (the sample sets
+// they used to fall back to left in real-data plan PR 1); /disaster-risks
+// still serves the curated sample set from backend/data/sample_fallback.json.
 const sample = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "sample_fallback.json"), "utf8"));
+const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
 const API: Record<string, unknown> = {
-  "/api/v1/demographics": { data: sample.sampleDemographics, isLive: true },
-  "/api/v1/transport": { data: sample.sampleTransportStations, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
-  "/api/v1/disaster-risks": { data: sample.sampleDisasterRisks, isLive: false },
+  "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true },
+  "/api/v1/transport": { status: "ok", data: live.stations, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
+  "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },
 };
 

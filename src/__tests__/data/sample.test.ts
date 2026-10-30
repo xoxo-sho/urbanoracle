@@ -1,36 +1,19 @@
 import { describe, it, expect } from "vitest";
 import {
-  sampleDemographics,
   sampleLandPrices,
   sampleLandPriceSummary,
   sampleDisasterRisks,
-  sampleTransportStations,
   sampleWardProfiles,
   sampleZoning,
 } from "@/data/sample";
 
+/**
+ * The sets that remain are checked here. sampleDemographics and
+ * sampleTransportStations, and their three integrity tests, left with
+ * real-data plan PR 1: the two live endpoints no longer fall back to them,
+ * so there is no bundled copy to keep complete.
+ */
 describe("Sample data integrity", () => {
-  it("has demographics for all 23 Tokyo wards", () => {
-    expect(sampleDemographics).toHaveLength(23);
-    for (const d of sampleDemographics) {
-      expect(d.region).toMatch(/区$/);
-      // The bundled fallback must be complete: nulls are for live upstream
-      // data with suppressed cells, never for the sample set.
-      expect(d.population).not.toBeNull();
-      expect(d.population).toBeGreaterThan(0);
-      const { young, working, elderly } = d.ageGroups;
-      expect(young).not.toBeNull();
-      expect(working).not.toBeNull();
-      expect(elderly).not.toBeNull();
-      expect(young! + working! + elderly!).toBe(100);
-    }
-  });
-
-  it("has unique ward names in demographics", () => {
-    const names = sampleDemographics.map((d) => d.region);
-    expect(new Set(names).size).toBe(names.length);
-  });
-
   it("has valid land price points", () => {
     expect(sampleLandPrices.length).toBeGreaterThan(0);
     for (const p of sampleLandPrices) {
@@ -55,14 +38,6 @@ describe("Sample data integrity", () => {
       expect(r.level).toBeGreaterThanOrEqual(1);
       expect(r.level).toBeLessThanOrEqual(5);
       expect(["flood", "earthquake", "landslide", "tsunami"]).toContain(r.type);
-    }
-  });
-
-  it("has transport stations with ward assignments", () => {
-    for (const s of sampleTransportStations) {
-      expect(s.ward).toBeDefined();
-      expect(s.ward).toMatch(/区$/);
-      expect(s.lines.length).toBeGreaterThan(0);
     }
   });
 
