@@ -5,7 +5,7 @@ import type { DataStatus } from "@/lib/use-gated-data";
 import { NO_DATA, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
 import SampleNote from "@/components/dashboard/SampleNote";
-import { StateNotice, isPending } from "@/components/dashboard/DataState";
+import { FAILED_TEXT, StateNotice, isPending } from "@/components/dashboard/DataState";
 
 interface WardTableProps {
   demographics: DemographicsData[];
@@ -13,7 +13,11 @@ interface WardTableProps {
   onSelectWard: (ward: string) => void;
   /** State of the /demographics answer that fills the census columns; the 地価 column is still sample. */
   status: DataStatus;
+  /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
+  unavailable?: readonly string[];
 }
+
+const GROWTH_FIELD = "growthRate";
 
 // Intensity within one semantic axis: stronger value -> stronger step of the
 // same hue. Two hues would imply a distinction the data does not make.
@@ -32,7 +36,16 @@ function miniBar(value: number | null, max: number, color: string): string {
   return `linear-gradient(90deg, ${color} ${pct}%, transparent ${pct}%)`;
 }
 
-export default function WardTable({ demographics, landPrices, onSelectWard, status }: WardTableProps) {
+export default function WardTable({
+  demographics,
+  landPrices,
+  onSelectWard,
+  status,
+  unavailable = [],
+}: WardTableProps) {
+  // The growth table did not answer: the 増減 column is 取得失敗 in every row,
+  // not the データなし a suppressed cell gets.
+  const growthFailed = unavailable.includes(GROWTH_FIELD);
   const sorted = [...demographics].sort((a, b) => byValueDesc(a.population, b.population)).slice(0, 12);
   const populations = sorted.map((d) => d.population).filter(hasValue);
   const maxPop = populations.length ? Math.max(...populations) : 0;
@@ -79,9 +92,13 @@ export default function WardTable({ demographics, landPrices, onSelectWard, stat
                       </span>
                     </td>
                     <td className="text-right py-1.5 px-2 tabular-nums">
-                      <span style={{ color: (d.growthRate ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
-                        {hasValue(d.growthRate) ? `${d.growthRate > 0 ? "+" : ""}${d.growthRate.toFixed(1)}%` : NO_DATA}
-                      </span>
+                      {growthFailed ? (
+                        <span style={{ color: "var(--down-text)" }}>{FAILED_TEXT}</span>
+                      ) : (
+                        <span style={{ color: (d.growthRate ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
+                          {hasValue(d.growthRate) ? `${d.growthRate > 0 ? "+" : ""}${d.growthRate.toFixed(1)}%` : NO_DATA}
+                        </span>
+                      )}
                     </td>
                     <td className="text-right py-1.5 px-2 tabular-nums">
                       <span style={{ color: heatColor(d.ageGroups.elderly, 15, 30, "down") }}>
@@ -100,7 +117,11 @@ export default function WardTable({ demographics, landPrices, onSelectWard, stat
             </tbody>
           </table>
           <SampleNote
-            note={`地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`}
+            note={
+              growthFailed
+                ? `地価列。人口・密度・高齢率は ${SOURCES.estat.label}（2020年国勢調査）`
+                : `地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`
+            }
           />
         </>
       )}

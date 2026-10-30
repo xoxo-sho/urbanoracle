@@ -12,8 +12,10 @@ asks for that 取得日時 on screen).
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
-hide an upstream outage from Cloud Run's error metrics. Neither a 503 nor a
-partial answer is cached: only a complete answer is remembered.
+hide an upstream outage from Cloud Run's error metrics. Nothing incomplete is
+remembered as complete: each upstream is cached on its own and only when it
+answered, so a partial answer reuses the healthy part and retries the failed
+upstream on the next request, and a 503 retries everything.
 
 The REINFOLIB (/land-prices) endpoint was removed: its data was fetched but
 nothing on screen ever drew it (RECON 2026-10-data-terms §7.1 UO-3).
@@ -60,18 +62,47 @@ def _unavailable() -> JSONResponse:
     return JSONResponse({"status": "unavailable"}, status_code=UNAVAILABLE_HTTP_STATUS)
 
 
+CENSUS_CACHE_KEY = "demographics:census"
+GROWTH_CACHE_KEY = "demographics:growth"
+
+
 @router.get("/demographics")
 async def get_demographics() -> JSONResponse:
-    cached = cache.get("demographics")
-    if cached is not None:
-        return _envelope(cached, is_live=True)
-    try:
-        data = await demographics.fetch_demographics()
-    except Exception:
-        logger.warning("e-Stat upstream unavailable — answering 503, not sample", exc_info=True)
-        return _unavailable()
-    cache.set("demographics", data)
-    return _envelope(data, is_live=True)
+    """Two e-Stat tables, two classes of failure.
+
+    The census table (population, density, age shares) is the answer: without
+    it there is nothing to show, so 503. The growth table feeds growthRate
+    only, so when it fails the answer is partial and names the field. Each
+    table is cached on its own, and only when it answered — a partial answer
+    therefore reuses the census rows and asks for the growth table again.
+    """
+    census = cache.get(CENSUS_CACHE_KEY)
+    if census is None:
+        try:
+            census = await demographics.fetch_census()
+        except Exception:
+            logger.warning("e-Stat census table unavailable — answering 503, not sample", exc_info=True)
+            return _unavailable()
+        cache.set(CENSUS_CACHE_KEY, census)
+
+    growth = cache.get(GROWTH_CACHE_KEY)
+    unavailable: list[str] = []
+    if growth is None:
+        try:
+            growth = await demographics.fetch_growth_rates()
+            cache.set(GROWTH_CACHE_KEY, growth)
+        except Exception:
+            logger.warning(
+                "e-Stat growth table unavailable — answering partial, growthRate 取得失敗",
+                exc_info=True,
+            )
+            growth = {}
+            unavailable = [demographics.GROWTH_FIELD]
+
+    data = demographics.transform_estat(census, growth)
+    return _envelope(
+        data, is_live=True, status="partial" if unavailable else "ok", unavailable=unavailable
+    )
 
 
 @router.get("/disaster-risks")

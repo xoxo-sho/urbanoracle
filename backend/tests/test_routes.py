@@ -55,17 +55,15 @@ def client(db_session, monkeypatch):
     cache.clear()
 
 
-# One 2020-census ward as e-Stat would yield it (population from the
-# test_demographics fixture, growth from the published 2025 速報 figure).
-ESTAT_STUB_RECORDS = [
-    {
-        "region": "千代田区",
-        "population": 66680,
-        "density": 5719,
-        "growthRate": -0.72136,
-        "ageGroups": {"young": 9, "working": 70, "elderly": 21},
-    }
+# One 2020-census ward as the two e-Stat tables yield it (the cells
+# transform_estat reads, population from the test_demographics fixture;
+# growth from the published 2025 速報 figure).
+ESTAT_STUB_CENSUS = [
+    {"@area": "13101", "@tab": "020", "@cat01": "100", "@cat02": "100", "$": "66680"},
+    {"@area": "13101", "@tab": "020", "@cat01": "110", "@cat02": "100", "$": "6000"},
+    {"@area": "13101", "@tab": "020", "@cat01": "130", "@cat02": "100", "$": "10000"},
 ]
+ESTAT_STUB_GROWTH = {"13101": -0.72136}
 
 
 @pytest.fixture()
@@ -73,10 +71,14 @@ def estat_stub(monkeypatch):
     """A healthy e-Stat, for the tests that need every route to answer 200."""
     from services import demographics
 
-    async def fake_fetch():
-        return [dict(r) for r in ESTAT_STUB_RECORDS]
+    async def fake_census():
+        return [dict(r) for r in ESTAT_STUB_CENSUS]
 
-    monkeypatch.setattr(demographics, "fetch_demographics", fake_fetch)
+    async def fake_growth():
+        return dict(ESTAT_STUB_GROWTH)
+
+    monkeypatch.setattr(demographics, "fetch_census", fake_census)
+    monkeypatch.setattr(demographics, "fetch_growth_rates", fake_growth)
 
 
 @pytest.mark.parametrize("route", DATA_ROUTES)

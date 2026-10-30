@@ -74,6 +74,7 @@ const TAB_TO_LAYER: Record<string, DataCategory> = {
 };
 
 const RIDERSHIP_FIELD = "dailyPassengers";
+const GROWTH_FIELD = "growthRate";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("land-price");
@@ -93,6 +94,9 @@ export default function Home() {
   const stations = useMemo(() => transport.data ?? [], [transport.data]);
   // ODPT did not answer: the stations are real, their ridership is 取得失敗.
   const ridershipUnavailable = transport.unavailable.includes(RIDERSHIP_FIELD);
+  // The e-Stat growth table did not answer: population, density and age are
+  // live, every growth figure is 取得失敗.
+  const growthUnavailable = demographics.unavailable.includes(GROWTH_FIELD);
 
   // Build layers state from active tab — only the active tab's layer is enabled
   const layers: DataLayer[] = useMemo(() => {
@@ -157,9 +161,11 @@ export default function Home() {
   // データなし when the answer arrived but holds no figure for this selection.
   const growthTile = isPending(demographics.status)
     ? pendingText(demographics.status)
-    : topGrowth && hasValue(topGrowth.growthRate)
-      ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate.toFixed(1)}%`
-      : NO_DATA;
+    : growthUnavailable
+      ? FAILED_TEXT
+      : topGrowth && hasValue(topGrowth.growthRate)
+        ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate.toFixed(1)}%`
+        : NO_DATA;
   const passengersTile = isPending(transport.status)
     ? pendingText(transport.status)
     : ridershipUnavailable
@@ -288,6 +294,7 @@ export default function Home() {
                       landPrices={sampleLandPriceSummary}
                       onSelectWard={setSelectedWard}
                       status={demographics.status}
+                      unavailable={demographics.unavailable}
                     />
                   )}
                 </div>
@@ -301,6 +308,7 @@ export default function Home() {
                   populationTrends={samplePopulationTrends}
                   selectedWard={selectedWard}
                   status={demographics.status}
+                  unavailable={demographics.unavailable}
                 />
               </TabsContent>
 
@@ -397,9 +405,12 @@ export default function Home() {
             <div data-provenance="live">
               <span className="font-medium text-foreground">実データ</span>
               <ul className="space-y-1">
-                {demographics.status === "ok" && (
+                {demographics.data !== null && (
                   <li>
-                    人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: {ESTAT_SOURCE} 2020年国勢調査・2025年速報 ／ {ESTAT_EDITED}
+                    {growthUnavailable
+                      ? `人口・密度・年齢構成（人口タブ・区別テーブル）: ${ESTAT_SOURCE} 2020年国勢調査`
+                      : `人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: ${ESTAT_SOURCE} 2020年国勢調査・2025年速報`}
+                    {" ／ "}{ESTAT_EDITED}
                   </li>
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>

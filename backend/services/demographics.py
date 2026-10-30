@@ -10,6 +10,13 @@ break ``JSON.parse`` for the whole panel.
 Treatment here follows the aggregate rule: the ward is KEPT (dropping it
 would silently shrink the map) and the unusable field becomes ``null``, which
 the UI renders as データなし.
+
+Two tables, fetched separately and classed differently by the route
+(real-data plan PR 1): the census table is the answer — population, density,
+age shares and the ward rows themselves — so its failure is a full failure
+(503); the 2025 速報 growth table feeds ``growthRate`` only, so its failure
+is a partial answer that names GROWTH_FIELD as unavailable. A suppressed cell
+inside a table that did answer stays ``null``: that is データなし, not 取得失敗.
 """
 
 import logging
@@ -31,6 +38,9 @@ STATS_DATA_ID = "0003448299"
 # preliminary count, so it is read rather than derived from two snapshots.
 GROWTH_STATS_DATA_ID = "0004050417"
 GROWTH_TAB_CODE = "2025_35"  # 5年間の人口増減率 (%)
+# The record field the growth table fills; named in the envelope's
+# ``unavailable`` list when that table did not answer.
+GROWTH_FIELD = "growthRate"
 
 # ward code -> (name, area km²)
 TOKYO_WARDS: dict[str, tuple[str, float]] = {
@@ -104,8 +114,12 @@ def parse_growth_rates(values: list[dict]) -> dict[str, float | None]:
     return rates
 
 
-async def fetch_growth_rates() -> dict[str, float | None]:
-    """Ward growth rates. Raises on failure so the caller can null the field."""
+async def _fetch_values(stats_data_id: str, *, limit: int, label: str, **extra: str) -> list[dict]:
+    """One e-Stat getStatsData call for the 23 wards → its VALUE rows.
+
+    Raises on a missing key, a non-200, or an e-Stat error status, so the
+    route decides what the failure means for the answer.
+    """
     api_key = settings.ESTAT_API_KEY
     if not api_key:
         raise RuntimeError("ESTAT_API_KEY is not set")
@@ -115,20 +129,32 @@ async def fetch_growth_rates() -> dict[str, float | None]:
             ESTAT_URL,
             params={
                 "appId": api_key,
-                "statsDataId": GROWTH_STATS_DATA_ID,
+                "statsDataId": stats_data_id,
                 "cdArea": ",".join(TOKYO_WARDS),
-                "cdTab": GROWTH_TAB_CODE,
-                "limit": 1000,
+                "limit": limit,
+                **extra,
             },
             timeout=30.0,
         )
     if response.status_code != 200:
-        raise RuntimeError(f"e-Stat growth table error: {response.status_code}")
-    body = response.json()
+        raise RuntimeError(f"e-Stat {label} error: {response.status_code}")
+    body: dict[str, Any] = response.json()
     if body.get("GET_STATS_DATA", {}).get("RESULT", {}).get("STATUS") != 0:
-        raise RuntimeError("e-Stat growth table returned an error status")
+        raise RuntimeError(f"e-Stat {label} returned an error status")
     values = body["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]
-    values = values if isinstance(values, list) else [values]
+    return values if isinstance(values, list) else [values]
+
+
+async def fetch_growth_rates() -> dict[str, float | None]:
+    """Ward growth rates from the 2025 速報 table. Raises on failure.
+
+    Classed as a PARTIAL by the route: this table feeds growthRate only, so
+    when it fails the census figures still stand and the answer names
+    GROWTH_FIELD as unavailable.
+    """
+    values = await _fetch_values(
+        GROWTH_STATS_DATA_ID, limit=1000, label="growth table", cdTab=GROWTH_TAB_CODE
+    )
     return parse_growth_rates(values)
 
 
@@ -199,45 +225,15 @@ def transform_estat(
     return results
 
 
-async def fetch_demographics() -> list[dict]:
-    api_key = settings.ESTAT_API_KEY
-    if not api_key:
-        raise RuntimeError("ESTAT_API_KEY is not set")
+async def fetch_census() -> list[dict]:
+    """The 2020 census VALUE rows for the 23 wards. Raises on failure.
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            ESTAT_URL,
-            params={
-                "appId": api_key,
-                "statsDataId": STATS_DATA_ID,
-                "cdArea": ",".join(TOKYO_WARDS),
-                "limit": 10000,
-            },
-            timeout=30.0,
-        )
-    if response.status_code != 200:
-        raise RuntimeError(f"e-Stat API error: {response.status_code}")
-
-    body: dict[str, Any] = response.json()
-    result = body.get("GET_STATS_DATA", {}).get("RESULT", {})
-    if result.get("STATUS") != 0:
-        raise RuntimeError("e-Stat returned an error status")
-
-    values = body["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]
-
-    # The growth rate lives in a different table. If that call fails the
-    # population data is still good, so the field degrades to null rather
-    # than taking the whole endpoint down — but it degrades LOUDLY.
-    try:
-        growth_rates = await fetch_growth_rates()
-    except Exception:
-        logger.warning(
-            "e-Stat growth table unavailable — growthRate will be null, not 0",
-            exc_info=True,
-        )
-        growth_rates = {}
-
-    records = transform_estat(values, growth_rates)
-    if not any(r["population"] is not None for r in records):
+    Classed as a FULL FAILURE by the route: every figure and the ward rows
+    themselves come from this table, so without it there is nothing
+    meaningful to show. An answer in which no ward has a usable population
+    counts as a failure too — a 200 of suppressed cells is not data.
+    """
+    values = await _fetch_values(STATS_DATA_ID, limit=10000, label="API")
+    if not any(r["population"] is not None for r in transform_estat(values)):
         raise RuntimeError("e-Stat returned no usable population data")
-    return records
+    return values

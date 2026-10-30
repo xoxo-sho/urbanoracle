@@ -119,6 +119,40 @@ describe("consumers render by status", () => {
     expect(text).not.toContain(FAILED_TEXT);
   });
 
+  it("DemographicsChart: partial (growth table down) → every growth figure 取得失敗, census still cited", () => {
+    const { container } = render(
+      <DemographicsChart
+        data={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
+        allData={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
+        populationTrends={samplePopulationTrends}
+        selectedWard={null}
+        status="partial"
+        unavailable={["growthRate"]}
+      />
+    );
+    const text = container.textContent ?? "";
+    expect(text).toContain("最大成長");
+    expect(text).toContain(FAILED_TEXT);
+    expect(text).not.toContain(NO_DATA);
+    expect(text).toContain(ESTAT_SOURCE);
+    expect(text).not.toContain("2025年速報");
+  });
+
+  it("WardTable: partial (growth table down) → the 増減 column is 取得失敗 in every row", () => {
+    const { container } = render(
+      <WardTable
+        demographics={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
+        landPrices={sampleLandPriceSummary}
+        onSelectWard={vi.fn()}
+        status="partial"
+        unavailable={["growthRate"]}
+      />
+    );
+    const growthCells = [...container.querySelectorAll("tbody tr")].map((tr) => tr.children[3].textContent);
+    expect(growthCells).toEqual([FAILED_TEXT, FAILED_TEXT, FAILED_TEXT]);
+    expect(container.textContent).not.toContain("2025年速報");
+  });
+
   it("TransportPanel: unavailable → 取得失敗, no ODPT citation, no 国土数値情報, trends still sample", () => {
     const { container } = render(
       <TransportPanel

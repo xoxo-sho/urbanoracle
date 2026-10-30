@@ -19,7 +19,7 @@ import { SOURCES } from "@/lib/sources";
 import SourceNote from "@/components/dashboard/SourceNote";
 import SampleNote from "@/components/dashboard/SampleNote";
 import { EstatCredits } from "@/components/dashboard/RequiredCredits";
-import { StateNotice, isPending } from "@/components/dashboard/DataState";
+import { FAILED_TEXT, StateNotice, isPending } from "@/components/dashboard/DataState";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
@@ -28,9 +28,11 @@ interface DemographicsChartProps {
   selectedWard: string | null;
   /** State of the /demographics answer. The population trend (sample) never depends on it. */
   status: DataStatus;
+  /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
+  unavailable?: readonly string[];
 }
 
-const CENSUS_YEAR = "2020年国勢調査・2025年速報";
+const GROWTH_FIELD = "growthRate";
 
 export default function DemographicsChart({
   data,
@@ -38,10 +40,19 @@ export default function DemographicsChart({
   populationTrends,
   selectedWard,
   status,
+  unavailable = [],
 }: DemographicsChartProps) {
+  // The growth table did not answer: every growth figure is 取得失敗, not the
+  // データなし a suppressed cell gets. The census figures stand on their own,
+  // so the note then cites the census year alone.
+  const growthFailed = unavailable.includes(GROWTH_FIELD);
+  const growthText = (value: number | null) =>
+    growthFailed ? FAILED_TEXT : hasValue(value) ? `${value > 0 ? "+" : ""}${value.toFixed(1)}%` : NO_DATA;
+  const censusYear = growthFailed ? "2020年国勢調査" : "2020年国勢調査・2025年速報";
+
   // Census figures on screen always came from e-Stat: there is no sample
   // path any more. While loading or failed the block says so instead.
-  const censusNote = (unit: string) => <SourceNote source="estat" unit={unit} year={CENSUS_YEAR} />;
+  const censusNote = (unit: string) => <SourceNote source="estat" unit={unit} year={censusYear} />;
   const sorted = [...data].sort((a, b) => byValueDesc(a.population, b.population));
   const ward = selectedWard ? sorted[0] : null;
 
@@ -85,7 +96,7 @@ export default function DemographicsChart({
         <div className="grid grid-cols-4 gap-2">
           <MetricCard label="人口" value={formatMan(ward.population)} sub={subVsAverage(popDiff)} positive={Number(popDiff ?? 0) >= 0} />
           <MetricCard label="密度" value={formatK(ward.density)} sub={subVsAverage(densityDiff)} positive={Number(densityDiff ?? 0) >= 0} />
-          <MetricCard label="成長率" value={hasValue(ward.growthRate) ? `${ward.growthRate > 0 ? "+" : ""}${ward.growthRate.toFixed(1)}%` : NO_DATA} sub={hasValue(avg.growthRate) ? `平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate.toFixed(1)}%` : `平均 ${NO_DATA}`} positive={(ward.growthRate ?? 0) >= (avg.growthRate ?? 0)} />
+          <MetricCard label="成長率" value={growthText(ward.growthRate)} sub={growthFailed ? `平均 ${FAILED_TEXT}` : hasValue(avg.growthRate) ? `平均 ${avg.growthRate > 0 ? "+" : ""}${avg.growthRate.toFixed(1)}%` : `平均 ${NO_DATA}`} positive={(ward.growthRate ?? 0) >= (avg.growthRate ?? 0)} />
           <MetricCard label="高齢率" value={formatPct(ward.ageGroups.elderly)} sub={`平均 ${formatPct(avg.elderly)}`} positive={(ward.ageGroups.elderly ?? 0) <= (avg.elderly ?? 0)} />
         </div>
 
@@ -171,13 +182,13 @@ export default function DemographicsChart({
         <>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
-              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing?.region ?? ""}</div>
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{growthFailed ? FAILED_TEXT : fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{growthFailed ? "" : fastestGrowing?.region ?? ""}</div>
               <div className="text-[8px] text-muted-foreground">最大成長</div>
             </div>
             <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
-              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining?.region ?? ""}</div>
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{growthFailed ? FAILED_TEXT : fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{growthFailed ? "" : fastestDeclining?.region ?? ""}</div>
               <div className="text-[8px] text-muted-foreground">最大減少</div>
             </div>
             <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>
