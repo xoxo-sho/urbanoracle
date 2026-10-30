@@ -15,13 +15,17 @@ import logging
 from pathlib import Path
 
 from core.config import settings
-from services import sample_data
 from services.odpt import normalize_station_name
 
 logger = logging.getLogger(__name__)
 
 STATIONS_FILENAME = "tokyo-stations.geojson"
 MAX_STATIONS = 50
+
+# The record field ODPT fills. When ODPT is down the route names it in the
+# envelope's ``unavailable`` list, so the client can tell "not fetched" from
+# "not covered" — both arrive as None in the records themselves.
+RIDERSHIP_FIELD = "dailyPassengers"
 
 # name, lat_min, lat_max, lng_min, lng_max
 WARD_BOUNDS: tuple[tuple[str, float, float, float, float], ...] = (
@@ -97,7 +101,7 @@ def transform_stations(
                 "lng": lng,
                 "type": "train",
                 # None, never 0: absent from ODPT means unknown, not empty.
-                "dailyPassengers": (ridership or {}).get(
+                RIDERSHIP_FIELD: (ridership or {}).get(
                     normalize_station_name(props.get("name", ""))
                 ),
                 "lines": [_rewrite_line(line) for line in props.get("lines", [])],
@@ -120,7 +124,3 @@ def load_stations(ridership: dict[str, int] | None = None) -> list[dict]:
     if not stations:
         raise RuntimeError(f"{path} yielded no stations")
     return stations
-
-
-def fallback() -> list[dict]:
-    return sample_data.transport_stations()

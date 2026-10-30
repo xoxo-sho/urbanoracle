@@ -14,9 +14,7 @@ import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import {
   dataLayers,
   sampleLandPriceSummary,
-  sampleDemographics,
   sampleDisasterRisks,
-  sampleTransportStations,
   samplePopulationTrends,
   sampleTransportTrends,
   sampleZoning,
@@ -32,6 +30,7 @@ import type {
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
 import SampleNote, { SampleTag } from "@/components/dashboard/SampleNote";
+import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
 import {
   BUNDLED_UNVERIFIED_NOTE,
   CHOROPLETH_NOTE,
@@ -48,6 +47,7 @@ import {
   WARD_BOUNDARY_CREDIT,
 } from "@/lib/credits";
 import { useGatedData } from "@/lib/use-gated-data";
+import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { NO_DATA, byValueDesc, hasValue } from "@/lib/format";
@@ -73,13 +73,26 @@ const TAB_TO_LAYER: Record<string, DataCategory> = {
   zoning: "zoning",
 };
 
+const RIDERSHIP_FIELD = "dailyPassengers";
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("land-price");
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
 
-  const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics", sampleDemographics);
-  const disasterRisks = useGatedData<DisasterRisk[]>("/api/v1/disaster-risks", sampleDisasterRisks);
-  const transport = useGatedData<TransportStation[]>("/api/v1/transport", sampleTransportStations);
+  // The two live endpoints have no fallback: while loading or failed their
+  // surfaces say so (real-data plan PR 1). /disaster-risks has no upstream yet
+  // (PR 7): the server serves the curated sample set and the surface keeps
+  // its SAMPLE label, so until PR 7 the same set stands in while that one
+  // request is loading or failed.
+  const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics");
+  const disasterRisks = useGatedData<DisasterRisk[]>("/api/v1/disaster-risks");
+  const transport = useGatedData<TransportStation[]>("/api/v1/transport");
+
+  const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
+  const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
+  const stations = useMemo(() => transport.data ?? [], [transport.data]);
+  // ODPT did not answer: the stations are real, their ridership is 取得失敗.
+  const ridershipUnavailable = transport.unavailable.includes(RIDERSHIP_FIELD);
 
   // Build layers state from active tab — only the active tab's layer is enabled
   const layers: DataLayer[] = useMemo(() => {
@@ -89,19 +102,19 @@ export default function Home() {
 
   // Filtered data based on selectedWard
   const filteredDemographics = useMemo(() => {
-    if (!selectedWard) return demographics.data;
-    return demographics.data.filter((d) => d.region === selectedWard);
-  }, [selectedWard, demographics.data]);
+    if (!selectedWard) return demographicsRows;
+    return demographicsRows.filter((d) => d.region === selectedWard);
+  }, [selectedWard, demographicsRows]);
 
   const filteredRisks = useMemo(() => {
-    if (!selectedWard) return disasterRisks.data;
-    return disasterRisks.data.filter((r) => r.region === selectedWard);
-  }, [selectedWard, disasterRisks.data]);
+    if (!selectedWard) return risks;
+    return risks.filter((r) => r.region === selectedWard);
+  }, [selectedWard, risks]);
 
   const filteredStations = useMemo(() => {
-    if (!selectedWard) return transport.data;
-    return transport.data.filter((s) => s.ward === selectedWard);
-  }, [selectedWard, transport.data]);
+    if (!selectedWard) return stations;
+    return stations.filter((s) => s.ward === selectedWard);
+  }, [selectedWard, stations]);
 
   const filteredPriceSummary = useMemo(() => {
     if (!selectedWard) return sampleLandPriceSummary;
@@ -124,9 +137,9 @@ export default function Home() {
   }, [selectedWard]);
 
   // Key metrics
-  const metricsDemo = selectedWard ? filteredDemographics : demographics.data;
-  const metricsRisks = selectedWard ? filteredRisks : disasterRisks.data;
-  const metricsStations = selectedWard ? filteredStations : transport.data;
+  const metricsDemo = selectedWard ? filteredDemographics : demographicsRows;
+  const metricsRisks = selectedWard ? filteredRisks : risks;
+  const metricsStations = selectedWard ? filteredStations : stations;
 
   // Only wards with a published growth rate can rank; a null must not sort
   // as if it were 0, which would beat every genuinely negative ward.
@@ -139,6 +152,21 @@ export default function Home() {
   const passengerValues = metricsStations.map((s) => s.dailyPassengers).filter(hasValue);
   const totalPassengers = passengerValues.reduce((sum, v) => sum + v, 0);
   const passengersKnown = passengerValues.length > 0;
+
+  // Each tile shows exactly one of: 読み込み中, 取得失敗, the figure, or
+  // データなし when the answer arrived but holds no figure for this selection.
+  const growthTile = isPending(demographics.status)
+    ? pendingText(demographics.status)
+    : topGrowth && hasValue(topGrowth.growthRate)
+      ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate.toFixed(1)}%`
+      : NO_DATA;
+  const passengersTile = isPending(transport.status)
+    ? pendingText(transport.status)
+    : ridershipUnavailable
+      ? FAILED_TEXT
+      : passengersKnown
+        ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></>
+        : NO_DATA;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ height: "100dvh" }}>
@@ -157,7 +185,7 @@ export default function Home() {
             </div>
             <div className="h-5 w-px bg-border/50 hidden sm:block" />
             <WardSelector
-              wards={demographics.data}
+              wards={TOKYO_WARD_NAMES}
               selectedWard={selectedWard}
               onSelect={setSelectedWard}
             />
@@ -180,31 +208,30 @@ export default function Home() {
                 selectedWard={selectedWard}
                 onSelectWard={setSelectedWard}
                 layers={layers}
-                stations={transport.data}
-                transportIsLive={transport.isLive}
+                stations={stations}
+                transportIsLive={transport.status === "ok"}
               />
               <div className="absolute top-3 left-3 z-10">
                 <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
                   {selectedWard ?? "全エリア"}
                 </div>
               </div>
-              <MapLegend layers={layers} transportIsLive={transport.isLive} />
+              <MapLegend
+                layers={layers}
+                transportStatus={transport.status}
+                ridershipUnavailable={ridershipUnavailable}
+              />
             </div>
 
             {/* 3 Key Metrics */}
             <div className="grid grid-cols-3 gap-2 animate-fade-in-up" style={{ animationDelay: "0.1s", opacity: 0 }}>
               <div className="key-metric">
                 <TrendingUp className="h-4 w-4 text-up-text" />
-                <span className="text-xl font-bold tabular-nums">
-                  {topGrowth && hasValue(topGrowth.growthRate)
-                    ? `${topGrowth.growthRate > 0 ? "+" : ""}${topGrowth.growthRate.toFixed(1)}%`
-                    : NO_DATA}
-                </span>
+                <span className="text-xl font-bold tabular-nums">{growthTile}</span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">
                   {selectedWard ? "成長率" : "成長率1位"}
                   {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
                 </span>
-                {!demographics.isLive && <SampleTag />}
               </div>
               <div className="key-metric">
                 <Shield className="h-4 w-4 text-down-text" />
@@ -214,11 +241,8 @@ export default function Home() {
               </div>
               <div className="key-metric">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xl font-bold tabular-nums">
-                  {passengersKnown ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></> : NO_DATA}
-                </span>
+                <span className="text-xl font-bold tabular-nums">{passengersTile}</span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
-                {!transport.isLive && <SampleTag />}
               </div>
             </div>
 
@@ -255,15 +279,15 @@ export default function Home() {
                   <LandPriceChart
                     prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
                     allPrices={sampleLandPriceSummary}
-                    demographics={demographics.data}
+                    demographics={demographicsRows}
                     selectedWard={selectedWard}
                   />
                   {!selectedWard && (
                     <WardTable
-                      demographics={demographics.data}
+                      demographics={demographicsRows}
                       landPrices={sampleLandPriceSummary}
                       onSelectWard={setSelectedWard}
-                      isLive={demographics.isLive}
+                      status={demographics.status}
                     />
                   )}
                 </div>
@@ -272,18 +296,18 @@ export default function Home() {
               {/* Demographics */}
               <TabsContent value="demographics" className="mt-4 flex-1 overflow-y-auto">
                 <DemographicsChart
-                  data={selectedWard ? filteredDemographics : demographics.data}
-                  allData={demographics.data}
+                  data={selectedWard ? filteredDemographics : demographicsRows}
+                  allData={demographicsRows}
                   populationTrends={samplePopulationTrends}
                   selectedWard={selectedWard}
-                  isLive={demographics.isLive}
+                  status={demographics.status}
                 />
               </TabsContent>
 
               {/* Disaster */}
               <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto">
                 <DisasterRiskPanel
-                  risks={selectedWard ? filteredRisks : disasterRisks.data}
+                  risks={selectedWard ? filteredRisks : risks}
                   zoning={sampleZoning}
                   selectedWard={selectedWard}
                 />
@@ -292,10 +316,11 @@ export default function Home() {
               {/* Transport */}
               <TabsContent value="transport" className="mt-4 flex-1 overflow-y-auto">
                 <TransportPanel
-                  stations={selectedWard ? filteredStations : transport.data}
+                  stations={selectedWard ? filteredStations : stations}
                   trends={sampleTransportTrends}
                   selectedWard={selectedWard}
-                  isLive={transport.isLive}
+                  status={transport.status}
+                  unavailable={transport.unavailable}
                   fetchedAt={transport.fetchedAt}
                 />
               </TabsContent>
@@ -361,8 +386,10 @@ export default function Home() {
 
         {/* データ出典 / Data sources — per-surface truth, two groups (design-spec-v1 §9),
             plus the credits the providers prescribe (RECON 2026-10-data-terms §7.1).
-            A surface moves between the groups with its endpoint's isLive, so the
-            area describes what is on screen now. In the scrolling content, at a
+            The two live surfaces are listed under 実データ when their endpoint
+            answered in full; while loading, failed or partial they are listed in
+            neither group — nothing is on screen to attribute, and the surface
+            itself says 読み込み中 / 取得失敗. In the scrolling content, at a
             legible size, never collapsed. */}
         <footer className="mt-4 border-t border-border/50 pt-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">
           <h2 className="mb-2 text-[11px] font-semibold tracking-widest text-foreground">データ出典 / Data sources</h2>
@@ -370,13 +397,13 @@ export default function Home() {
             <div data-provenance="live">
               <span className="font-medium text-foreground">実データ</span>
               <ul className="space-y-1">
-                {demographics.isLive && (
+                {demographics.status === "ok" && (
                   <li>
                     人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: {ESTAT_SOURCE} 2020年国勢調査・2025年速報 ／ {ESTAT_EDITED}
                   </li>
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>
-                {transport.isLive && (
+                {transport.status === "ok" && (
                   <li>
                     駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）: {SOURCES.odpt.label} — 取得日時・注意事項・お問い合わせ先・東京都交通局データのクレジットは交通タブに表示
                   </li>
@@ -392,8 +419,6 @@ export default function Home() {
             <div data-provenance="sample" className="sample-block">
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
-                {!demographics.isLive && <li>人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）</li>}
-                {!transport.isLive && <li>駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）</li>}
                 <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
                 <li>人口推移</li>
                 <li>災害種別・リスク一覧・高リスク指標</li>

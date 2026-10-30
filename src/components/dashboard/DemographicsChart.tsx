@@ -12,35 +12,36 @@ import {
   Legend,
 } from "recharts";
 import type { DemographicsData, PopulationTrend } from "@/types";
+import type { DataStatus } from "@/lib/use-gated-data";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
+import { SOURCES } from "@/lib/sources";
 import SourceNote from "@/components/dashboard/SourceNote";
 import SampleNote from "@/components/dashboard/SampleNote";
 import { EstatCredits } from "@/components/dashboard/RequiredCredits";
+import { StateNotice, isPending } from "@/components/dashboard/DataState";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
   allData: DemographicsData[];
   populationTrends: PopulationTrend[];
   selectedWard: string | null;
-  /** Whether `data`/`allData` came from e-Stat. The population trend never does. */
-  isLive?: boolean;
+  /** State of the /demographics answer. The population trend (sample) never depends on it. */
+  status: DataStatus;
 }
+
+const CENSUS_YEAR = "2020年国勢調査・2025年速報";
 
 export default function DemographicsChart({
   data,
   allData,
   populationTrends,
   selectedWard,
-  isLive = false,
+  status,
 }: DemographicsChartProps) {
-  // The census columns are live or sample as a block; the note follows.
-  const censusNote = (unit: string) =>
-    isLive ? (
-      <SourceNote source="estat" unit={unit} year="2020年国勢調査・2025年速報" />
-    ) : (
-      <SampleNote note={`単位: ${unit}`} />
-    );
+  // Census figures on screen always came from e-Stat: there is no sample
+  // path any more. While loading or failed the block says so instead.
+  const censusNote = (unit: string) => <SourceNote source="estat" unit={unit} year={CENSUS_YEAR} />;
   const sorted = [...data].sort((a, b) => byValueDesc(a.population, b.population));
   const ward = selectedWard ? sorted[0] : null;
 
@@ -63,7 +64,18 @@ export default function DemographicsChart({
   const subVsAverage = (diff: string | null) =>
     diff === null ? `平均比 ${NO_DATA}` : `平均比 ${Number(diff) > 0 ? "+" : ""}${diff}%`;
 
-  // Ward-specific view
+  // Ward-specific view: nothing but census figures, so while pending the
+  // whole view is the state notice.
+  if (selectedWard && isPending(status)) {
+    return (
+      <div className="space-y-3">
+        <div className="chart-section">
+          <StateNotice status={status} source={SOURCES.estat.label} />
+        </div>
+      </div>
+    );
+  }
+
   if (ward && selectedWard) {
     const popDiff = diffPct(ward.population, avg.population);
     const densityDiff = diffPct(ward.density, avg.density);
@@ -88,7 +100,7 @@ export default function DemographicsChart({
           </div>
           {censusNote("%")}
         </div>
-        {isLive && <EstatCredits />}
+        <EstatCredits />
       </div>
     );
   }
@@ -151,41 +163,49 @@ export default function DemographicsChart({
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing?.region ?? ""}</div>
-          <div className="text-[8px] text-muted-foreground">最大成長</div>
+      {isPending(status) ? (
+        <div className="chart-section">
+          <StateNotice status={status} source={SOURCES.estat.label} />
         </div>
-        <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
-          <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining?.region ?? ""}</div>
-          <div className="text-[8px] text-muted-foreground">最大減少</div>
-        </div>
-        <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>
-          <div className="text-sm font-bold tabular-nums">{mostAged ? formatPct(mostAged.ageGroups.elderly) : NO_DATA}</div>
-          <div className="text-[9px] text-muted-foreground mt-0.5">{mostAged?.region ?? ""}</div>
-          <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
-        </div>
-      </div>
-      {censusNote("%")}
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{fastestGrowing?.region ?? ""}</div>
+              <div className="text-[8px] text-muted-foreground">最大成長</div>
+            </div>
+            <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
+              <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{fastestDeclining?.region ?? ""}</div>
+              <div className="text-[8px] text-muted-foreground">最大減少</div>
+            </div>
+            <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>
+              <div className="text-sm font-bold tabular-nums">{mostAged ? formatPct(mostAged.ageGroups.elderly) : NO_DATA}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{mostAged?.region ?? ""}</div>
+              <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
+            </div>
+          </div>
+          {censusNote("%")}
 
-      <div className="chart-section">
-        <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">年齢構成</h4>
-        <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={ageData} barCategoryGap="20%" layout="vertical">
-            <XAxis type="number" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <YAxis type="category" dataKey="name" {...AXIS_STYLE} width={36} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} />
-            <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
-            <Bar dataKey="0-14歳" stackId="a" fill="var(--chart-5)" radius={0} />
-            <Bar dataKey="15-64歳" stackId="a" fill="var(--chart-4)" radius={0} />
-            <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
-          </BarChart>
-        </ResponsiveContainer>
-        {censusNote("%")}
-      </div>
-      {isLive && <EstatCredits />}
+          <div className="chart-section">
+            <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">年齢構成</h4>
+            <ResponsiveContainer width="100%" height={150}>
+              <BarChart data={ageData} barCategoryGap="20%" layout="vertical">
+                <XAxis type="number" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                <YAxis type="category" dataKey="name" {...AXIS_STYLE} width={36} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
+                <Bar dataKey="0-14歳" stackId="a" fill="var(--chart-5)" radius={0} />
+                <Bar dataKey="15-64歳" stackId="a" fill="var(--chart-4)" radius={0} />
+                <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
+              </BarChart>
+            </ResponsiveContainer>
+            {censusNote("%")}
+          </div>
+          <EstatCredits />
+        </>
+      )}
     </div>
   );
 }

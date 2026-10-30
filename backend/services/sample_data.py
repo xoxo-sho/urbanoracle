@@ -1,8 +1,10 @@
-"""Fallback datasets, generated from the frontend's src/data/sample.ts.
+"""Sample datasets the server still serves, generated from src/data/sample.ts.
 
-Regenerate with scripts/gen-sample-fallback.mjs when sample.ts changes; the
-two must agree because the client uses its copy when a request fails
-outright and the server uses this one when an upstream API fails.
+Regenerate with scripts/gen-sample-fallback.mjs when sample.ts changes. Only
+the disaster-risk set is read today: /disaster-risks has no upstream yet
+(real-data plan PR 7), so it answers with this curated set and ``isLive``
+False. The two live endpoints no longer fall back to sample data on failure;
+they answer 503 (RECON 2026-10-uo-real-data §7, PR 1).
 """
 
 import json
@@ -18,13 +20,5 @@ def _load() -> dict:
         return json.load(fh)
 
 
-def demographics() -> list[dict]:
-    return list(_load()["sampleDemographics"])
-
-
 def disaster_risks() -> list[dict]:
     return list(_load()["sampleDisasterRisks"])
-
-
-def transport_stations() -> list[dict]:
-    return list(_load()["sampleTransportStations"])

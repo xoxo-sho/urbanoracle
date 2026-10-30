@@ -41,10 +41,12 @@ vi.mock("next/dynamic", () => ({
 }));
 vi.mock("@/components/dashboard/ThemeToggle", () => ({ default: () => null }));
 vi.mock("@/lib/use-gated-data", () => ({
-  useGatedData: (_endpoint: string, fallback: unknown) => ({
-    data: fallback,
-    isLoading: false,
+  useGatedData: () => ({
+    status: "unavailable",
+    data: null,
+    unavailable: [],
     isLive: false,
+    fetchedAt: null,
   }),
 }));
 // firebase/app: firebaseApp() only needs an object to hand to getAuth().

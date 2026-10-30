@@ -40,8 +40,8 @@ TOKENS = {"active-token": ACTIVE_CLAIMS, "pending-token": PENDING_CLAIMS}
 def client(db_session, monkeypatch):
     monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
-    # No upstream credentials in tests: demographics takes its fallback path,
-    # which is itself worth exercising.
+    # No upstream credentials in tests: e-Stat raises before any network I/O,
+    # so /demographics answers 503 unless a test stubs the fetch (estat_stub).
     monkeypatch.delenv("ESTAT_API_KEY", raising=False)
     monkeypatch.setattr(authz, "decode_auth_token", lambda tok: TOKENS.get(tok))
     cache.clear()
@@ -53,6 +53,30 @@ def client(db_session, monkeypatch):
     yield TestClient(app)
     app.dependency_overrides.clear()
     cache.clear()
+
+
+# One 2020-census ward as e-Stat would yield it (population from the
+# test_demographics fixture, growth from the published 2025 速報 figure).
+ESTAT_STUB_RECORDS = [
+    {
+        "region": "千代田区",
+        "population": 66680,
+        "density": 5719,
+        "growthRate": -0.72136,
+        "ageGroups": {"young": 9, "working": 70, "elderly": 21},
+    }
+]
+
+
+@pytest.fixture()
+def estat_stub(monkeypatch):
+    """A healthy e-Stat, for the tests that need every route to answer 200."""
+    from services import demographics
+
+    async def fake_fetch():
+        return [dict(r) for r in ESTAT_STUB_RECORDS]
+
+    monkeypatch.setattr(demographics, "fetch_demographics", fake_fetch)
 
 
 @pytest.mark.parametrize("route", DATA_ROUTES)
@@ -68,16 +92,17 @@ def test_pending_is_403_with_structured_body(client, route):
 
 
 @pytest.mark.parametrize("route", DATA_ROUTES)
-def test_active_gets_data(client, route):
+def test_active_gets_data(client, estat_stub, route):
     resp = client.get(route, headers={"Authorization": "Bearer active-token"})
     assert resp.status_code == 200
     body = resp.json()
+    assert body["status"] in ("ok", "partial")
     assert isinstance(body["data"], list) and body["data"]
     assert isinstance(body["isLive"], bool)
 
 
 @pytest.mark.parametrize("route", DATA_ROUTES)
-def test_every_response_is_strictly_valid_json(client, route):
+def test_every_response_is_strictly_valid_json(client, estat_stub, route):
     resp = client.get(route, headers={"Authorization": "Bearer active-token"})
     assert "NaN" not in resp.text
     json.loads(resp.text, parse_constant=_reject)
@@ -93,11 +118,13 @@ def test_transport_without_odpt_is_not_claimed_live(client):
     """Stations are real, ridership is not — so the response is not live.
 
     Claiming isLive with every dailyPassengers null would present "unknown"
-    as though it had been measured.
+    as though it had been measured. The answer is partial and says which
+    field is missing (test_failure_states pins the shape).
     """
     resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})
     body = resp.json()
     assert body["isLive"] is False
+    assert body["status"] == "partial"
     assert len(body["data"]) == 50
     # Never 0 — absence is null.
     assert all(s["dailyPassengers"] is None for s in body["data"])
@@ -168,12 +195,16 @@ def test_no_service_module_fetches_reinfolib():
     assert importlib.util.find_spec("services.land_prices") is None
 
 
-def test_upstream_failure_falls_back_with_is_live_false(client):
-    """No API key configured ⇒ fallback data, honestly labelled."""
-    for route in ("/api/v1/demographics",):
-        body = client.get(route, headers={"Authorization": "Bearer active-token"}).json()
-        assert body["isLive"] is False
-        assert body["data"]
+def test_no_api_key_is_503_unavailable_not_sample(client):
+    """No API key configured ⇒ 503 unavailable, with no data at all.
+
+    Flipped in PR 1 (real-data plan): this used to assert the sample fallback
+    with isLive false. A missing key is an outage like any other, and the
+    answer must be one the client can tell apart from data.
+    """
+    resp = client.get("/api/v1/demographics", headers={"Authorization": "Bearer active-token"})
+    assert resp.status_code == 503
+    assert resp.json() == {"status": "unavailable"}
 
 
 def test_envelope_neutralizes_a_non_finite_value_from_a_service(client, monkeypatch):

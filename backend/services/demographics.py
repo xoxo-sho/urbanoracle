@@ -19,7 +19,6 @@ import httpx
 
 from core.boundary import finite_or_none, is_finite_number
 from core.config import settings
-from services import sample_data
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +241,3 @@ async def fetch_demographics() -> list[dict]:
     if not any(r["population"] is not None for r in records):
         raise RuntimeError("e-Stat returned no usable population data")
     return records
-
-
-def fallback() -> list[dict]:
-    return sample_data.demographics()
