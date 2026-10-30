@@ -106,7 +106,18 @@ const STATIONS_OK = [
 // names the field it could not fill — those cells are 取得失敗, not データなし.
 const STATIONS_NO_RIDERSHIP = STATIONS_OK.map((s) => ({ ...s, dailyPassengers: null }));
 
+// The e-Stat growth table (0004050417) failed, the census table answered: the
+// server names growthRate as the field it could not fill. Every growth cell
+// is 取得失敗; population, density and age are live.
+const DEMOGRAPHICS_NO_GROWTH = DEMOGRAPHICS_OK.map((d) => ({ ...d, growthRate: null }));
+
 const DEMOGRAPHICS = json(200, { status: "ok", data: DEMOGRAPHICS_OK, isLive: true });
+const DEMOGRAPHICS_PARTIAL = json(200, {
+  status: "partial",
+  data: DEMOGRAPHICS_NO_GROWTH,
+  unavailable: ["growthRate"],
+  isLive: true,
+});
 const TRANSPORT = json(200, { status: "ok", data: STATIONS_OK, isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
 const TRANSPORT_PARTIAL = json(200, {
   status: "partial",
@@ -175,6 +186,16 @@ function stationLegend(container: HTMLElement): HTMLElement {
 
 function footerSampleGroup(container: HTMLElement): string {
   return container.querySelector('footer [data-provenance="sample"]')?.textContent ?? "";
+}
+
+function footerLiveGroup(container: HTMLElement): string {
+  return container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
+}
+
+function selectWard(container: HTMLElement, name: string) {
+  const select = container.querySelector<HTMLSelectElement>("header select");
+  if (!select) throw new Error("no ward selector in the header");
+  fireEvent.change(select, { target: { value: name } });
 }
 
 /** What the page handed MapView: the station list and whether ridership is live. */
@@ -372,6 +393,51 @@ describe("M6: what the map is handed — a consumer of /transport PR 1 did not l
     const ok = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT });
     expect(mapProps(ok.container).stations).toHaveLength(2);
     expect(mapProps(ok.container).live).toBe("true");
+  });
+});
+
+describe("partial — census answered, the growth table did not (e-Stat 0004050417 down)", () => {
+  it("K1 reads 取得失敗: not データなし, no SAMPLE; the census tiles elsewhere keep their figures", async () => {
+    const { container } = await renderSettled({ demographics: DEMOGRAPHICS_PARTIAL, transport: TRANSPORT });
+    const growth = keyMetric(container, "成長率");
+    expect(growth.textContent).toContain(FAILED);
+    expect(growth.textContent).not.toContain(NO_DATA);
+    expectNoSample(growth, "tile 成長率");
+    // The other live tile is untouched by the growth table.
+    expect(keyMetric(container, "乗降客").textContent).toContain("0万");
+  });
+
+  it("人口 tab: 最大成長 / 最大減少 read 取得失敗 while 高齢化率1位 keeps its figure; the ward view's 成長率 card too", async () => {
+    const { container } = await renderSettled({ demographics: DEMOGRAPHICS_PARTIAL, transport: TRANSPORT });
+
+    const allArea = openTab("人口");
+    expect(allArea.textContent).toContain("最大成長");
+    expect(allArea.textContent).toContain(FAILED);
+    expect(allArea.textContent).not.toContain(NO_DATA);
+    expect(allArea.textContent).toContain("27%"); // 高齢化率1位 is census, still live
+
+    selectWard(container, "江東区");
+    const ward = screen.getByRole("tabpanel");
+    expect(ward.textContent).toContain("53.8万"); // 江東区 population, live
+    expect(ward.textContent).toContain(FAILED); // its 成長率 card
+    expect(ward.textContent).not.toContain(NO_DATA);
+  });
+
+  it("地価 tab: every 増減 cell reads 取得失敗; the footer lists the census figures as live but not 増減", async () => {
+    const { container } = await renderSettled({ demographics: DEMOGRAPHICS_PARTIAL, transport: TRANSPORT });
+
+    const land = openTab("地価");
+    const rows = [...land.querySelectorAll("tbody tr")];
+    expect(rows).toHaveLength(3);
+    // 区 | 人口 | 密度 | 増減 | 高齢率 | 地価 | 規模
+    expect(rows.map((tr) => tr.children[3].textContent)).toEqual([FAILED, FAILED, FAILED]);
+    expect(rows.map((tr) => tr.children[1].textContent)).toContain("53.8万");
+
+    const live = footerLiveGroup(container);
+    expect(live).toContain("人口・密度・年齢構成");
+    expect(live).not.toContain("増減");
+    expect(live).not.toContain("成長率指標");
+    expect(footerSampleGroup(container)).not.toContain("人口・密度");
   });
 });
 
