@@ -11,21 +11,22 @@ outage from Cloud Run's error metrics. A partial answer is 200 with
 upstream did not deliver, so the client renders those cells as 取得失敗 and
 keeps データなし for a cell the upstream genuinely has no figure for.
 
-The demographics route fetches two e-Stat tables and they are classed
-differently (Stage 2c):
+The demographics route fetches three e-Stat tables of the 令和7年国勢調査
+人口等基本集計（確報） (real-data plan PR 2) and they are classed in two ways
+(Stage 2c):
 
-* ``0003448299`` (2020 census: population, density, age shares) — a **full
-  failure**. Every figure and the ward rows themselves come from it; without
-  it there is nothing meaningful to show, so 503.
-* ``0004050417`` tab ``2025_35`` (5-year growth rate) — a **partial**. It
+* ``0004065881`` (population) and ``0004066221`` (不詳補完値 age shares) — a
+  **full failure**. Every figure and the ward rows themselves come from them;
+  without either there is nothing meaningful to show, so 503.
+* ``0004065882`` tab ``2025_35`` (5-year growth rate) — a **partial**. It
   feeds ``growthRate`` only; the census figures stand on their own, so the
   answer is 200 ``partial`` with ``unavailable: ["growthRate"]``.
 
-Caching: a 503 or a partial answer is never stored as a complete answer. The
-healthy census table is cached on its own, and the growth table is retried
-on the next request; the transport route keeps nothing from a partial or
-failed answer (its healthy half is a local file) and retries ODPT or the
-file on the next request.
+Caching: a 503 or a partial answer is never stored as a complete answer. Each
+healthy table is cached on its own, and the failed table is retried on the
+next request; the transport route keeps nothing from a partial or failed
+answer (its healthy half is a local file) and retries ODPT or the file on
+the next request.
 """
 
 import json
@@ -56,16 +57,27 @@ SAMPLE_STATION_MARKER = "775386"
 
 SAMPLE_FALLBACK_JSON = Path(__file__).resolve().parents[1] / "data" / "sample_fallback.json"
 
-# 千代田区 as the two e-Stat tables yield it: the 2020 census cells
-# transform_estat reads (total 66,680 — the test_demographics fixture) and the
-# published 2025 速報 growth rate (−0.72136, the official file's row 686).
-CENSUS_ROWS = [
-    {"@area": "13101", "@tab": "020", "@cat01": "100", "@cat02": "100", "$": "66680"},
-    {"@area": "13101", "@tab": "020", "@cat01": "110", "@cat02": "100", "$": "6000"},
-    {"@area": "13101", "@tab": "020", "@cat01": "130", "@cat02": "100", "$": "10000"},
+# 千代田区 as the three e-Stat tables yield it, in their VALUE-row shapes
+# (test_demographics.py): the 2025 確報 total, the 不詳補完値 shares, and the
+# 確報 growth rate (−0.61488). The published figures for all 23 wards are
+# guarded in test_census_2025.py from the committed source files.
+POPULATION_ROWS = [
+    {"@area": "13101", "@tab": demographics.POPULATION_TAB, "@cat01": demographics.SEX_TOTAL, "$": "66270"},
 ]
-GROWTH_ROWS = [{"@area": "13101", "@tab": demographics.GROWTH_TAB_CODE, "$": "-0.72136"}]
-CHIYODA_GROWTH = -0.72136
+AGE_ROWS = [
+    {
+        "@area": "13101",
+        "@tab": demographics.AGE_SHARE_TAB,
+        "@cat01": demographics.NATIONALITY_TOTAL,
+        "@cat02": demographics.AGE_SEX_TOTAL,
+        "@cat03": code,
+        "$": raw,
+    }
+    for code, raw in (("1", "12.94100"), ("2", "70.81787"), ("3", "16.24113"))
+]
+GROWTH_ROWS = [{"@area": "13101", "@tab": demographics.GROWTH_TAB_CODE, "$": "-0.61488"}]
+CHIYODA_POPULATION = 66270
+CHIYODA_GROWTH = -0.61488
 
 
 def _estat_body(values: list[dict]) -> dict:
@@ -103,32 +115,34 @@ def client(db_session, monkeypatch):
 def estat(client, monkeypatch):
     """A scriptable e-Stat at the HTTP layer, one switch per table.
 
-    ``estat["census"]`` / ``estat["growth"]`` hold the HTTP status each table
-    answers with; ``estat["calls"]`` counts the requests each table received,
-    which is how the caching pins see whether an upstream was retried.
-    Stubbing at the transport, not at a service function, keeps the guards
-    independent of how the service is factored.
+    ``estat["population"]`` / ``estat["age"]`` / ``estat["growth"]`` hold the
+    HTTP status each table answers with; ``estat["calls"]`` counts the
+    requests each table received, which is how the caching pins see whether
+    an upstream was retried. Stubbing at the transport, not at a service
+    function, keeps the guards independent of how the service is factored.
     """
     monkeypatch.setenv("ESTAT_API_KEY", "test-estat-key")
     state: dict = {
-        "census": 200,
+        "population": 200,
+        "age": 200,
         "growth": 200,
-        "census_rows": CENSUS_ROWS,
-        "calls": {"census": 0, "growth": 0},
+        "population_rows": POPULATION_ROWS,
+        "calls": {"population": 0, "age": 0, "growth": 0},
+    }
+    kinds = {
+        demographics.POPULATION_STATS_DATA_ID: "population",
+        demographics.AGE_STATS_DATA_ID: "age",
+        demographics.GROWTH_STATS_DATA_ID: "growth",
     }
 
     def handler(request: httpx.Request) -> httpx.Response:
-        table = request.url.params.get("statsDataId")
-        if table == demographics.STATS_DATA_ID:
-            kind = "census"
-        elif table == demographics.GROWTH_STATS_DATA_ID:
-            kind = "growth"
-        else:
+        kind = kinds.get(request.url.params.get("statsDataId"))
+        if kind is None:
             return httpx.Response(404, json={})
         state["calls"][kind] += 1
         if state[kind] != 200:
             return httpx.Response(state[kind], json={})
-        rows = state["census_rows"] if kind == "census" else GROWTH_ROWS
+        rows = {"population": state["population_rows"], "age": AGE_ROWS, "growth": GROWTH_ROWS}[kind]
         return httpx.Response(200, json=_estat_body(rows))
 
     real_client = httpx.AsyncClient
@@ -177,16 +191,18 @@ def test_demographics_estat_failure_is_unavailable_not_sample(client, monkeypatc
     assert SAMPLE_DEMOGRAPHICS_MARKER not in resp.text, "sample 千代田区 population served as data"
 
 
-def test_census_table_failure_is_a_full_failure_even_with_a_healthy_growth_table(client, estat):
-    """Table 0003448299 is classed as a full failure: every figure and the ward
-    rows come from it, so a healthy growth table has nothing to attach to."""
-    estat["census"] = 503
+@pytest.mark.parametrize("table", ["population", "age"])
+def test_census_table_failure_is_a_full_failure_even_with_a_healthy_growth_table(client, estat, table):
+    """The population and age tables are classed as a full failure: every figure
+    and the ward rows come from them, so a healthy growth table has nothing to
+    attach to."""
+    estat[table] = 503
     _assert_unavailable(_get_demographics(client))
 
 
 def test_census_with_no_usable_population_is_a_full_failure(client, estat):
-    """A census answer whose every total is suppressed shows nothing meaningful."""
-    estat["census_rows"] = [{**row, "$": "-"} for row in CENSUS_ROWS]
+    """A population answer whose every total is suppressed shows nothing meaningful."""
+    estat["population_rows"] = [{**row, "$": "-"} for row in POPULATION_ROWS]
     _assert_unavailable(_get_demographics(client))
 
 
@@ -205,7 +221,7 @@ def test_transport_station_file_failure_is_unavailable_not_sample(client, monkey
 
 
 def test_growth_table_failure_is_partial_and_names_growth_rate(client, estat):
-    """Table 0004050417 is classed as a partial: it feeds growthRate only.
+    """Table 0004065882 is classed as a partial: it feeds growthRate only.
 
     The census figures stand; growthRate is None in every record, and the
     envelope says why — ``unavailable: ["growthRate"]`` — so the client renders
@@ -220,7 +236,7 @@ def test_growth_table_failure_is_partial_and_names_growth_rate(client, estat):
     assert body.get("unavailable") == ["growthRate"], body.get("unavailable")
     assert body["isLive"] is True
     chiyoda = next(r for r in body["data"] if r["region"] == "千代田区")
-    assert chiyoda["population"] == 66680
+    assert chiyoda["population"] == CHIYODA_POPULATION
     assert chiyoda["growthRate"] is None
 
 
@@ -248,19 +264,20 @@ def test_transport_without_odpt_is_partial_and_names_the_missing_field(client):
 
 
 def test_partial_demographics_caches_the_census_and_retries_the_growth_table(client, estat):
-    """The healthy half is cached on its own; the failed half is retried.
+    """The healthy tables are cached on their own; the failed one is retried.
 
-    Two requests with the growth table down: the census table is fetched once
-    and reused, the growth table is asked twice, both answers are partial. The
-    growth table recovers: the next request is complete, with the real rate,
-    and from then on the complete answer is served without any upstream call.
+    Two requests with the growth table down: the population and age tables
+    are fetched once and reused, the growth table is asked twice, both answers
+    are partial. The growth table recovers: the next request is complete, with
+    the real rate, and from then on the complete answer is served without any
+    upstream call.
     """
     estat["growth"] = 503
 
     first = _get_demographics(client).json()
     second = _get_demographics(client).json()
     assert first.get("status") == "partial" and second.get("status") == "partial", (first.get("status"), second.get("status"))
-    assert estat["calls"] == {"census": 1, "growth": 2}, estat["calls"]
+    assert estat["calls"] == {"population": 1, "age": 1, "growth": 2}, estat["calls"]
 
     estat["growth"] = 200
     third = _get_demographics(client).json()
@@ -268,28 +285,28 @@ def test_partial_demographics_caches_the_census_and_retries_the_growth_table(cli
     assert "unavailable" not in third
     chiyoda = next(r for r in third["data"] if r["region"] == "千代田区")
     assert chiyoda["growthRate"] == pytest.approx(CHIYODA_GROWTH)
-    assert estat["calls"] == {"census": 1, "growth": 3}, estat["calls"]
+    assert estat["calls"] == {"population": 1, "age": 1, "growth": 3}, estat["calls"]
 
     fourth = _get_demographics(client).json()
     assert fourth.get("status") == "ok"
-    assert estat["calls"] == {"census": 1, "growth": 3}, "a complete answer is served from cache"
+    assert estat["calls"] == {"population": 1, "age": 1, "growth": 3}, "a complete answer is served from cache"
 
 
 def test_unavailable_demographics_retries_the_census_on_the_next_request(client, estat):
-    """A 503 is never remembered: the census table is asked again, and the
+    """A 503 is never remembered: the population table is asked again, and the
     first healthy answer is complete. The growth figure is exactly as
     published — a real negative, not a 0."""
-    estat["census"] = 503
+    estat["population"] = 503
 
     _assert_unavailable(_get_demographics(client))
     _assert_unavailable(_get_demographics(client))
-    assert estat["calls"]["census"] == 2, estat["calls"]
+    assert estat["calls"]["population"] == 2, estat["calls"]
 
-    estat["census"] = 200
+    estat["population"] = 200
     body = _get_demographics(client).json()
     assert body.get("status") == "ok", body.get("status")
     chiyoda = next(r for r in body["data"] if r["region"] == "千代田区")
-    assert chiyoda["population"] == 66680
+    assert chiyoda["population"] == CHIYODA_POPULATION
     assert chiyoda["growthRate"] == pytest.approx(CHIYODA_GROWTH)
 
 

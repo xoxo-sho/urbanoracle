@@ -27,7 +27,7 @@ vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
 // /disaster-risks with nothing (the page keeps its sample set for that one
 // until real-data plan PR 7).
 vi.mock("@/lib/use-gated-data", async () => {
-  const { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE } = await import("@/__tests__/fixtures/live-data");
+  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, STATIONS_FIXTURE } = await import("@/__tests__/fixtures/live-data");
   return {
     useGatedData: (endpoint: string) => {
       gate.requested.push(endpoint);
@@ -43,6 +43,7 @@ vi.mock("@/lib/use-gated-data", async () => {
         unavailable: [],
         isLive: live,
         fetchedAt: endpoint === "/api/v1/transport" ? "2026-10-17T05:30:00+00:00" : null,
+        sources: endpoint === "/api/v1/demographics" ? DEMOGRAPHICS_SOURCES : {},
       };
     },
   };
@@ -53,7 +54,7 @@ import Home from "@/app/app/page";
 const ESTAT_API_CREDIT =
   "このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。";
 const ESTAT_SOURCE = "出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）";
-const ESTAT_EDITED = "「令和2年国勢調査」「令和7年国勢調査 人口速報集計」（総務省統計局）を加工して作成";
+const ESTAT_EDITED = "「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成";
 const ODPT_NOTICE =
   "本アプリケーションが利用する公共交通データは、公共交通オープンデータセンターにおいて提供されるものです。公共交通事業者により提供されたデータを元にしていますが、必ずしも正確・完全なものとは限りません。本アプリケーションの表示内容について、公共交通事業者への直接の問合せは行わないでください。本アプリケーションに関するお問い合わせは、以下のメールアドレスにお願いします。";
 const CONTACT = "contact@dxalabs.com";
@@ -61,6 +62,9 @@ const TOEI_CC_BY =
   "このアプリは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
 const FETCHED_AT = "取得日時: 2026-10-17 14:30（日本時間）";
 const WARD_CREDIT = "区境界: dataofjapan/land（出典：地球地図日本）";
+// 国土地理院コンテンツ利用規約 1)ア / 1)イ: the ward areas under the density come from the 面積調.
+const MENCHO_SOURCE = "出典：国土地理院ウェブサイト（https://www.gsi.go.jp/KOKUJYOHO/MENCHO-title.htm）";
+const MENCHO_EDITED = "「令和7年全国都道府県市区町村別面積調（10月1日時点）」（国土地理院）を加工して作成";
 
 function dataSources(container: HTMLElement): HTMLElement {
   const footer = container.querySelector<HTMLElement>("footer");
@@ -84,6 +88,13 @@ describe("/app データ出典 / Data sources area", () => {
     expect(text).toContain(ESTAT_API_CREDIT);
     expect(text).toContain(ESTAT_SOURCE);
     expect(text).toContain(ESTAT_EDITED);
+  });
+
+  it("credits the 面積調 under the density: the 国土地理院 出典 line and the 加工 statement", () => {
+    const { container } = render(<Home />);
+    const text = dataSources(container).textContent ?? "";
+    expect(text).toContain(MENCHO_SOURCE);
+    expect(text).toContain(MENCHO_EDITED);
   });
 
   it("credits the ward boundaries to dataofjapan/land with 地球地図日本 named", () => {

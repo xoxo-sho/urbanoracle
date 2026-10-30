@@ -44,8 +44,12 @@ import {
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
+  MENCHO_EDITED,
+  MENCHO_REMARKS,
+  MENCHO_SOURCE,
   WARD_BOUNDARY_CREDIT,
 } from "@/lib/credits";
+import { censusLine, tileSourceLine } from "@/lib/census-sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
@@ -97,6 +101,11 @@ export default function Home() {
   // The e-Stat growth table did not answer: population, density and age are
   // live, every growth figure is 取得失敗.
   const growthUnavailable = demographics.unavailable.includes(GROWTH_FIELD);
+  // Per census field, the year and e-Stat table the server says the figures
+  // came from (real-data plan PR 2). Every census note on this page is built
+  // from it; a payload that names none gets no year claimed for it.
+  const censusSources = demographics.sources ?? {};
+  const growthSource = growthUnavailable ? undefined : censusSources[GROWTH_FIELD];
 
   // Build layers state from active tab — only the active tab's layer is enabled
   const layers: DataLayer[] = useMemo(() => {
@@ -238,6 +247,16 @@ export default function Home() {
                   {selectedWard ? "成長率" : "成長率1位"}
                   {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
                 </span>
+                {/* K1's own source line: the table the figure came from, as the payload says. */}
+                {growthSource && !isPending(demographics.status) && (
+                  <span
+                    data-source={GROWTH_FIELD}
+                    title={growthSource.label}
+                    className="text-[8px] text-muted-foreground text-center leading-tight"
+                  >
+                    {tileSourceLine(growthSource)}
+                  </span>
+                )}
               </div>
               <div className="key-metric">
                 <Shield className="h-4 w-4 text-down-text" />
@@ -295,6 +314,7 @@ export default function Home() {
                       onSelectWard={setSelectedWard}
                       status={demographics.status}
                       unavailable={demographics.unavailable}
+                      sources={censusSources}
                     />
                   )}
                 </div>
@@ -309,6 +329,7 @@ export default function Home() {
                   selectedWard={selectedWard}
                   status={demographics.status}
                   unavailable={demographics.unavailable}
+                  sources={censusSources}
                 />
               </TabsContent>
 
@@ -408,9 +429,14 @@ export default function Home() {
                 {demographics.data !== null && (
                   <li>
                     {growthUnavailable
-                      ? `人口・密度・年齢構成（人口タブ・区別テーブル）: ${ESTAT_SOURCE} 2020年国勢調査`
-                      : `人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）: ${ESTAT_SOURCE} 2020年国勢調査・2025年速報`}
+                      ? "人口・密度・年齢構成（人口タブ・区別テーブル）"
+                      : "人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）"}
+                    : {ESTAT_SOURCE}
+                    {censusLine(censusSources) ? ` ／ ${censusLine(censusSources)}` : ""}
                     {" ／ "}{ESTAT_EDITED}
+                    <span className="block">
+                      密度の分母（区の面積）: {MENCHO_SOURCE} ／ {MENCHO_EDITED} ／ {MENCHO_REMARKS}
+                    </span>
                   </li>
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>

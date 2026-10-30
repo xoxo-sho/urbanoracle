@@ -15,8 +15,21 @@ export const ESTAT_API_CREDIT_EN =
 /** e-Stat 利用規約 1)ア 出典記載例. */
 export const ESTAT_SOURCE = "出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）";
 
-/** e-Stat 利用規約 1)イ: density and shares are computed from the census tables. */
-export const ESTAT_EDITED = "「令和2年国勢調査」「令和7年国勢調査 人口速報集計」（総務省統計局）を加工して作成";
+/** e-Stat 利用規約 1)イ: density and the rounded shares are computed from the census tables. */
+export const ESTAT_EDITED = "「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成";
+
+/**
+ * 国土地理院コンテンツ利用規約 (令和7年11月20日改正, PDL1.0) 1)ア 出典記載例 and
+ * 1)イ: the ward areas that divide the census population into a density come
+ * from the 面積調 edition of the census date, and the quotient is 加工.
+ */
+export const MENCHO_PAGE_URL = "https://www.gsi.go.jp/KOKUJYOHO/MENCHO-title.htm";
+export const MENCHO_EDITION = "令和7年全国都道府県市区町村別面積調（10月1日時点）";
+export const MENCHO_SOURCE = `出典：国土地理院ウェブサイト（${MENCHO_PAGE_URL}）`;
+export const MENCHO_EDITED = `「${MENCHO_EDITION}」（国土地理院）を加工して作成`;
+/** The 面積調's own remarks on the 23 wards, carried so a density reader knows the denominator's caveats. */
+export const MENCHO_REMARKS =
+  "面積調の備考: 千代田・中央・港・葛飾・江戸川は境界の一部が未定のため参考値、江東・江戸川は荒川河口部を除く";
 
 /** ODPT 公共交通オープンデータ開発者ガイドライン 3.1 (notice for a published application). */
 export const ODPT_NOTICE =
