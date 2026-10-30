@@ -94,16 +94,14 @@ const json =
 
 const demographics = (year: number): Route =>
   json(200, { status: "ok", data: DATA, isLive: true, sources: sourcesFor(year) });
-const demographicsPartial: Route = (() => {
-  const { growthRate: _dropped, ...rest } = sourcesFor(CENSUS_YEAR);
-  return json(200, {
-    status: "partial",
-    data: DATA.map((d) => ({ ...d, growthRate: null })),
-    unavailable: ["growthRate"],
-    isLive: true,
-    sources: rest,
-  });
-})();
+// The growth table did not answer: the server names the field and claims no source for it.
+const demographicsPartial: Route = json(200, {
+  status: "partial",
+  data: DATA.map((d) => ({ ...d, growthRate: null })),
+  unavailable: ["growthRate"],
+  isLive: true,
+  sources: Object.fromEntries(Object.entries(sourcesFor(CENSUS_YEAR)).filter(([field]) => field !== "growthRate")),
+});
 const TRANSPORT = json(200, { status: "ok", data: [], isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
 const DISASTER = json(200, { data: [], isLive: false });
 
@@ -259,11 +257,16 @@ describe("区別データテーブル (地価 tab) and the footer", () => {
     expect(lines.length, "no census note under the 区別データテーブル").toBeGreaterThan(0);
     for (const line of lines) expect(line).toContain(`${CENSUS_YEAR}年`);
     expectNoOldVintage(panel.textContent ?? "", "地価 tab");
+  });
 
-    const { container } = await renderSettled(demographics(2031));
-    const later = sourceLines(openTab("地価")).filter((l) => l.includes("人口"));
-    for (const line of later) expect(line).toContain("2031年");
-    expect(container).toBeTruthy();
+  it("the table's note reads the year from the payload: 2031 renders 2031年", async () => {
+    await renderSettled(demographics(2031));
+    const lines = sourceLines(openTab("地価")).filter((l) => l.includes("人口"));
+    expect(lines.length).toBeGreaterThan(0);
+    for (const line of lines) {
+      expect(line).toContain("2031年");
+      expect(line).not.toContain(`${CENSUS_YEAR}年`);
+    }
   });
 
   it("the footer's live row names the year and the three tables from the payload", async () => {

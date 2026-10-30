@@ -26,6 +26,18 @@ export interface LandPricePoint {
 // Fields are nullable because the upstream statistics suppress cells for
 // small populations (e-Stat emits "-", "***", "X"). null means "not
 // published" — rendered as データなし — and is deliberately distinct from 0.
+/**
+ * Where one record field's figures came from, as the server says it
+ * (real-data plan PR 2): the year, the e-Stat table and a label a reader can
+ * check. Keyed by record field in the envelope's `sources`.
+ */
+export interface FieldSource {
+  year: number;
+  table: string;
+  label: string;
+}
+export type FieldSources = Record<string, FieldSource>;
+
 export interface DemographicsData {
   region: string;
   population: number | null;

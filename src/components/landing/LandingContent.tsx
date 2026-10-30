@@ -59,6 +59,7 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
 // MapView loads client-side).
 const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "liveEstat", "liveEstatYear"],
+  ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcOdpt", "liveOdpt", "none"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
