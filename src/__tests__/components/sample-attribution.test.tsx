@@ -7,12 +7,11 @@ import {
   dataLayers,
   sampleDisasterRisks,
   sampleLandPriceSummary,
-  samplePopulationTrends,
   sampleTransportTrends,
   sampleWardProfiles,
   sampleZoning,
 } from "@/data/sample";
-import { DEMOGRAPHICS_FIXTURE } from "@/__tests__/fixtures/live-data";
+import { DEMOGRAPHICS_FIXTURE, POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
 import HeroSpread from "@/components/landing/HeroSpread";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import WardTable from "@/components/dashboard/WardTable";
@@ -35,7 +34,8 @@ import MapLegend from "@/components/map/MapLegend";
  * position the SourceNote used to occupy).
  *
  * Since real-data plan PR 1 the census and ridership surfaces have no sample
- * path: while their endpoint is loading or failed they say 読み込み中 or
+ * path, and since PR 3 neither has the 人口推移 chart (its own route, the
+ * committed census snapshot): while their endpoint is loading or failed they say 読み込み中 or
  * 取得失敗 and name the source that did not answer, which is a statement about
  * the request, not a citation for figures. Those cases are checked here next
  * to the sample ones, so the two kinds of copy never blur.
@@ -146,21 +146,44 @@ describe("sample surfaces carry the sample label and no real-source attribution"
 });
 
 describe("census and ridership surfaces have no sample path (real-data plan PR 1)", () => {
-  it("DemographicsChart (all-area, unavailable) — 人口推移 keeps its label; the census blocks say 取得失敗 and cite nothing", () => {
+  it("DemographicsChart (all-area, census unavailable, trend ok) — no sample label anywhere; the trend cites its tables, the census blocks say 取得失敗 and cite nothing", () => {
     const { container } = render(
       <DemographicsChart
         data={[]}
         allData={[]}
-        populationTrends={samplePopulationTrends}
+        trends={POPULATION_TRENDS_FIXTURE}
+        trendStatus="ok"
+        trendSources={POPULATION_TRENDS_SOURCES}
         selectedWard={null}
         status="unavailable"
       />
     );
     const text = container.textContent ?? "";
-    expect(occurrences(text, SAMPLE_LABEL)).toBe(1);
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    expect(container.querySelector('[data-provenance="sample"]')).toBeNull();
     expect(text).toContain(FAILED_TEXT);
-    expect(text).not.toContain(ESTAT_SOURCE);
+    // The trend's own line cites e-Stat and its tables; the census blocks cite nothing.
+    const trend = container.querySelector('[data-surface="population-trend"]');
+    expect(trend?.textContent).toContain(ESTAT_SOURCE);
+    for (const s of Object.values(POPULATION_TRENDS_SOURCES)) expect(trend?.textContent).toContain(s.table);
     expect(container.querySelector('[data-credit="estat"]')).toBeNull();
+  });
+
+  it("DemographicsChart (all-area, both pending) — 読み込み中 twice, no sample label, no figure", () => {
+    const { container } = render(
+      <DemographicsChart
+        data={[]}
+        allData={[]}
+        trends={null}
+        trendStatus="loading"
+        selectedWard={null}
+        status="loading"
+      />
+    );
+    const text = container.textContent ?? "";
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    expect(container.querySelectorAll('[data-state="loading"]')).toHaveLength(2);
+    expect(text).not.toContain("万人");
   });
 
   it("DemographicsChart (ward view, loading) — no sample label at all, 読み込み中", () => {
@@ -168,7 +191,8 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
       <DemographicsChart
         data={[]}
         allData={[]}
-        populationTrends={samplePopulationTrends}
+        trends={null}
+        trendStatus="loading"
         selectedWard="千代田区"
         status="loading"
       />

@@ -5,12 +5,13 @@ import { SOURCES } from "@/lib/sources";
 import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
+import { sampleLandPriceSummary, sampleTransportTrends } from "@/data/sample";
 import {
-  sampleLandPriceSummary,
-  samplePopulationTrends,
-  sampleTransportTrends,
-} from "@/data/sample";
-import { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE } from "@/__tests__/fixtures/live-data";
+  DEMOGRAPHICS_FIXTURE,
+  POPULATION_TRENDS_FIXTURE,
+  POPULATION_TRENDS_SOURCES,
+  STATIONS_FIXTURE,
+} from "@/__tests__/fixtures/live-data";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import TransportPanel from "@/components/dashboard/TransportPanel";
 import WardTable from "@/components/dashboard/WardTable";
@@ -30,8 +31,17 @@ import WardTable from "@/components/dashboard/WardTable";
  * Flipped in PR 1: the five "every fallback path reports isLive=false" cases
  * described the client-side sample fallback, which no longer exists, and the
  * consumer cases passed isLive=false to mean "sample", which no consumer of
- * the two live endpoints can be any more.
+ * the two live endpoints can be any more. Flipped again in PR 3: the
+ * DemographicsChart cases said "trend still sample"; the 人口推移 chart now
+ * draws the committed census snapshot from its own route, so no state of the
+ * census answer puts a sample label on the chart.
  */
+
+const TREND = {
+  trends: POPULATION_TRENDS_FIXTURE,
+  trendStatus: "ok" as const,
+  trendSources: POPULATION_TRENDS_SOURCES,
+};
 
 const auth = vi.hoisted(() => ({ getToken: async () => "id-token" }));
 vi.mock("@/lib/auth-context", () => ({
@@ -83,30 +93,32 @@ describe("consumers render by status", () => {
   const SAMPLE = SOURCES.sample.label;
   const ODPT_CITATION = `出典: ${SOURCES.odpt.label}`;
 
-  it("DemographicsChart: unavailable → 取得失敗, no e-Stat citation, trend still sample", () => {
+  it("DemographicsChart: unavailable → 取得失敗 on the census blocks, no e-Stat citation there; the trend keeps its own citation and no sample label", () => {
     const { container } = render(
       <DemographicsChart
         data={[]}
         allData={[]}
-        populationTrends={samplePopulationTrends}
+        {...TREND}
         selectedWard={null}
         status="unavailable"
       />
     );
     const text = container.textContent ?? "";
     expect(text).toContain(FAILED_TEXT);
-    expect(text).not.toContain(ESTAT_SOURCE);
     expect(container.querySelector('[data-credit="estat"]')).toBeNull();
-    // The population trend has no upstream at all — it is sample on every path.
-    expect(text).toContain(SAMPLE);
+    // The only e-Stat citation left is the trend's own line.
+    const trend = container.querySelector('[data-surface="population-trend"]');
+    expect(trend?.textContent).toContain(ESTAT_SOURCE);
+    expect(text.split(ESTAT_SOURCE).length - 1).toBe(1);
+    expect(text).not.toContain(SAMPLE);
   });
 
-  it("DemographicsChart: ok → e-Stat on the census section, trend still sample", () => {
+  it("DemographicsChart: ok → e-Stat on the census section and on the trend, no sample label", () => {
     const { container } = render(
       <DemographicsChart
         data={DEMOGRAPHICS_FIXTURE}
         allData={DEMOGRAPHICS_FIXTURE}
-        populationTrends={samplePopulationTrends}
+        {...TREND}
         selectedWard={null}
         status="ok"
       />
@@ -115,7 +127,7 @@ describe("consumers render by status", () => {
     // e-Stat's own 出典 wording (e-Stat 利用規約 1)ア) heads the census note.
     expect(text).toContain(ESTAT_SOURCE);
     expect(container.querySelector('[data-credit="estat"]')).not.toBeNull();
-    expect(text).toContain(SAMPLE);
+    expect(text).not.toContain(SAMPLE);
     expect(text).not.toContain(FAILED_TEXT);
   });
 
@@ -124,13 +136,14 @@ describe("consumers render by status", () => {
       <DemographicsChart
         data={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
         allData={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
-        populationTrends={samplePopulationTrends}
+        {...TREND}
         selectedWard={null}
         status="partial"
         unavailable={["growthRate"]}
       />
     );
     const text = container.textContent ?? "";
+    expect(text).not.toContain(SAMPLE);
     expect(text).toContain("最大成長");
     expect(text).toContain(FAILED_TEXT);
     expect(text).not.toContain(NO_DATA);

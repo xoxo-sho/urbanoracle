@@ -20,6 +20,8 @@ DATA_ROUTES = [
     "/api/v1/demographics",
     "/api/v1/disaster-risks",
     "/api/v1/transport",
+    # The committed 人口推移 snapshot (real-data plan PR 3): gated like the rest.
+    "/api/v1/population-trends",
 ]
 
 ACTIVE_CLAIMS = {

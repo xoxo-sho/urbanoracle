@@ -54,6 +54,7 @@ const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import Home from "@/app/app/page";
+import { POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
 
 const LOADING = "読み込み中";
 const FAILED = "取得失敗";
@@ -128,6 +129,9 @@ const TRANSPORT_PARTIAL = json(200, {
 const UNAVAILABLE = json(503, { status: "unavailable" });
 // Outside PR 1; it answers so the page settles.
 const DISASTER = json(200, { data: [], isLive: false });
+// The 人口推移 snapshot route (PR 3): answers so the page settles; its own
+// states are guarded in population-trends.test.tsx.
+const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -145,6 +149,7 @@ async function renderSettled(routes: { demographics: Route; transport: Route }) 
     "/api/v1/demographics": routes.demographics,
     "/api/v1/transport": routes.transport,
     "/api/v1/disaster-risks": DISASTER,
+    "/api/v1/population-trends": TRENDS,
   });
   const view = render(<Home />);
   await waitFor(() => expect(mock).toHaveBeenCalledTimes(3));
@@ -245,8 +250,8 @@ describe("読み込み中 — before either response resolves", () => {
 
     const people = openTab("人口");
     for (const n of SAMPLE_NUMBERS) expect(people.textContent ?? "").not.toContain(n);
-    // Only 人口推移 (P1, not in PR 1) may still carry the sample label here.
-    expect(sampleNodesOutsidePr1(people), "人口 tab SAMPLE nodes (人口推移 only)").toBeLessThanOrEqual(1);
+    // Since PR 3 the 人口推移 chart is live too: no sample node on the 人口 tab at all.
+    expect(sampleNodesOutsidePr1(people), "人口 tab SAMPLE nodes").toBe(0);
     expect(people.textContent).toContain(LOADING);
 
     const transport = openTab("交通");
@@ -304,7 +309,7 @@ describe("取得失敗 — the endpoint failed", () => {
 
     const people = openTab("人口");
     for (const n of SAMPLE_NUMBERS) expect(people.textContent ?? "").not.toContain(n);
-    expect(sampleNodesOutsidePr1(people), "人口 tab SAMPLE nodes (人口推移 only)").toBeLessThanOrEqual(1);
+    expect(sampleNodesOutsidePr1(people), "人口 tab SAMPLE nodes").toBe(0);
     expect(people.textContent).toContain(FAILED);
 
     const transport = openTab("交通");

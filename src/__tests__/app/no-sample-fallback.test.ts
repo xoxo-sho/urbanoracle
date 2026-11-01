@@ -35,3 +35,25 @@ describe("no client-side fallback to sample.ts on the two live surfaces", () => 
     expect(sample).not.toMatch(/export const sampleTransportStations\b/);
   });
 });
+
+describe("PR 3: 人口推移 is the committed census snapshot, not samplePopulationTrends", () => {
+  // RED on main (149a782). The chart reads /api/v1/population-trends; the
+  // sample set, its import, and the LP's sample row for it all leave.
+  it("page.tsx no longer imports samplePopulationTrends", () => {
+    expect(read("src/app/app/page.tsx")).not.toContain("samplePopulationTrends");
+  });
+
+  it("sample.ts no longer exports samplePopulationTrends", () => {
+    expect(read("src/data/sample.ts")).not.toMatch(/export const samplePopulationTrends\b/);
+  });
+
+  it("the LP dictionary and provenance table have no sample row for 人口推移", () => {
+    expect(read("src/i18n/lp.ts")).not.toMatch(/\bsamplePopulation\b/);
+    expect(read("src/components/landing/LandingContent.tsx")).not.toMatch(/\bsamplePopulation\b/);
+  });
+
+  it("the backend sample copy and its generator carry no population trend", () => {
+    expect(read("backend/data/sample_fallback.json")).not.toContain("samplePopulationTrends");
+    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("samplePopulationTrends");
+  });
+});

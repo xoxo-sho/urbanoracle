@@ -42,6 +42,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 import Home from "@/app/app/page";
 import { useGatedData } from "@/lib/use-gated-data";
 import { ESTAT_EDITED } from "@/lib/credits";
+import { POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
 
 const TABLES = expected.meta.tables as { population: string; growthRate: string; ageGroups: string };
 const AREA_EDITION = expected.meta.area.edition;
@@ -104,6 +105,8 @@ const demographicsPartial: Route = json(200, {
 });
 const TRANSPORT = json(200, { status: "ok", data: [], isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
 const DISASTER = json(200, { data: [], isLive: false });
+// The 人口推移 snapshot route (PR 3), served so the page settles.
+const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -121,6 +124,7 @@ async function renderSettled(demographicsRoute: Route) {
     "/api/v1/demographics": demographicsRoute,
     "/api/v1/transport": TRANSPORT,
     "/api/v1/disaster-risks": DISASTER,
+    "/api/v1/population-trends": TRENDS,
   });
   const view = render(<Home />);
   await waitFor(() => expect(mock).toHaveBeenCalledTimes(3));
@@ -154,7 +158,7 @@ function selectWard(container: HTMLElement, name: string) {
  * The provenance lines of the census surfaces: SourceNote paragraphs, plus —
  * for the 区別データテーブル, whose 地価 column is still sample — the note
  * under the table that names the census columns' source. The 人口推移 chart
- * (P1, not in this PR) keeps its sample note and is left out by the filter.
+ * (PR 3) has its own guards and is left out by the filter.
  */
 function sourceLines(root: HTMLElement): string[] {
   return [...root.querySelectorAll<HTMLElement>(".source-note, .sample-note-detail")]
