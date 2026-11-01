@@ -49,6 +49,33 @@ export function censusLine(sources: FieldSources, fields: readonly CensusField[]
   return [year === null ? null : `${year}年国勢調査`, ...parts].filter((p): p is string => p !== null).join(" ／ ");
 }
 
+/**
+ * The provenance line of the 人口推移 chart (real-data plan PR 3), from the
+ * /population-trends `sources` — one entry per point, keyed by year:
+ * 「2000–2025年国勢調査 ／ 2000–2020年: …（e-Stat 000001085987） ／ 2025年: …（e-Stat 0004065881）」.
+ * Consecutive years from the same table and label share one span. Null when
+ * the payload names nothing — a note built from nothing claims no year.
+ */
+export function trendLine(sources: FieldSources | null | undefined): string | null {
+  const entries = Object.values(sources ?? {})
+    .filter((s) => Number.isFinite(s.year))
+    .sort((a, b) => a.year - b.year);
+  if (entries.length === 0) return null;
+  const groups: { from: number; to: number; table: string; label: string }[] = [];
+  for (const s of entries) {
+    const last = groups[groups.length - 1];
+    if (last && last.table === s.table && last.label === s.label) last.to = s.year;
+    else groups.push({ from: s.year, to: s.year, table: s.table, label: s.label });
+  }
+  const span = (g: { from: number; to: number }) => (g.from === g.to ? `${g.from}年` : `${g.from}–${g.to}年`);
+  const first = entries[0].year;
+  const last = entries[entries.length - 1].year;
+  return [
+    `${first === last ? first : `${first}–${last}`}年国勢調査`,
+    ...groups.map((g) => `${span(g)}: ${g.label}（e-Stat ${g.table}）`),
+  ].join(" ／ ");
+}
+
 /** The compact line a key-metric tile shows under its figure: the year and the table. */
 export function tileSourceLine(source: FieldSource): string {
   return `${source.year}年国勢調査 e-Stat ${source.table}`;

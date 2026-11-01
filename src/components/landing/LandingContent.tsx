@@ -59,6 +59,7 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
 // MapView loads client-side).
 const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "liveEstat", "liveEstatYear"],
+  ["srcEstat", "livePopTrend", "livePopTrendYear"],
   ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcOdpt", "liveOdpt", "none"],
   ["srcHazard", "liveHazard", "none"],
@@ -70,7 +71,6 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
 const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [
   ["sampleHero", "none"],
   ["sampleLandPrice", "none"],
-  ["samplePopulation", "none"],
   ["sampleDisaster", "none"],
   ["sampleZoning", "none"],
   ["sampleRidership", "none"],
@@ -184,7 +184,7 @@ export default function LandingContent() {
                   </th>
                 </tr>
                 {LIVE_ROWS.map(([source, content, year]) => (
-                  <tr key={source} style={{ borderBottom: "1px solid var(--rule)" }}>
+                  <tr key={`${source}-${content}`} style={{ borderBottom: "1px solid var(--rule)" }}>
                     <td className="py-2 pr-3">{t[source]}</td>
                     <td className="py-2 pr-3 text-muted-foreground">{t[content]}</td>
                     <td className="py-2 font-mono tabular-nums text-muted-foreground">{t[year]}</td>

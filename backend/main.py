@@ -21,6 +21,7 @@ from routers.auth import router as auth_router
 from routers.data import router as data_router
 from routers.health import router as health_router
 from routers.verification import router as verification_router
+from services import population_trends
 
 # uvicorn configures only its own loggers, so application logger.info() calls
 # were being dropped and never reached Cloud Run — which silently removed the
@@ -30,6 +31,12 @@ from routers.verification import router as verification_router
 # httpx's request-URL lines (which carried the e-Stat and ODPT keys) out, and
 # masking secret query parameters in every record (core/logging_setup.py).
 configure_logging()
+
+# The 人口推移 snapshot has no upstream, so the only thing that can be wrong
+# with it is the file itself — and that is checked here, at import, not on a
+# request: a missing or malformed snapshot stops the process, Cloud Run refuses
+# the revision and the deploy fails (real-data plan PR 3).
+population_trends.check_at_startup(settings.POPULATION_TRENDS_PATH)
 
 app = FastAPI(
     title="UrbanOracle API",
