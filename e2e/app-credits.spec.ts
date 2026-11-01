@@ -24,10 +24,26 @@ const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 // still serves the curated sample set from backend/data/sample_fallback.json.
 const sample = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "sample_fallback.json"), "utf8"));
 const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
+// The 人口推移 snapshot route (real-data plan PR 3) answers from the committed snapshot itself.
+interface SnapshotPoint {
+  year: number;
+  population: number;
+  wards: { name: string; population: number }[];
+}
+const trends = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "population_trends.json"), "utf8")) as {
+  region: string;
+  sources: Record<string, unknown>;
+  points: SnapshotPoint[];
+};
+const trendRows = trends.points.flatMap((p) => [
+  { year: p.year, population: p.population, region: trends.region },
+  ...p.wards.map((w) => ({ year: p.year, population: w.population, region: w.name })),
+]);
 const API: Record<string, unknown> = {
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
   "/api/v1/transport": { status: "ok", data: live.stations, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
   "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
+  "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },
 };
 

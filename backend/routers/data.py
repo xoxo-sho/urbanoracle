@@ -1,4 +1,5 @@
-"""The three data endpoints, ported from the Next route handlers.
+"""The data endpoints: three ported from the Next route handlers, plus the
+人口推移 snapshot route (real-data plan PR 3).
 
 Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
 ``status`` says whether the request got everything it asked for; ``isLive``
@@ -10,7 +11,9 @@ upstream genuinely has no figure for. A live /transport answer also carries
 ``fetchedAt``, when the ODPT data was obtained (ODPT developer guideline 2.2.1
 asks for that 取得日時 on screen). A /demographics answer carries ``sources``:
 per census field, the year and the e-Stat table the figure came from, so the
-screen can say which vintage every figure is (real-data plan PR 2).
+screen can say which vintage every figure is (real-data plan PR 2). The
+/population-trends answer carries the same shape keyed by year: the table
+each census point came from.
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
@@ -34,7 +37,8 @@ from fastapi.responses import JSONResponse
 
 from core import cache
 from core.boundary import json_safe
-from services import demographics, disaster_risks, odpt, transport
+from core.config import settings
+from services import demographics, disaster_risks, odpt, population_trends, transport
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +126,25 @@ async def get_demographics() -> JSONResponse:
         status="partial" if unavailable else "ok",
         unavailable=unavailable,
         sources=demographics.sources_for(unavailable),
+    )
+
+
+@router.get("/population-trends")
+async def get_population_trends() -> JSONResponse:
+    """The committed 人口推移 snapshot (real-data plan PR 3): six census totals for
+    the 23 wards, 2000–2025, with every ward's row, from memory.
+
+    No upstream and no cache: the file was validated when the app started
+    (main.py), so this route cannot fail the way the two live ones can — a
+    census-table 503 on /demographics never takes the trend chart down, which
+    is why it is a route of its own. ``isLive`` is True: the figures are the
+    census's own, not a sample. ``sources`` names, per year, the table.
+    """
+    snapshot = population_trends.get(settings.POPULATION_TRENDS_PATH)
+    return _envelope(
+        population_trends.rows(snapshot),
+        is_live=True,
+        sources=population_trends.sources(snapshot),
     )
 
 

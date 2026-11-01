@@ -261,13 +261,15 @@ def test_route_envelope_names_the_year_and_table_of_every_point(client):
 
 
 def test_route_does_not_touch_the_network(client, monkeypatch):
+    """Every upstream call in this backend goes through httpx.AsyncClient (the
+    TestClient itself is a sync httpx.Client, so that one is left alone)."""
     import httpx
 
     def explode(*args, **kwargs):
         raise AssertionError("the trend route serves a committed file, never an upstream")
 
-    monkeypatch.setattr(httpx.AsyncClient, "request", explode, raising=False)
-    monkeypatch.setattr(httpx.Client, "request", explode, raising=False)
+    monkeypatch.setattr(httpx.AsyncClient, "__init__", explode, raising=False)
+    monkeypatch.setattr(httpx, "get", explode, raising=False)
     assert client.get(ROUTE, headers=ACTIVE).status_code == 200
 
 

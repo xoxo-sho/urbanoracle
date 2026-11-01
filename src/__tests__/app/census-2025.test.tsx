@@ -127,7 +127,7 @@ async function renderSettled(demographicsRoute: Route) {
     "/api/v1/population-trends": TRENDS,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(3));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(4));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -160,14 +160,25 @@ function selectWard(container: HTMLElement, name: string) {
  * under the table that names the census columns' source. The 人口推移 chart
  * (PR 3) has its own guards and is left out by the filter.
  */
+const TREND_SURFACE = '[data-surface="population-trend"]';
+
 function sourceLines(root: HTMLElement): string[] {
   return [...root.querySelectorAll<HTMLElement>(".source-note, .sample-note-detail")]
+    .filter((el) => !el.closest(TREND_SURFACE))
     .map((el) => el.textContent ?? "")
     .filter((text) => text.includes("出典") || text.includes("人口"));
 }
 
+/** The panel's text without the 人口推移 surface, which spans 2000–2025 by design. */
+function censusText(panel: HTMLElement): string {
+  const copy = panel.cloneNode(true) as HTMLElement;
+  copy.querySelectorAll(TREND_SURFACE).forEach((el) => el.remove());
+  return copy.textContent ?? "";
+}
+
+/** The footer's census row (the 人口推移 row beside it names its own years). */
 function footerLive(container: HTMLElement): string {
-  return container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
+  return container.querySelector('footer [data-provenance="live"] [data-source="census"]')?.textContent ?? "";
 }
 
 function expectNoOldVintage(text: string, what: string) {
@@ -238,7 +249,7 @@ describe("人口 tab: every figure's note carries the payload's year, one vintag
     for (const line of lines) expect(line).toContain(`${CENSUS_YEAR}年`);
     expect(lines.join("\n")).toContain("不詳補完値");
     expect(lines.join("\n")).toContain(TABLES.ageGroups);
-    expectNoOldVintage(panel.textContent ?? "", "人口 tab (all area)");
+    expectNoOldVintage(censusText(panel), "人口 tab (all area)");
   });
 
   it("ward view (江戸川区): population, density, growth and age cards sit under a note that says 2025年", async () => {
@@ -249,7 +260,7 @@ describe("人口 tab: every figure's note carries the payload's year, one vintag
     const lines = sourceLines(panel);
     expect(lines.length).toBeGreaterThan(0);
     for (const line of lines) expect(line).toContain(`${CENSUS_YEAR}年`);
-    expectNoOldVintage(panel.textContent ?? "", "人口 tab (江戸川区)");
+    expectNoOldVintage(censusText(panel), "人口 tab (江戸川区)");
   });
 
   it("reads the year from the payload: 2031 renders 2031年 on every note", async () => {

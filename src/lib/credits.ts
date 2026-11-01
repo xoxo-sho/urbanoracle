@@ -17,6 +17,13 @@ export const ESTAT_SOURCE = "出典：政府統計の総合窓口(e-Stat)（http
 
 /** e-Stat 利用規約 1)イ: density and the rounded shares are computed from the census tables. */
 export const ESTAT_EDITED = "「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成";
+/**
+ * e-Stat 利用規約 1)イ for the 人口推移 chart (real-data plan PR 3): the 23-ward
+ * totals are sums over the ward rows of the 時系列 第6表 workbook (2000–2020) and
+ * of the 2025 確報 population table. The same sentence is recorded in the
+ * snapshot's `credit.edited` (backend/data/population_trends.json).
+ */
+export const ESTAT_TREND_EDITED = "「国勢調査 時系列データ」「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成";
 
 /**
  * 国土地理院コンテンツ利用規約 (令和7年11月20日改正, PDL1.0) 1)ア 出典記載例 and

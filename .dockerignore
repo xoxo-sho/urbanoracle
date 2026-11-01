@@ -7,6 +7,9 @@ test-results
 # Local/dev only
 .git
 .github
+# Snapshot builders and their raw downloads (etl/README.md); the snapshots
+# themselves are committed under backend/data/ and ship with backend/.
+etl
 .env.local
 .env*.local
 .vercel

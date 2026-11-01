@@ -13,22 +13,29 @@ import {
 } from "recharts";
 import type { DemographicsData, FieldSources, PopulationTrend } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
-import { censusLine, type CensusField } from "@/lib/census-sources";
+import { censusLine, trendLine, type CensusField } from "@/lib/census-sources";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
+import { ESTAT_TREND_EDITED } from "@/lib/credits";
 import SourceNote from "@/components/dashboard/SourceNote";
-import SampleNote from "@/components/dashboard/SampleNote";
 import { EstatCredits } from "@/components/dashboard/RequiredCredits";
 import { FAILED_TEXT, StateNotice, isPending } from "@/components/dashboard/DataState";
 
 interface DemographicsChartProps {
   data: DemographicsData[];
   allData: DemographicsData[];
-  populationTrends: PopulationTrend[];
   selectedWard: string | null;
-  /** State of the /demographics answer. The population trend (sample) never depends on it. */
+  /** State of the /demographics answer. The 人口推移 chart has its own route and never depends on it. */
   status: DataStatus;
+  /**
+   * The /population-trends payload (real-data plan PR 3): one row per year for
+   * 東京23区 and for every ward; null while loading or failed.
+   */
+  trends: PopulationTrend[] | null;
+  trendStatus: DataStatus;
+  /** Per year, the table the server says that point came from. */
+  trendSources?: FieldSources;
   /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
   unavailable?: readonly string[];
   /** Per census field, the year and e-Stat table the figures came from, as the server says (real-data plan PR 2). */
@@ -36,6 +43,8 @@ interface DemographicsChartProps {
 }
 
 const GROWTH_FIELD = "growthRate";
+// The region the chart draws: the 23-ward total rows of the payload.
+const TREND_REGION = "東京23区";
 
 // What each view shows, so its note names exactly those fields' sources.
 const ALL_AREA_FIELDS: readonly CensusField[] = ["growthRate", "ageGroups"];
@@ -44,11 +53,13 @@ const WARD_FIELDS: readonly CensusField[] = ["population", "density", "growthRat
 export default function DemographicsChart({
   data,
   allData,
-  populationTrends,
   selectedWard,
   status,
   unavailable = [],
   sources = {},
+  trends,
+  trendStatus,
+  trendSources = {},
 }: DemographicsChartProps) {
   // The growth table did not answer: every growth figure is 取得失敗, not the
   // データなし a suppressed cell gets. The census figures stand on their own,
@@ -127,11 +138,19 @@ export default function DemographicsChart({
     );
   }
 
-  // All-area view
-  const popTrendData = populationTrends.map((t) => ({ year: t.year, 人口: t.population }));
-  const latestPop = popTrendData[popTrendData.length - 1]?.人口 ?? 0;
-  const prevPop = popTrendData[popTrendData.length - 2]?.人口 ?? latestPop;
-  const recentGrowth = ((latestPop - prevPop) / prevPop * 100).toFixed(1);
+  // All-area view. The 人口推移 chart draws the payload's 東京23区 rows, in year
+  // order; before its own answer it says 読み込み中, on a failure 取得失敗 — and an
+  // answer with no 23区 rows is a failure too, never an empty chart.
+  const trendRows = (trends ?? [])
+    .filter((t) => t.region === TREND_REGION && hasValue(t.population))
+    .sort((a, b) => a.year - b.year);
+  const trendState = isPending(trendStatus) ? trendStatus : trendRows.length === 0 ? "unavailable" : null;
+  const popTrendData = trendRows.map((t) => ({ year: t.year, 人口: t.population }));
+  const latestPop = popTrendData[popTrendData.length - 1]?.人口 ?? null;
+  const prevPop = popTrendData[popTrendData.length - 2]?.人口 ?? null;
+  const recentGrowth =
+    hasValue(latestPop) && hasValue(prevPop) && prevPop !== 0 ? ((latestPop - prevPop) / prevPop) * 100 : null;
+  const trendNote = trendLine(trendSources);
 
   // Wards with no published rate cannot lead or trail a ranking.
   const ranked = allData.filter((d) => hasValue(d.growthRate));
@@ -155,18 +174,25 @@ export default function DemographicsChart({
 
   return (
     <div className="space-y-3">
-      {popTrendData.length > 0 && (
-        <div className="chart-section">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">人口推移（東京23区）</h4>
+      <div className="chart-section" data-surface="population-trend">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">人口推移（東京23区）</h4>
+          {trendState === null && hasValue(latestPop) && (
             <div className="text-right">
               <span className="text-base font-bold">{(latestPop / 10000).toFixed(0)}</span>
               <span className="text-[10px] text-muted-foreground">万人</span>
-              <span className="ml-1.5 text-[10px] font-medium" style={{ color: Number(recentGrowth) >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
-                {Number(recentGrowth) > 0 ? "+" : ""}{recentGrowth}%
-              </span>
+              {hasValue(recentGrowth) && (
+                <span className="ml-1.5 text-[10px] font-medium" style={{ color: recentGrowth >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
+                  {recentGrowth > 0 ? "+" : ""}{recentGrowth.toFixed(1)}%
+                </span>
+              )}
             </div>
-          </div>
+          )}
+        </div>
+        {trendState !== null ? (
+          <StateNotice status={trendState} source={SOURCES.estat.label} />
+        ) : (
+          <>
           <ResponsiveContainer width="100%" height={130}>
             <AreaChart data={popTrendData}>
               <defs>
@@ -181,9 +207,22 @@ export default function DemographicsChart({
               <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.upside} strokeWidth={2} fill="url(#demoPopGrad)" />
             </AreaChart>
           </ResponsiveContainer>
-          <SampleNote note="単位: 人" />
-        </div>
-      )}
+          {/* The points as text, for assistive technology and for the guards: the
+              area chart itself is an SVG a screen reader cannot read. */}
+          <ul className="sr-only" data-trend-points>
+            {trendRows.map((t) => (
+              <li key={t.year} data-trend-point data-year={t.year} data-population={t.population}>
+                {t.year}年 {t.population.toLocaleString()}人
+              </li>
+            ))}
+          </ul>
+          <SourceNote source="estat" unit="人" year={trendNote ?? undefined} />
+          <div className="credit-block" data-credit="estat-trend">
+            <p>{ESTAT_TREND_EDITED}</p>
+          </div>
+          </>
+        )}
+      </div>
 
       {isPending(status) ? (
         <div className="chart-section">

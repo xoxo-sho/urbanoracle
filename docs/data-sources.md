@@ -113,6 +113,24 @@ function transformLandPrice(feature: GeoJSON.Feature): LandPricePoint {
 
 応答エンベロープの `sources` に、項目ごとの年次・統計表ID・ラベルを載せ、画面の出典行はそれを表示する。
 
+### 3.2a 人口推移（東京23区、2000–2025年）— 委託スナップショット
+
+`GET /api/v1/population-trends`（`require_active` 配下）は、コミット済みのスナップショット
+`backend/data/population_trends.json` を返す（real-data plan PR 3）。上流はなく、起動時に
+`services/population_trends.py` が検証し、ファイルが欠けている・壊れている場合はプロセスが
+起動しない（デプロイが失敗する）。レスポンスは `/demographics` と同じ封筒（`status` / `data` /
+`isLive` / `sources`）で、`data` は年ごとの 東京23区 行と各区の行、`sources` は年をキーに
+年次・統計表ID・ラベルを載せる。
+
+| 年 | 出典 | ID |
+|----|------|----|
+| 2000 / 2005 / 2010 / 2015 / 2020 | 国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（昭和55年～令和2年）：東京都（各年の調査結果。23区については特別区部＝23区合計、令和2年は 0004065882 の「2020年（組替）」と区ごとに一致） | statInfId 000001085987（EXCEL、公開 2022-03-31） |
+| 2025 | 令和7年国勢調査 人口等基本集計（確報）男女別人口（23区の合計） | 0004065881 |
+
+ビルダーは `etl/population_trends.py`（`extract`: 生ワークブック → `backend/tests/fixtures/population_trends/`
+の抜粋 CSV と sha256 付きメタ、`build`: 抜粋 + PR 2 の e-Stat 応答 → スナップショット）。テストはスナップ
+ショットが同じソースからの再ビルドと一致することを検証する。生ダウンロード（`etl/_downloads/`）はコミットしない。
+
 ### 3.3 取得方法
 
 ```

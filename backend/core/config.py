@@ -70,6 +70,18 @@ class Settings:
         return os.environ.get("VERIFICATION_EMAIL_REPLY_TO", "contact@dxalabs.com")
 
     @property
+    def POPULATION_TRENDS_PATH(self) -> Path:
+        """The committed 人口推移 snapshot (real-data plan PR 3), validated at startup.
+
+        Ships with backend/ in the image. The override exists so a test can
+        point the app at a broken file and prove that it refuses to start.
+        """
+        explicit = os.environ.get("POPULATION_TRENDS_PATH")
+        if explicit:
+            return Path(explicit)
+        return Path(__file__).resolve().parents[1] / "data" / "population_trends.json"
+
+    @property
     def DATA_DIR(self) -> Path:
         """Where the committed GeoJSON assets live.
 

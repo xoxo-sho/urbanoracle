@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# etl: raw downloads stay out of the repo (etl/README.md)
+/etl/_downloads/

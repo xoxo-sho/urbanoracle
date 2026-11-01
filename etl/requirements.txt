@@ -1,0 +1,4 @@
+# etl/ only — never part of the image or the backend's CI deps. The build
+# step (committed excerpt + e-Stat JSON → snapshot) needs nothing beyond
+# the standard library; openpyxl is for `extract`, which reads the raw xlsx.
+openpyxl==3.1.5

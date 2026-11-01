@@ -1,0 +1,808 @@
+{
+ "region": "東京23区",
+ "reference": "各年10月1日現在（国勢調査）",
+ "sources": {
+  "2000": {
+   "year": 2000,
+   "table": "000001085987",
+   "label": "国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（平成12年）：東京都"
+  },
+  "2005": {
+   "year": 2005,
+   "table": "000001085987",
+   "label": "国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（平成17年）：東京都"
+  },
+  "2010": {
+   "year": 2010,
+   "table": "000001085987",
+   "label": "国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（平成22年）：東京都"
+  },
+  "2015": {
+   "year": 2015,
+   "table": "000001085987",
+   "label": "国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（平成27年）：東京都"
+  },
+  "2020": {
+   "year": 2020,
+   "table": "000001085987",
+   "label": "国勢調査 時系列データ 第6表 年齢（3区分），男女別人口及び年齢別割合－都道府県，市区町村（令和2年）：東京都"
+  },
+  "2025": {
+   "year": 2025,
+   "table": "0004065881",
+   "label": "令和7年国勢調査 人口等基本集計（確報）男女別人口"
+  }
+ },
+ "inputs": {
+  "estat_000001085987_tokyo23.csv": {
+   "path": "backend/tests/fixtures/population_trends/estat_000001085987_tokyo23.csv",
+   "sha256": "fcf30ddd76de5c2ac8e4db2093f95d0006e12cc290e694e94e205cb68c89a63a",
+   "cut_from": {
+    "stat_infid": "000001085987",
+    "title": "国勢調査 時系列データ 男女，年齢，配偶関係 第6表 年齢（3区分），男女別人口及び年齢別割合 － 都道府県，市区町村（昭和55年～令和2年）：東京都",
+    "listing_url": "https://www.e-stat.go.jp/stat-search/files?tclass=000001007702&cycle=0&layout=datalist",
+    "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000001085987&fileKind=0",
+    "file": "da0613.xlsx",
+    "bytes": 342082,
+    "sha256": "7f86215c518a125e5e1bc22f19338b6bff9c0bc7524f9cb1772d0786cb7fcea3",
+    "open_date": "2022-03-31",
+    "fetched": "2026-11-01"
+   }
+  },
+  "estat_0004065881_wards.json": {
+   "path": "backend/tests/fixtures/census_2025/estat_0004065881_wards.json",
+   "sha256": "95f50f2025c7c268fa803afc62a8328502c38f3f1fb2e4b92507fa4e78937ba3",
+   "table": "0004065881",
+   "open_date": "2026-09-29"
+  },
+  "estat_0004065882_wards.json": {
+   "path": "backend/tests/fixtures/census_2025/estat_0004065882_wards.json",
+   "sha256": "ab59e8fdbff23ad55f873d14661aa4b31c2852c305366530c88525f91270aed1",
+   "table": "0004065882",
+   "open_date": "2026-09-29",
+   "role": "cross-check only: 2020年（組替） equals the 時系列 2020 sheet per ward; 2020 + 5年間の人口増減数 equals 2025"
+  }
+ },
+ "licence": {
+  "name": "e-Stat 利用規約（政府標準利用規約（第2.0版）準拠、CC BY 4.0 互換）",
+  "url": "https://www.e-stat.go.jp/terms-of-use"
+ },
+ "credit": {
+  "source": "出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）",
+  "edited": "「国勢調査 時系列データ」「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成"
+ },
+ "points": [
+  {
+   "year": 2000,
+   "table": "000001085987",
+   "population": 8134688,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 36035
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 72526
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 159398
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 286726
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 176017
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 156325
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 215979
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 376840
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 324608
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 250140
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 650331
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 814901
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 196682
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 309526
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 522103
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 249017
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 326764
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 180468
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 513575
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 658132
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 617123
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 421519
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 619953
+    }
+   ]
+  },
+  {
+   "year": 2005,
+   "table": "000001085987",
+   "population": 8489653,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 41778
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 98399
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 185861
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 305716
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 189632
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 165186
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 231173
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 420845
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 346357
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 264064
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 665674
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 841165
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 203334
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 310627
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 528587
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 250585
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 330412
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 191207
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 523083
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 692339
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 624807
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 424878
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 653944
+    }
+   ]
+  },
+  {
+   "year": 2010,
+   "table": "000001085987",
+   "population": 8945695,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 47115
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 122762
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 205131
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 326309
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 206626
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 175928
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 247606
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 460819
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 365302
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 268330
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 693373
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 877138
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 204492
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 314750
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 549569
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 284678
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 335544
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 203296
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 535824
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 716124
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 683426
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 442586
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 678967
+    }
+   ]
+  },
+  {
+   "year": 2015,
+   "table": "000001085987",
+   "population": 9272740,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 58406
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 141183
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 243283
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 333560
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 219724
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 198073
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 256274
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 498109
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 386855
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 277622
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 717082
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 903346
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 224533
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 328215
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 563997
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 291167
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 341076
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 212264
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 561916
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 721722
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 670122
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 442913
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 681298
+    }
+   ]
+  },
+  {
+   "year": 2020,
+   "table": "000001085987",
+   "population": 9733276,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 66680
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 169179
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 260486
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 349385
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 240069
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 211444
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 272085
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 524310
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 422488
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 288088
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 748081
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 943664
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 243883
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 344880
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 591108
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 301599
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 355213
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 217475
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 584483
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 752608
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 695043
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 453093
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 697932
+    }
+   ]
+  },
+  {
+   "year": 2025,
+   "table": "0004065881",
+   "population": 9944109,
+   "wards": [
+    {
+     "code": "13101",
+     "name": "千代田区",
+     "population": 66270
+    },
+    {
+     "code": "13102",
+     "name": "中央区",
+     "population": 181841
+    },
+    {
+     "code": "13103",
+     "name": "港区",
+     "population": 272478
+    },
+    {
+     "code": "13104",
+     "name": "新宿区",
+     "population": 361357
+    },
+    {
+     "code": "13105",
+     "name": "文京区",
+     "population": 249800
+    },
+    {
+     "code": "13106",
+     "name": "台東区",
+     "population": 228046
+    },
+    {
+     "code": "13107",
+     "name": "墨田区",
+     "population": 285038
+    },
+    {
+     "code": "13108",
+     "name": "江東区",
+     "population": 553502
+    },
+    {
+     "code": "13109",
+     "name": "品川区",
+     "population": 426005
+    },
+    {
+     "code": "13110",
+     "name": "目黒区",
+     "population": 286082
+    },
+    {
+     "code": "13111",
+     "name": "大田区",
+     "population": 758181
+    },
+    {
+     "code": "13112",
+     "name": "世田谷区",
+     "population": 954737
+    },
+    {
+     "code": "13113",
+     "name": "渋谷区",
+     "population": 238826
+    },
+    {
+     "code": "13114",
+     "name": "中野区",
+     "population": 354853
+    },
+    {
+     "code": "13115",
+     "name": "杉並区",
+     "population": 597038
+    },
+    {
+     "code": "13116",
+     "name": "豊島区",
+     "population": 305516
+    },
+    {
+     "code": "13117",
+     "name": "北区",
+     "population": 367827
+    },
+    {
+     "code": "13118",
+     "name": "荒川区",
+     "population": 226291
+    },
+    {
+     "code": "13119",
+     "name": "板橋区",
+     "population": 595972
+    },
+    {
+     "code": "13120",
+     "name": "練馬区",
+     "population": 760819
+    },
+    {
+     "code": "13121",
+     "name": "足立区",
+     "population": 701667
+    },
+    {
+     "code": "13122",
+     "name": "葛飾区",
+     "population": 467267
+    },
+    {
+     "code": "13123",
+     "name": "江戸川区",
+     "population": 704696
+    }
+   ]
+  }
+ ]
+}

@@ -15,7 +15,6 @@ import {
   dataLayers,
   sampleLandPriceSummary,
   sampleDisasterRisks,
-  samplePopulationTrends,
   sampleTransportTrends,
   sampleZoning,
   sampleWardProfiles,
@@ -24,6 +23,7 @@ import type {
   DataLayer,
   DemographicsData,
   DisasterRisk,
+  PopulationTrend,
   TransportStation,
   DataCategory,
 } from "@/types";
@@ -41,6 +41,7 @@ import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
   ESTAT_SOURCE,
+  ESTAT_TREND_EDITED,
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
@@ -49,7 +50,7 @@ import {
   MENCHO_SOURCE,
   WARD_BOUNDARY_CREDIT,
 } from "@/lib/credits";
-import { censusLine, tileSourceLine } from "@/lib/census-sources";
+import { censusLine, tileSourceLine, trendLine } from "@/lib/census-sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
@@ -92,6 +93,11 @@ export default function Home() {
   const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics");
   const disasterRisks = useGatedData<DisasterRisk[]>("/api/v1/disaster-risks");
   const transport = useGatedData<TransportStation[]>("/api/v1/transport");
+  // The 人口推移 snapshot (real-data plan PR 3): its own route, so a census-table
+  // failure on /demographics never takes the chart down. Same hook, same states.
+  const populationTrends = useGatedData<PopulationTrend[]>("/api/v1/population-trends");
+  const trendSources = populationTrends.sources ?? {};
+  const trendSource = trendLine(trendSources);
 
   const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
   const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
@@ -323,11 +329,13 @@ export default function Home() {
                 <DemographicsChart
                   data={selectedWard ? filteredDemographics : demographicsRows}
                   allData={demographicsRows}
-                  populationTrends={samplePopulationTrends}
                   selectedWard={selectedWard}
                   status={demographics.status}
                   unavailable={demographics.unavailable}
                   sources={censusSources}
+                  trends={populationTrends.data}
+                  trendStatus={populationTrends.status}
+                  trendSources={trendSources}
                 />
               </TabsContent>
 
@@ -425,7 +433,7 @@ export default function Home() {
               <span className="font-medium text-foreground">実データ</span>
               <ul className="space-y-1">
                 {demographics.data !== null && (
-                  <li>
+                  <li data-source="census">
                     {growthUnavailable
                       ? "人口・密度・年齢構成（人口タブ・区別テーブル）"
                       : "人口・密度・増減・年齢構成（人口タブ・区別テーブル・成長率指標）"}
@@ -435,6 +443,13 @@ export default function Home() {
                     <span className="block">
                       密度の分母（区の面積）: {MENCHO_SOURCE} ／ {MENCHO_EDITED} ／ {MENCHO_REMARKS}
                     </span>
+                  </li>
+                )}
+                {populationTrends.data !== null && (
+                  <li data-source="population-trend">
+                    人口推移（人口タブ）: {ESTAT_SOURCE}
+                    {trendSource ? ` ／ ${trendSource}` : ""}
+                    {" ／ "}{ESTAT_TREND_EDITED}
                   </li>
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>
@@ -455,7 +470,6 @@ export default function Home() {
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
                 <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
-                <li>人口推移</li>
                 <li>災害種別・リスク一覧・高リスク指標</li>
                 <li>用途地域</li>
                 <li>乗降客数推移</li>

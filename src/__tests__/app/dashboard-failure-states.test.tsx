@@ -152,7 +152,7 @@ async function renderSettled(routes: { demographics: Route; transport: Route }) 
     "/api/v1/population-trends": TRENDS,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(3));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(4));
   // Let each response → json → setState chain drain.
   for (let i = 0; i < 2; i++) {
     await act(async () => {

@@ -3,7 +3,6 @@ import type {
   DisasterRisk,
   LandPricePoint,
   LandPriceSummary,
-  PopulationTrend,
   TransportTrend,
   WardProfile,
   ZoningArea,
@@ -61,15 +60,6 @@ export const sampleLandPriceSummary: LandPriceSummary[] = [
   { region: "足立区", avgPrice: 310_000, maxPrice: 580_000, minPrice: 180_000, changeRate: 0.3, count: 22 },
   { region: "葛飾区", avgPrice: 290_000, maxPrice: 520_000, minPrice: 170_000, changeRate: 0.2, count: 20 },
   { region: "江戸川区", avgPrice: 320_000, maxPrice: 560_000, minPrice: 190_000, changeRate: 0.1, count: 24 },
-];
-
-export const samplePopulationTrends: PopulationTrend[] = [
-  { year: 2000, population: 8_134_688, region: "東京23区" },
-  { year: 2005, population: 8_489_653, region: "東京23区" },
-  { year: 2010, population: 8_945_695, region: "東京23区" },
-  { year: 2015, population: 9_272_740, region: "東京23区" },
-  { year: 2020, population: 9_733_276, region: "東京23区" },
-  { year: 2025, population: 9_820_000, region: "東京23区" },
 ];
 
 // 5主要駅の年次推移（COVID影響あり）
