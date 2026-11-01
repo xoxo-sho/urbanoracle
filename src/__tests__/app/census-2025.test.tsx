@@ -206,6 +206,17 @@ describe("K1 成長率 has its own source line, from the payload", () => {
     expect(line?.textContent).not.toContain(`${CENSUS_YEAR}年`);
   });
 
+  it("is set in the dashboard's source-note size (globals.css .source-note, 11px), not a smaller ad-hoc size", async () => {
+    // The 9px caption on this tile is already logged as unreadable (RECON §9,
+    // Architect additions); a new line must not be smaller still. The one
+    // provenance size the dashboard has is .source-note.
+    const { container } = await renderSettled(demographics(CENSUS_YEAR));
+    const line = growthTile(container).querySelector<HTMLElement>('[data-source="growthRate"]');
+    expect(line, "no [data-source=growthRate] line on the 成長率 tile").not.toBeNull();
+    expect(line!.classList.contains("source-note"), `classes: ${line!.className}`).toBe(true);
+    expect(line!.className).not.toMatch(/text-\[\d+px\]|text-xs|text-sm/);
+  });
+
   it("partial (growth table down): the tile reads 取得失敗 and claims no source", async () => {
     const { container } = await renderSettled(demographicsPartial);
     const tile = growthTile(container);
