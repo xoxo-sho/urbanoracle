@@ -93,26 +93,36 @@ function transformLandPrice(feature: GeoJSON.Feature): LandPricePoint {
 - 認証: API キー（無料、ユーザー登録が必要）
 - ライセンス: CC BY 4.0
 
-### 3.2 必要なフィールド
+### 3.2 必要なフィールド（令和7年国勢調査 人口等基本集計・確報、公表 2026-09-29）
 
-| アプリの型フィールド | 統計表の項目 | 統計表ID |
+実装は `backend/services/demographics.py`。全項目が同一ビンテージ（2025年10月1日時点）で、
+出典表は `backend/tests/fixtures/census_2025/README.md` に記録している。
+
+| アプリの型フィールド | 統計表の項目 | 統計表ID（e-Stat statsDataId） |
 |-------------------|-----------|---------|
-| `region` | 市区町村名 | — |
-| `population` | 人口総数 | 国勢調査 (0003448850) |
-| `density` | 人口密度 | 国勢調査 |
-| `growthRate` | 人口増減率 | 住民基本台帳 (0003427920) |
-| `ageGroups.young` | 年少人口（0-14歳）割合 | 国勢調査 |
-| `ageGroups.working` | 生産年齢人口（15-64歳）割合 | 国勢調査 |
-| `ageGroups.elderly` | 老年人口（65歳以上）割合 | 国勢調査 |
+| `region` | 市区町村名（`TOKYO_WARDS`、総務省 全国地方公共団体コード 13101–13123） | — |
+| `population` | 人口（男女別人口－全国、都道府県、市区町村、総数） | 0004065881（集計結果・原数値） |
+| `density` | `population` ÷ 区の面積（国土地理院「令和7年全国都道府県市区町村別面積調（10月1日時点）」、`TOKYO_WARDS` に固定。同表の「面積（参考）」「人口密度」列と一致） | 0004065882 tab 2025_47 / 2025_48（照合のみ） |
+| `growthRate` | 5年間の人口増減率（2020年（組替）→2025年） | 0004065882 tab 2025_35（集計結果・原数値） |
+| `ageGroups.young` | 15歳未満 人口構成比［年齢別］（国籍総数・総数） | 0004066221 cat03=1（不詳補完値） |
+| `ageGroups.working` | 15～64歳 人口構成比 | 0004066221 cat03=2（不詳補完値） |
+| `ageGroups.elderly` | 65歳以上 人口構成比 | 0004066221 cat03=3（不詳補完値） |
+
+年齢構成に不詳補完値を使うのは、原数値の構成比が年齢「不詳」を分母に含み 100% にならないため
+（公式の結果の概要も不詳補完値を用いる）。各構成比は整数％に四捨五入して返す。
+
+応答エンベロープの `sources` に、項目ごとの年次・統計表ID・ラベルを載せ、画面の出典行はそれを表示する。
 
 ### 3.3 取得方法
 
 ```
 GET https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData
   ?appId={ESTAT_API_KEY}
-  &statsDataId=0003448850      # 国勢調査 人口等基本集計
+  &statsDataId=0004065881      # 人口（男女別人口）
   &cdArea=13101,13102,...       # 市区町村コード（東京23区）
-  &cdCat01=A1101               # 人口総数
+  &cdCat01=0                   # 総数
+# 年齢構成: statsDataId=0004066221&cdCat01=0&cdCat02=0（cat03 = 1/2/3）
+# 増減率:   statsDataId=0004065882&cdTab=2025_35
 ```
 
 **市区町村コード（東京23区）**
@@ -152,8 +162,8 @@ function transformDemographics(
   return {
     region: AREA_NAME_MAP[areaCode],
     population: total,
-    density: Math.round(total / area),
-    growthRate: 0, // 別の統計表から取得
+    density: Math.round(total / area), // 実装では面積は面積調の固定値
+    growthRate: 0, // 実装では 0004065882 tab 2025_35 から取得
     ageGroups: {
       young: Math.round((young / total) * 100),
       working: Math.round((working / total) * 100),

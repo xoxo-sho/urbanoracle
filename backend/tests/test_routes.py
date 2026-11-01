@@ -55,15 +55,12 @@ def client(db_session, monkeypatch):
     cache.clear()
 
 
-# One 2020-census ward as the two e-Stat tables yield it (the cells
-# transform_estat reads, population from the test_demographics fixture;
-# growth from the published 2025 速報 figure).
-ESTAT_STUB_CENSUS = [
-    {"@area": "13101", "@tab": "020", "@cat01": "100", "@cat02": "100", "$": "66680"},
-    {"@area": "13101", "@tab": "020", "@cat01": "110", "@cat02": "100", "$": "6000"},
-    {"@area": "13101", "@tab": "020", "@cat01": "130", "@cat02": "100", "$": "10000"},
-]
-ESTAT_STUB_GROWTH = {"13101": -0.72136}
+# One ward as the three e-Stat tables of the 2025 確報 yield it, parsed
+# (test_demographics.py has the row shapes; the published figures are guarded
+# in test_census_2025.py from the committed source files).
+ESTAT_STUB_POPULATION = {"13101": 66270.0}
+ESTAT_STUB_AGE_SHARES = {"13101": {"young": 12.941, "working": 70.81787, "elderly": 16.24113}}
+ESTAT_STUB_GROWTH = {"13101": -0.61488}
 
 
 @pytest.fixture()
@@ -71,13 +68,17 @@ def estat_stub(monkeypatch):
     """A healthy e-Stat, for the tests that need every route to answer 200."""
     from services import demographics
 
-    async def fake_census():
-        return [dict(r) for r in ESTAT_STUB_CENSUS]
+    async def fake_population():
+        return dict(ESTAT_STUB_POPULATION)
+
+    async def fake_age_shares():
+        return {code: dict(shares) for code, shares in ESTAT_STUB_AGE_SHARES.items()}
 
     async def fake_growth():
         return dict(ESTAT_STUB_GROWTH)
 
-    monkeypatch.setattr(demographics, "fetch_census", fake_census)
+    monkeypatch.setattr(demographics, "fetch_population", fake_population)
+    monkeypatch.setattr(demographics, "fetch_age_shares", fake_age_shares)
     monkeypatch.setattr(demographics, "fetch_growth_rates", fake_growth)
 
 

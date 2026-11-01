@@ -11,8 +11,9 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { DemographicsData, PopulationTrend } from "@/types";
+import type { DemographicsData, FieldSources, PopulationTrend } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
+import { censusLine, type CensusField } from "@/lib/census-sources";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
@@ -30,9 +31,15 @@ interface DemographicsChartProps {
   status: DataStatus;
   /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
   unavailable?: readonly string[];
+  /** Per census field, the year and e-Stat table the figures came from, as the server says (real-data plan PR 2). */
+  sources?: FieldSources;
 }
 
 const GROWTH_FIELD = "growthRate";
+
+// What each view shows, so its note names exactly those fields' sources.
+const ALL_AREA_FIELDS: readonly CensusField[] = ["growthRate", "ageGroups"];
+const WARD_FIELDS: readonly CensusField[] = ["population", "density", "growthRate", "ageGroups"];
 
 export default function DemographicsChart({
   data,
@@ -41,18 +48,22 @@ export default function DemographicsChart({
   selectedWard,
   status,
   unavailable = [],
+  sources = {},
 }: DemographicsChartProps) {
   // The growth table did not answer: every growth figure is 取得失敗, not the
   // データなし a suppressed cell gets. The census figures stand on their own,
-  // so the note then cites the census year alone.
+  // so the note then names their sources alone.
   const growthFailed = unavailable.includes(GROWTH_FIELD);
   const growthText = (value: number | null) =>
     growthFailed ? FAILED_TEXT : hasValue(value) ? `${value > 0 ? "+" : ""}${value.toFixed(1)}%` : NO_DATA;
-  const censusYear = growthFailed ? "2020年国勢調査" : "2020年国勢調査・2025年速報";
+  const shown = (fields: readonly CensusField[]) => (growthFailed ? fields.filter((f) => f !== GROWTH_FIELD) : fields);
 
   // Census figures on screen always came from e-Stat: there is no sample
-  // path any more. While loading or failed the block says so instead.
-  const censusNote = (unit: string) => <SourceNote source="estat" unit={unit} year={censusYear} />;
+  // path any more. While loading or failed the block says so instead. The
+  // year and tables are the payload's: a note built from nothing names none.
+  const censusNote = (unit: string, fields: readonly CensusField[]) => (
+    <SourceNote source="estat" unit={unit} year={censusLine(sources, shown(fields)) ?? undefined} />
+  );
   const sorted = [...data].sort((a, b) => byValueDesc(a.population, b.population));
   const ward = selectedWard ? sorted[0] : null;
 
@@ -109,7 +120,7 @@ export default function DemographicsChart({
             <AgeBar label={selectedWard} young={ward.ageGroups.young} working={ward.ageGroups.working} elderly={ward.ageGroups.elderly} />
             <AgeBar label="23区平均" young={averageOf(allData.map((d) => d.ageGroups.young))} working={averageOf(allData.map((d) => d.ageGroups.working))} elderly={avg.elderly} />
           </div>
-          {censusNote("%")}
+          {censusNote("%", WARD_FIELDS)}
         </div>
         <EstatCredits />
       </div>
@@ -197,7 +208,7 @@ export default function DemographicsChart({
               <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
             </div>
           </div>
-          {censusNote("%")}
+          {censusNote("%", ALL_AREA_FIELDS)}
 
           <div className="chart-section">
             <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">年齢構成</h4>
@@ -212,7 +223,7 @@ export default function DemographicsChart({
                 <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
               </BarChart>
             </ResponsiveContainer>
-            {censusNote("%")}
+            {censusNote("%", ALL_AREA_FIELDS)}
           </div>
           <EstatCredits />
         </>

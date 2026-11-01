@@ -25,7 +25,7 @@ const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 const sample = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "sample_fallback.json"), "utf8"));
 const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
 const API: Record<string, unknown> = {
-  "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true },
+  "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
   "/api/v1/transport": { status: "ok", data: live.stations, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
   "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },

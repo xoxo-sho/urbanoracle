@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { fetchGated, routeFor, type GateOutcome } from "@/lib/api-gate";
+import type { FieldSource, FieldSources } from "@/types";
 
 /**
  * Where one endpoint's answer stands (RECON 2026-10-uo-real-data §7.2):
@@ -31,6 +32,8 @@ export interface DataState<T> {
   isLive: boolean;
   /** When the server obtained the live data from upstream (ISO 8601), if it says. */
   fetchedAt: string | null;
+  /** Per record field, the year and table the figures came from, if the server says; {} otherwise. */
+  sources: FieldSources;
 }
 
 const LOADING: DataState<never> = {
@@ -39,6 +42,7 @@ const LOADING: DataState<never> = {
   unavailable: [],
   isLive: false,
   fetchedAt: null,
+  sources: {},
 };
 
 const UNAVAILABLE: DataState<never> = {
@@ -47,6 +51,7 @@ const UNAVAILABLE: DataState<never> = {
   unavailable: [],
   isLive: false,
   fetchedAt: null,
+  sources: {},
 };
 
 /**
@@ -96,6 +101,7 @@ function fromBody<T>(raw: unknown): DataState<T> {
     unavailable?: unknown;
     isLive?: unknown;
     fetchedAt?: unknown;
+    sources?: unknown;
   };
   if (body.data === undefined || body.data === null) return UNAVAILABLE;
 
@@ -109,5 +115,20 @@ function fromBody<T>(raw: unknown): DataState<T> {
     unavailable,
     isLive: Boolean(body.isLive),
     fetchedAt: typeof body.fetchedAt === "string" ? body.fetchedAt : null,
+    sources: fieldSources(body.sources),
   };
+}
+
+/** Only well-formed entries are kept: a year, a table and a label, nothing invented for the rest. */
+function fieldSources(raw: unknown): FieldSources {
+  if (!raw || typeof raw !== "object") return {};
+  const out: FieldSources = {};
+  for (const [field, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== "object") continue;
+    const { year, table, label } = value as Partial<FieldSource>;
+    if (typeof year === "number" && Number.isFinite(year) && typeof table === "string" && typeof label === "string") {
+      out[field] = { year, table, label };
+    }
+  }
+  return out;
 }

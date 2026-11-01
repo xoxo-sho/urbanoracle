@@ -1,7 +1,8 @@
 "use client";
 
-import type { DemographicsData, LandPriceSummary } from "@/types";
+import type { DemographicsData, FieldSources, LandPriceSummary } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
+import { censusLine, type CensusField } from "@/lib/census-sources";
 import { NO_DATA, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
 import SampleNote from "@/components/dashboard/SampleNote";
@@ -15,9 +16,13 @@ interface WardTableProps {
   status: DataStatus;
   /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
   unavailable?: readonly string[];
+  /** Per census field, the year and e-Stat table the columns came from, as the server says (real-data plan PR 2). */
+  sources?: FieldSources;
 }
 
 const GROWTH_FIELD = "growthRate";
+// The census columns, in table order: 人口, 密度, 増減, 高齢率.
+const CENSUS_COLUMNS: readonly CensusField[] = ["population", "density", "growthRate", "ageGroups"];
 
 // Intensity within one semantic axis: stronger value -> stronger step of the
 // same hue. Two hues would imply a distinction the data does not make.
@@ -42,10 +47,13 @@ export default function WardTable({
   onSelectWard,
   status,
   unavailable = [],
+  sources = {},
 }: WardTableProps) {
   // The growth table did not answer: the 増減 column is 取得失敗 in every row,
-  // not the データなし a suppressed cell gets.
+  // not the データなし a suppressed cell gets, and its source is not claimed.
   const growthFailed = unavailable.includes(GROWTH_FIELD);
+  const columns = growthFailed ? CENSUS_COLUMNS.filter((f) => f !== GROWTH_FIELD) : CENSUS_COLUMNS;
+  const vintage = censusLine(sources, columns);
   const sorted = [...demographics].sort((a, b) => byValueDesc(a.population, b.population)).slice(0, 12);
   const populations = sorted.map((d) => d.population).filter(hasValue);
   const maxPop = populations.length ? Math.max(...populations) : 0;
@@ -118,9 +126,8 @@ export default function WardTable({
           </table>
           <SampleNote
             note={
-              growthFailed
-                ? `地価列。人口・密度・高齢率は ${SOURCES.estat.label}（2020年国勢調査）`
-                : `地価列。人口・密度・増減・高齢率は ${SOURCES.estat.label}（2020年国勢調査・2025年速報）`
+              `地価列。${growthFailed ? "人口・密度・高齢率" : "人口・密度・増減・高齢率"}は ${SOURCES.estat.label}` +
+              (vintage ? `（${vintage}）` : "")
             }
           />
         </>

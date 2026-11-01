@@ -1,0 +1,346 @@
+{
+ "meta": {
+  "census": "令和7年国勢調査 人口等基本集計（確報）",
+  "reference_date": "2025-10-01",
+  "tables": {
+   "population": "0004065881",
+   "growthRate": "0004065882",
+   "ageGroups": "0004066221"
+  },
+  "area": {
+   "publisher": "国土地理院",
+   "edition": "令和7年全国都道府県市区町村別面積調（10月1日時点）",
+   "csv_column": "令和7年10月1日(k㎡)"
+  },
+  "inputs": {
+   "estat_0004065881_wards.json": "95f50f2025c7c268fa803afc62a8328502c38f3f1fb2e4b92507fa4e78937ba3",
+   "estat_0004065882_wards.json": "ab59e8fdbff23ad55f873d14661aa4b31c2852c305366530c88525f91270aed1",
+   "estat_0004066221_wards.json": "3f4c7e511fdabe8342c6deb2c1e0e1153631ac70da1ecce517a1c65e31fe8cbc",
+   "mencho_r8_07_tokyo23.csv": "042739c79c1e329b66d03dcf42cd771e78b54ba52e72459e7c034a02b8d84fc7"
+  }
+ },
+ "wards": {
+  "13101": {
+   "name": "千代田区",
+   "population": 66270,
+   "population_2020": 66680,
+   "area_km2": 11.66,
+   "area_remark": "（参考値）",
+   "density_estat": 5683.5,
+   "growth_rate": -0.61488,
+   "age_share": {
+    "young": 12.941,
+    "working": 70.81787,
+    "elderly": 16.24113
+   }
+  },
+  "13102": {
+   "name": "中央区",
+   "population": 181841,
+   "population_2020": 169179,
+   "area_km2": 10.21,
+   "area_remark": "（参考値）",
+   "density_estat": 17810.1,
+   "growth_rate": 7.48438,
+   "age_share": {
+    "young": 13.68613,
+    "working": 72.07615,
+    "elderly": 14.23771
+   }
+  },
+  "13103": {
+   "name": "港区",
+   "population": 272478,
+   "population_2020": 260486,
+   "area_km2": 20.36,
+   "area_remark": "（参考値）",
+   "density_estat": 13383.0,
+   "growth_rate": 4.6037,
+   "age_share": {
+    "young": 12.50193,
+    "working": 69.37404,
+    "elderly": 18.12403
+   }
+  },
+  "13104": {
+   "name": "新宿区",
+   "population": 361357,
+   "population_2020": 349385,
+   "area_km2": 18.22,
+   "area_remark": "",
+   "density_estat": 19833.0,
+   "growth_rate": 3.42659,
+   "age_share": {
+    "young": 7.57561,
+    "working": 73.32804,
+    "elderly": 19.09635
+   }
+  },
+  "13105": {
+   "name": "文京区",
+   "population": 249800,
+   "population_2020": 240069,
+   "area_km2": 11.29,
+   "area_remark": "",
+   "density_estat": 22125.8,
+   "growth_rate": 4.05342,
+   "age_share": {
+    "young": 11.36869,
+    "working": 69.98199,
+    "elderly": 18.64932
+   }
+  },
+  "13106": {
+   "name": "台東区",
+   "population": 228046,
+   "population_2020": 211444,
+   "area_km2": 10.11,
+   "area_remark": "",
+   "density_estat": 22556.5,
+   "growth_rate": 7.85172,
+   "age_share": {
+    "young": 7.74054,
+    "working": 71.30097,
+    "elderly": 20.95849
+   }
+  },
+  "13107": {
+   "name": "墨田区",
+   "population": 285038,
+   "population_2020": 272085,
+   "area_km2": 13.77,
+   "area_remark": "",
+   "density_estat": 20699.9,
+   "growth_rate": 4.76064,
+   "age_share": {
+    "young": 9.28332,
+    "working": 70.20608,
+    "elderly": 20.5106
+   }
+  },
+  "13108": {
+   "name": "江東区",
+   "population": 553502,
+   "population_2020": 524310,
+   "area_km2": 42.99,
+   "area_remark": "荒川河口部を除く。",
+   "density_estat": 12875.1,
+   "growth_rate": 5.5677,
+   "age_share": {
+    "young": 11.26374,
+    "working": 67.89262,
+    "elderly": 20.84365
+   }
+  },
+  "13109": {
+   "name": "品川区",
+   "population": 426005,
+   "population_2020": 422488,
+   "area_km2": 22.85,
+   "area_remark": "",
+   "density_estat": 18643.5,
+   "growth_rate": 0.83245,
+   "age_share": {
+    "young": 10.58344,
+    "working": 70.09401,
+    "elderly": 19.32254
+   }
+  },
+  "13110": {
+   "name": "目黒区",
+   "population": 286082,
+   "population_2020": 288088,
+   "area_km2": 14.67,
+   "area_remark": "",
+   "density_estat": 19501.2,
+   "growth_rate": -0.69632,
+   "age_share": {
+    "young": 10.5267,
+    "working": 69.75832,
+    "elderly": 19.71498
+   }
+  },
+  "13111": {
+   "name": "大田区",
+   "population": 758181,
+   "population_2020": 748081,
+   "area_km2": 61.86,
+   "area_remark": "",
+   "density_estat": 12256.4,
+   "growth_rate": 1.35012,
+   "age_share": {
+    "young": 9.39446,
+    "working": 68.74612,
+    "elderly": 21.85942
+   }
+  },
+  "13112": {
+   "name": "世田谷区",
+   "population": 954737,
+   "population_2020": 943664,
+   "area_km2": 58.05,
+   "area_remark": "",
+   "density_estat": 16446.8,
+   "growth_rate": 1.1734,
+   "age_share": {
+    "young": 10.7881,
+    "working": 68.38239,
+    "elderly": 20.82951
+   }
+  },
+  "13113": {
+   "name": "渋谷区",
+   "population": 238826,
+   "population_2020": 243883,
+   "area_km2": 15.11,
+   "area_remark": "",
+   "density_estat": 15805.8,
+   "growth_rate": -2.07354,
+   "age_share": {
+    "young": 8.25748,
+    "working": 71.28035,
+    "elderly": 20.46218
+   }
+  },
+  "13114": {
+   "name": "中野区",
+   "population": 354853,
+   "population_2020": 344880,
+   "area_km2": 15.59,
+   "area_remark": "",
+   "density_estat": 22761.6,
+   "growth_rate": 2.89173,
+   "age_share": {
+    "young": 8.12111,
+    "working": 72.46296,
+    "elderly": 19.41593
+   }
+  },
+  "13115": {
+   "name": "杉並区",
+   "population": 597038,
+   "population_2020": 591108,
+   "area_km2": 34.06,
+   "area_remark": "",
+   "density_estat": 17529.0,
+   "growth_rate": 1.0032,
+   "age_share": {
+    "young": 9.48248,
+    "working": 68.97953,
+    "elderly": 21.53799
+   }
+  },
+  "13116": {
+   "name": "豊島区",
+   "population": 305516,
+   "population_2020": 301599,
+   "area_km2": 13.01,
+   "area_remark": "",
+   "density_estat": 23483.2,
+   "growth_rate": 1.29874,
+   "age_share": {
+    "young": 8.39858,
+    "working": 72.7772,
+    "elderly": 18.82422
+   }
+  },
+  "13117": {
+   "name": "北区",
+   "population": 367827,
+   "population_2020": 355213,
+   "area_km2": 20.61,
+   "area_remark": "",
+   "density_estat": 17847.0,
+   "growth_rate": 3.55111,
+   "age_share": {
+    "young": 9.91988,
+    "working": 67.02037,
+    "elderly": 23.05975
+   }
+  },
+  "13118": {
+   "name": "荒川区",
+   "population": 226291,
+   "population_2020": 217475,
+   "area_km2": 10.16,
+   "area_remark": "",
+   "density_estat": 22272.7,
+   "growth_rate": 4.0538,
+   "age_share": {
+    "young": 9.91555,
+    "working": 68.32707,
+    "elderly": 21.75738
+   }
+  },
+  "13119": {
+   "name": "板橋区",
+   "population": 595972,
+   "population_2020": 584483,
+   "area_km2": 32.22,
+   "area_remark": "",
+   "density_estat": 18497.0,
+   "growth_rate": 1.96567,
+   "age_share": {
+    "young": 9.31018,
+    "working": 67.59174,
+    "elderly": 23.09808
+   }
+  },
+  "13120": {
+   "name": "練馬区",
+   "population": 760819,
+   "population_2020": 752608,
+   "area_km2": 48.08,
+   "area_remark": "",
+   "density_estat": 15824.0,
+   "growth_rate": 1.09101,
+   "age_share": {
+    "young": 10.72213,
+    "working": 66.5822,
+    "elderly": 22.69567
+   }
+  },
+  "13121": {
+   "name": "足立区",
+   "population": 701667,
+   "population_2020": 695043,
+   "area_km2": 53.25,
+   "area_remark": "",
+   "density_estat": 13176.8,
+   "growth_rate": 0.95303,
+   "age_share": {
+    "young": 9.72167,
+    "working": 65.71511,
+    "elderly": 24.56321
+   }
+  },
+  "13122": {
+   "name": "葛飾区",
+   "population": 467267,
+   "population_2020": 453093,
+   "area_km2": 34.8,
+   "area_remark": "（参考値）",
+   "density_estat": 13427.2,
+   "growth_rate": 3.12828,
+   "age_share": {
+    "young": 10.34591,
+    "working": 65.12401,
+    "elderly": 24.53009
+   }
+  },
+  "13123": {
+   "name": "江戸川区",
+   "population": 704696,
+   "population_2020": 697932,
+   "area_km2": 49.9,
+   "area_remark": "（参考値）荒川河口部を除く。",
+   "density_estat": 14122.2,
+   "growth_rate": 0.96915,
+   "age_share": {
+    "young": 10.82864,
+    "working": 67.65925,
+    "elderly": 21.51211
+   }
+  }
+ }
+}

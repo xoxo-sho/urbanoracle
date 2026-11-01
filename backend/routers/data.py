@@ -8,7 +8,9 @@ adds ``unavailable``: the record fields the upstream did not deliver, so the
 client renders those cells as 取得失敗 and keeps データなし for a cell the
 upstream genuinely has no figure for. A live /transport answer also carries
 ``fetchedAt``, when the ODPT data was obtained (ODPT developer guideline 2.2.1
-asks for that 取得日時 on screen).
+asks for that 取得日時 on screen). A /demographics answer carries ``sources``:
+per census field, the year and the e-Stat table the figure came from, so the
+screen can say which vintage every figure is (real-data plan PR 2).
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
@@ -48,12 +50,15 @@ def _envelope(
     status: str = "ok",
     unavailable: list[str] | None = None,
     fetched_at: str | None = None,
+    sources: dict[str, dict] | None = None,
 ) -> JSONResponse:
     body: dict = {"status": status, "data": data, "isLive": is_live}
     if unavailable:
         body["unavailable"] = list(unavailable)
     if fetched_at is not None:
         body["fetchedAt"] = fetched_at
+    if sources is not None:
+        body["sources"] = sources
     return JSONResponse(json_safe(body))
 
 
@@ -62,46 +67,61 @@ def _unavailable() -> JSONResponse:
     return JSONResponse({"status": "unavailable"}, status_code=UNAVAILABLE_HTTP_STATUS)
 
 
-CENSUS_CACHE_KEY = "demographics:census"
+POPULATION_CACHE_KEY = "demographics:population"
+AGE_CACHE_KEY = "demographics:age"
 GROWTH_CACHE_KEY = "demographics:growth"
+
+
+async def _cached_table(key: str, fetch):
+    """One e-Stat table: served from its own cache entry, fetched and cached
+    only when it answered. Raises when it did not."""
+    value = cache.get(key)
+    if value is None:
+        value = await fetch()
+        cache.set(key, value)
+    return value
 
 
 @router.get("/demographics")
 async def get_demographics() -> JSONResponse:
-    """Two e-Stat tables, two classes of failure.
+    """Three e-Stat tables of the 令和7年国勢調査 人口等基本集計（確報）, two classes
+    of failure (real-data plan PR 2 keeps PR 1's contract).
 
-    The census table (population, density, age shares) is the answer: without
-    it there is nothing to show, so 503. The growth table feeds growthRate
+    The population table and the 不詳補完値 age table are the answer: without
+    either there is nothing to show, so 503. The growth table feeds growthRate
     only, so when it fails the answer is partial and names the field. Each
     table is cached on its own, and only when it answered — a partial answer
-    therefore reuses the census rows and asks for the growth table again.
+    therefore reuses the two census tables and asks for the growth table
+    again, and a 503 retries only the table that failed.
+
+    ``sources`` names, per census field, the year and the e-Stat table the
+    figure came from (dropped for a field listed in ``unavailable``).
     """
-    census = cache.get(CENSUS_CACHE_KEY)
-    if census is None:
-        try:
-            census = await demographics.fetch_census()
-        except Exception:
-            logger.warning("e-Stat census table unavailable — answering 503, not sample", exc_info=True)
-            return _unavailable()
-        cache.set(CENSUS_CACHE_KEY, census)
+    try:
+        population = await _cached_table(POPULATION_CACHE_KEY, demographics.fetch_population)
+        age_shares = await _cached_table(AGE_CACHE_KEY, demographics.fetch_age_shares)
+    except Exception:
+        logger.warning("e-Stat census table unavailable — answering 503, not sample", exc_info=True)
+        return _unavailable()
 
-    growth = cache.get(GROWTH_CACHE_KEY)
     unavailable: list[str] = []
-    if growth is None:
-        try:
-            growth = await demographics.fetch_growth_rates()
-            cache.set(GROWTH_CACHE_KEY, growth)
-        except Exception:
-            logger.warning(
-                "e-Stat growth table unavailable — answering partial, growthRate 取得失敗",
-                exc_info=True,
-            )
-            growth = {}
-            unavailable = [demographics.GROWTH_FIELD]
+    try:
+        growth = await _cached_table(GROWTH_CACHE_KEY, demographics.fetch_growth_rates)
+    except Exception:
+        logger.warning(
+            "e-Stat growth table unavailable — answering partial, growthRate 取得失敗",
+            exc_info=True,
+        )
+        growth = {}
+        unavailable = [demographics.GROWTH_FIELD]
 
-    data = demographics.transform_estat(census, growth)
+    data = demographics.transform_census(population, age_shares, growth)
     return _envelope(
-        data, is_live=True, status="partial" if unavailable else "ok", unavailable=unavailable
+        data,
+        is_live=True,
+        status="partial" if unavailable else "ok",
+        unavailable=unavailable,
+        sources=demographics.sources_for(unavailable),
     )
 
 
