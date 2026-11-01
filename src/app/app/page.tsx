@@ -247,13 +247,11 @@ export default function Home() {
                   {selectedWard ? "成長率" : "成長率1位"}
                   {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
                 </span>
-                {/* K1's own source line: the table the figure came from, as the payload says. */}
+                {/* K1's own source line: the table the figure came from, as the payload
+                    says — in the dashboard's provenance size (.source-note, 11px), never a
+                    smaller ad-hoc one: the 9px caption above it is already logged as unreadable. */}
                 {growthSource && !isPending(demographics.status) && (
-                  <span
-                    data-source={GROWTH_FIELD}
-                    title={growthSource.label}
-                    className="text-[8px] text-muted-foreground text-center leading-tight"
-                  >
+                  <span data-source={GROWTH_FIELD} title={growthSource.label} className="source-note text-center">
                     {tileSourceLine(growthSource)}
                   </span>
                 )}
