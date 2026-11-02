@@ -18,10 +18,6 @@ export const SOURCES = {
     label: "ハザードマップポータルサイト（国土交通省）",
     href: "https://disaportal.gsi.go.jp/",
   },
-  odpt: {
-    label: "公共交通オープンデータセンター（ODPT）",
-    href: "https://www.odpt.org/",
-  },
   disastershield: {
     label: "DisasterShield（Beta）",
     href: "",
@@ -47,10 +43,3 @@ export const SAMPLE_NOTICE = `${SOURCES.sample.label}— 実データではあ�
  * hardcoded table that is neither the live feed nor the sample set.
  */
 export const CHOROPLETH_NOTE = "固定の参考値 — 実データではありません";
-
-/**
- * Station positions and line names ship in public/data/tokyo-stations.geojson.
- * Its origin is not recorded anywhere in the repository, so the UI says so
- * instead of naming a source it cannot vouch for.
- */
-export const BUNDLED_UNVERIFIED_NOTE = "同梱データ（出典未確認）";

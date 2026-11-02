@@ -1,0 +1,11549 @@
+{
+ "region": "東京23区",
+ "year": 2024,
+ "reference": "2024年度（令和6年度）版 駅別乗降客数（2024年度、1日平均、人/日）；区の判定は 2026年（令和8年）1月1日時点 の行政区域",
+ "sources": {
+  "ridership": {
+   "year": 2024,
+   "table": "S12-25",
+   "label": "国土数値情報 駅別乗降客数データ 2024年度（令和6年度）版 乗降客数2024（1日平均、人/日）"
+  },
+  "stations": {
+   "year": 2024,
+   "table": "S12-25",
+   "label": "国土数値情報 駅別乗降客数データ 2024年度（令和6年度）版 駅名・運営会社・路線名・位置（線形の中点）"
+  },
+  "wards": {
+   "year": 2026,
+   "table": "N03-20260101",
+   "label": "国土数値情報 行政区域データ 2026年（令和8年）1月1日時点 東京都（区の判定：中点の包含）"
+  }
+ },
+ "inputs": {
+  "ksj_S12-25_tokyo23.geojson": {
+   "path": "backend/tests/fixtures/stations/ksj_S12-25_tokyo23.geojson",
+   "sha256": "f435a0a04e489046de97874cdf2b01d980d5c2836851a923d5552898dc4f69bb",
+   "cut_from": {
+    "id": "S12-25",
+    "title": "国土数値情報 駅別乗降客数データ",
+    "edition": "2024年度（令和6年度）版",
+    "latest_column": "乗降客数2024",
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/S12/S12-25/S12-25_GML.zip",
+    "file": "S12-25_GML.zip",
+    "bytes": 6913743,
+    "sha256": "0785e932a32b3ec15e1a1345537ae145eafe1c07bf38d5c16c11ee2b391e7a28",
+    "published": "2026-04（更新履歴「2026年4月：2024年度（令和6年度）版に更新しました。」）",
+    "licence": "オープンデータ（CC_BY_4.0）",
+    "rows_total": 10534,
+    "rows_kept": 702,
+    "cut": "rows whose line midpoint lies inside one of the 23 ward polygons of the N03 excerpt; every attribute and the geometry kept verbatim"
+   }
+  },
+  "ksj_N03-20260101_tokyo23.geojson": {
+   "path": "backend/tests/fixtures/stations/ksj_N03-20260101_tokyo23.geojson",
+   "sha256": "8a98881f85ac06ea4f435a38c2285e9f9eaa82a4384b20f4ad265f9847d89297",
+   "cut_from": {
+    "id": "N03-20260101",
+    "title": "国土数値情報 行政区域データ（東京都）",
+    "edition": "2026年（令和8年）1月1日時点",
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/N03/N03-2026/N03-20260101_13_GML.zip",
+    "file": "N03-20260101_13_GML.zip",
+    "bytes": 13153227,
+    "sha256": "94f10b26256566db970dd74b09d614f059c1e8a432f9244ac9c4add76c32ff16",
+    "published": "2026-04（更新履歴「2026年4月：2026年（令和8年）版に更新しました。」）",
+    "licence": "オープンデータ（CC_BY_4.0）",
+    "features_total": 6904,
+    "features_kept": 118,
+    "cut": "features whose N03_007 is 13101–13123; geometry kept verbatim"
+   }
+  }
+ },
+ "licence": {
+  "name": "国土数値情報 利用規約（PDL1.0準拠）— 駅別乗降客数データ・行政区域データはいずれも「オープンデータ（CC_BY_4.0）」",
+  "url": "https://nlftp.mlit.go.jp/ksj/other/agreement.html"
+ },
+ "credit": {
+  "source": "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）",
+  "edited_s12": "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "edited_n03": "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "pages": {
+   "S12": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html",
+   "N03": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
+  }
+ },
+ "notes": {
+  "definition": "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）",
+  "jr_east": "JR東日本の値は乗車人員を2倍した値（原典資料による）",
+  "jr_east_evidence": "JR東日本「各駅の乗車人員」2024年度 (https://www.jreast.co.jp/company/data/passenger/) と 2023年度 (https://www.jreast.co.jp/company/data/passenger/2023.html) の1日平均乗車人員（新宿・東京・池袋・渋谷・小岩）に対し、S12 の乗降客数2024 / 乗降客数2023 の東日本旅客鉄道の行はいずれもその2倍に一致（2026-11-02 確認）。",
+  "position": "駅の位置は S12 の線形（国土数値情報（鉄道）駅データと同じ位置）の中点；区は N03 の区ポリゴンがその中点を含むもの"
+ },
+ "straddlingRows": [
+  {
+   "name": "芦花公園",
+   "operator": "京王電鉄",
+   "line": "京王線",
+   "ends": [
+    "杉並区",
+    "世田谷区"
+   ],
+   "assigned": "世田谷区"
+  },
+  {
+   "name": "大森海岸",
+   "operator": "京浜急行電鉄",
+   "line": "本線",
+   "ends": [
+    "大田区",
+    "品川区"
+   ],
+   "assigned": "品川区"
+  },
+  {
+   "name": "喜多見",
+   "operator": "小田急電鉄",
+   "line": "小田原線",
+   "ends": [
+    null,
+    "世田谷区"
+   ],
+   "assigned": "世田谷区"
+  },
+  {
+   "name": "大岡山",
+   "operator": "東急電鉄",
+   "line": "大井町線",
+   "ends": [
+    "大田区",
+    "目黒区"
+   ],
+   "assigned": "目黒区"
+  },
+  {
+   "name": "池尻大橋",
+   "operator": "東急電鉄",
+   "line": "田園都市線",
+   "ends": [
+    "目黒区",
+    "世田谷区"
+   ],
+   "assigned": "目黒区"
+  },
+  {
+   "name": "大岡山",
+   "operator": "東急電鉄",
+   "line": "目黒線",
+   "ends": [
+    "目黒区",
+    "大田区"
+   ],
+   "assigned": "目黒区"
+  },
+  {
+   "name": "広尾",
+   "operator": "東京地下鉄",
+   "line": "2号線日比谷線",
+   "ends": [
+    "渋谷区",
+    "港区"
+   ],
+   "assigned": "渋谷区"
+  },
+  {
+   "name": "新大塚",
+   "operator": "東京地下鉄",
+   "line": "4号線丸ノ内線",
+   "ends": [
+    "豊島区",
+    "文京区"
+   ],
+   "assigned": "豊島区"
+  },
+  {
+   "name": "溜池山王",
+   "operator": "東京地下鉄",
+   "line": "7号線南北線",
+   "ends": [
+    "千代田区",
+    "港区"
+   ],
+   "assigned": "千代田区"
+  },
+  {
+   "name": "地下鉄赤塚",
+   "operator": "東京地下鉄",
+   "line": "8号線有楽町線",
+   "ends": [
+    "練馬区",
+    "板橋区"
+   ],
+   "assigned": "練馬区"
+  },
+  {
+   "name": "市ヶ谷",
+   "operator": "東京地下鉄",
+   "line": "8号線有楽町線",
+   "ends": [
+    "新宿区",
+    "千代田区"
+   ],
+   "assigned": "千代田区"
+  },
+  {
+   "name": "高輪台",
+   "operator": "東京都",
+   "line": "1号線浅草線",
+   "ends": [
+    "品川区",
+    "港区"
+   ],
+   "assigned": "港区"
+  },
+  {
+   "name": "内幸町",
+   "operator": "東京都",
+   "line": "6号線三田線",
+   "ends": [
+    "千代田区",
+    "港区"
+   ],
+   "assigned": "港区"
+  },
+  {
+   "name": "東大島",
+   "operator": "東京都",
+   "line": "10号線新宿線",
+   "ends": [
+    "江戸川区",
+    "江東区"
+   ],
+   "assigned": "江東区"
+  },
+  {
+   "name": "上野御徒町",
+   "operator": "東京都",
+   "line": "12号線大江戸線",
+   "ends": [
+    "文京区",
+    "台東区"
+   ],
+   "assigned": "台東区"
+  },
+  {
+   "name": "飯田橋",
+   "operator": "東京都",
+   "line": "12号線大江戸線",
+   "ends": [
+    "文京区",
+    "新宿区"
+   ],
+   "assigned": "文京区"
+  },
+  {
+   "name": "新江古田",
+   "operator": "東京都",
+   "line": "12号線大江戸線",
+   "ends": [
+    "中野区",
+    "練馬区"
+   ],
+   "assigned": "練馬区"
+  },
+  {
+   "name": "落合南長崎",
+   "operator": "東京都",
+   "line": "12号線大江戸線",
+   "ends": [
+    "新宿区",
+    "豊島区"
+   ],
+   "assigned": "新宿区"
+  },
+  {
+   "name": "国立競技場",
+   "operator": "東京都",
+   "line": "12号線大江戸線",
+   "ends": [
+    "新宿区",
+    "渋谷区"
+   ],
+   "assigned": "新宿区"
+  },
+  {
+   "name": "駒込",
+   "operator": "東日本旅客鉄道",
+   "line": "山手線",
+   "ends": [
+    "豊島区",
+    "北区"
+   ],
+   "assigned": "豊島区"
+  },
+  {
+   "name": "新宿",
+   "operator": "東日本旅客鉄道",
+   "line": "山手線",
+   "ends": [
+    "渋谷区",
+    "新宿区"
+   ],
+   "assigned": "渋谷区"
+  },
+  {
+   "name": "新宿",
+   "operator": "東日本旅客鉄道",
+   "line": "山手線",
+   "ends": [
+    "新宿区",
+    "渋谷区"
+   ],
+   "assigned": "新宿区"
+  },
+  {
+   "name": "板橋",
+   "operator": "東日本旅客鉄道",
+   "line": "赤羽線",
+   "ends": [
+    "豊島区",
+    "板橋区"
+   ],
+   "assigned": "豊島区"
+  },
+  {
+   "name": "日暮里",
+   "operator": "東日本旅客鉄道",
+   "line": "東北線",
+   "ends": [
+    "荒川区",
+    "台東区"
+   ],
+   "assigned": "台東区"
+  },
+  {
+   "name": "浮間舟渡",
+   "operator": "東日本旅客鉄道",
+   "line": "東北線",
+   "ends": [
+    "北区",
+    "板橋区"
+   ],
+   "assigned": "北区"
+  },
+  {
+   "name": "新宿三丁目",
+   "operator": "東京地下鉄",
+   "line": "13号線副都心線",
+   "ends": [
+    "新宿区",
+    "渋谷区"
+   ],
+   "assigned": "新宿区"
+  }
+ ],
+ "droppedRows": [
+  {
+   "name": "上野動物園東園",
+   "operator": "東京都",
+   "line": "上野懸垂線",
+   "ward": "台東区",
+   "reason": "重複コード2024 = 3 駅なし"
+  },
+  {
+   "name": "上野動物園西園",
+   "operator": "東京都",
+   "line": "上野懸垂線",
+   "ward": "台東区",
+   "reason": "重複コード2024 = 3 駅なし"
+  }
+ ],
+ "mergedGroups": [
+  {
+   "name": "池袋",
+   "ward": "豊島区",
+   "code": "003379",
+   "into": "003390",
+   "operators": [
+    "東京地下鉄"
+   ]
+  },
+  {
+   "name": "東京",
+   "ward": "千代田区",
+   "code": "003785",
+   "into": "003766",
+   "operators": [
+    "東日本旅客鉄道"
+   ]
+  }
+ ],
+ "wards": [
+  {
+   "code": "13101",
+   "name": "千代田区",
+   "stations": 27,
+   "passengers": 5162535,
+   "figureRows": 37
+  },
+  {
+   "code": "13102",
+   "name": "中央区",
+   "stations": 22,
+   "passengers": 1805990,
+   "figureRows": 27
+  },
+  {
+   "code": "13103",
+   "name": "港区",
+   "stations": 35,
+   "passengers": 4126521,
+   "figureRows": 44
+  },
+  {
+   "code": "13104",
+   "name": "新宿区",
+   "stations": 30,
+   "passengers": 5036759,
+   "figureRows": 37
+  },
+  {
+   "code": "13105",
+   "name": "文京区",
+   "stations": 16,
+   "passengers": 744471,
+   "figureRows": 17
+  },
+  {
+   "code": "13106",
+   "name": "台東区",
+   "stations": 17,
+   "passengers": 1502701,
+   "figureRows": 22
+  },
+  {
+   "code": "13107",
+   "name": "墨田区",
+   "stations": 14,
+   "passengers": 1091418,
+   "figureRows": 16
+  },
+  {
+   "code": "13108",
+   "name": "江東区",
+   "stations": 28,
+   "passengers": 1672022,
+   "figureRows": 35
+  },
+  {
+   "code": "13109",
+   "name": "品川区",
+   "stations": 25,
+   "passengers": 2134944,
+   "figureRows": 32
+  },
+  {
+   "code": "13110",
+   "name": "目黒区",
+   "stations": 10,
+   "passengers": 837467,
+   "figureRows": 10
+  },
+  {
+   "code": "13111",
+   "name": "大田区",
+   "stations": 39,
+   "passengers": 1515375,
+   "figureRows": 42
+  },
+  {
+   "code": "13112",
+   "name": "世田谷区",
+   "stations": 38,
+   "passengers": 1615157,
+   "figureRows": 41
+  },
+  {
+   "code": "13113",
+   "name": "渋谷区",
+   "stations": 19,
+   "passengers": 4284773,
+   "figureRows": 23
+  },
+  {
+   "code": "13114",
+   "name": "中野区",
+   "stations": 12,
+   "passengers": 805536,
+   "figureRows": 14
+  },
+  {
+   "code": "13115",
+   "name": "杉並区",
+   "stations": 18,
+   "passengers": 913069,
+   "figureRows": 19
+  },
+  {
+   "code": "13116",
+   "name": "豊島区",
+   "stations": 25,
+   "passengers": 3215617,
+   "figureRows": 30
+  },
+  {
+   "code": "13117",
+   "name": "北区",
+   "stations": 19,
+   "passengers": 848623,
+   "figureRows": 20
+  },
+  {
+   "code": "13118",
+   "name": "荒川区",
+   "stations": 20,
+   "passengers": 940022,
+   "figureRows": 28
+  },
+  {
+   "code": "13119",
+   "name": "板橋区",
+   "stations": 19,
+   "passengers": 623367,
+   "figureRows": 19
+  },
+  {
+   "code": "13120",
+   "name": "練馬区",
+   "stations": 19,
+   "passengers": 1128448,
+   "figureRows": 21
+  },
+  {
+   "code": "13121",
+   "name": "足立区",
+   "stations": 24,
+   "passengers": 2283755,
+   "figureRows": 27
+  },
+  {
+   "code": "13122",
+   "name": "葛飾区",
+   "stations": 12,
+   "passengers": 622115,
+   "figureRows": 12
+  },
+  {
+   "code": "13123",
+   "name": "江戸川区",
+   "stations": 11,
+   "passengers": 627375,
+   "figureRows": 11
+  }
+ ],
+ "stations": [
+  {
+   "code": "003766",
+   "name": "東京",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.680965,
+   "lng": 139.766685,
+   "dailyPassengers": 1262604,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線",
+      "東北新幹線",
+      "東北線",
+      "東海道線",
+      "総武線"
+     ],
+     "rows": 10,
+     "figureRows": 1,
+     "passengers": 869128
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 199232
+    },
+    {
+     "name": "東海旅客鉄道",
+     "lines": [
+      "東海道新幹線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 194244
+    }
+   ]
+  },
+  {
+   "code": "003624",
+   "name": "秋葉原",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.699041,
+   "lng": 139.774381,
+   "dailyPassengers": 678406,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線",
+      "総武線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 442842
+    },
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 123783
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 111781
+    }
+   ]
+  },
+  {
+   "code": "003719",
+   "name": "大手町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.686745,
+   "lng": 139.764905,
+   "dailyPassengers": 396194,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "4号線丸ノ内線",
+      "5号線東西線",
+      "9号線千代田線"
+     ],
+     "rows": 4,
+     "figureRows": 1,
+     "passengers": 334541
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 61653
+    }
+   ]
+  },
+  {
+   "code": "003795",
+   "name": "有楽町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.675973,
+   "lng": 139.762286,
+   "dailyPassengers": 392785,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 253744
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 139041
+    }
+   ]
+  },
+  {
+   "code": "003595",
+   "name": "飯田橋",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.701374,
+   "lng": 139.746508,
+   "dailyPassengers": 296625,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 159807
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 136818
+    }
+   ]
+  },
+  {
+   "code": "003677",
+   "name": "神田",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.69177,
+   "lng": 139.770875,
+   "dailyPassengers": 237297,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線",
+      "東北線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 181056
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56241
+    }
+   ]
+  },
+  {
+   "code": "003651",
+   "name": "神保町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.695987,
+   "lng": 139.757988,
+   "dailyPassengers": 203106,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線",
+      "6号線三田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 117291
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 85815
+    }
+   ]
+  },
+  {
+   "code": "003657",
+   "name": "九段下",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.695495,
+   "lng": 139.751118,
+   "dailyPassengers": 201105,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "5号線東西線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 201105
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003728",
+   "name": "四ツ谷",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.685653,
+   "lng": 139.73053,
+   "dailyPassengers": 177874,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 177874
+    }
+   ]
+  },
+  {
+   "code": "003615",
+   "name": "御茶ノ水",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.699605,
+   "lng": 139.76503,
+   "dailyPassengers": 176728,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線",
+      "総武線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 176728
+    }
+   ]
+  },
+  {
+   "code": "003671",
+   "name": "市ヶ谷",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.692575,
+   "lng": 139.736892,
+   "dailyPassengers": 146049,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 102104
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43945
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003580",
+   "name": "水道橋",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.702,
+   "lng": 139.753745,
+   "dailyPassengers": 142866,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 142866
+    }
+   ]
+  },
+  {
+   "code": "003805",
+   "name": "霞ヶ関",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.673875,
+   "lng": 139.75106,
+   "dailyPassengers": 132884,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "4号線丸ノ内線",
+      "9号線千代田線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 132884
+    }
+   ]
+  },
+  {
+   "code": "003802",
+   "name": "日比谷",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.674272,
+   "lng": 139.760601,
+   "dailyPassengers": 132278,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "9号線千代田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 93712
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 38566
+    }
+   ]
+  },
+  {
+   "code": "003645",
+   "name": "新御茶ノ水",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.696925,
+   "lng": 139.76545,
+   "dailyPassengers": 87057,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 87057
+    }
+   ]
+  },
+  {
+   "code": "003782",
+   "name": "永田町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.678379,
+   "lng": 139.739307,
+   "dailyPassengers": 75272,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "7号線南北線",
+      "8号線有楽町線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 75272
+    }
+   ]
+  },
+  {
+   "code": "003729",
+   "name": "半蔵門",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.68538,
+   "lng": 139.741695,
+   "dailyPassengers": 73487,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 73487
+    }
+   ]
+  },
+  {
+   "code": "003661",
+   "name": "淡路町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.69487,
+   "lng": 139.767455,
+   "dailyPassengers": 57894,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 57894
+    }
+   ]
+  },
+  {
+   "code": "003737",
+   "name": "麹町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.684785,
+   "lng": 139.73735,
+   "dailyPassengers": 56238,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56238
+    }
+   ]
+  },
+  {
+   "code": "003691",
+   "name": "竹橋",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.69044,
+   "lng": 139.75767,
+   "dailyPassengers": 42156,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 42156
+    }
+   ]
+  },
+  {
+   "code": "003799",
+   "name": "国会議事堂前",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.674874,
+   "lng": 139.745515,
+   "dailyPassengers": 40907,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線",
+      "9号線千代田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 40907
+    }
+   ]
+  },
+  {
+   "code": "003655",
+   "name": "岩本町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.695577,
+   "lng": 139.775185,
+   "dailyPassengers": 39177,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39177
+    }
+   ]
+  },
+  {
+   "code": "003659",
+   "name": "小川町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.695216,
+   "lng": 139.76686,
+   "dailyPassengers": 37295,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37295
+    }
+   ]
+  },
+  {
+   "code": "003772",
+   "name": "二重橋前",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.680505,
+   "lng": 139.76178,
+   "dailyPassengers": 35289,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35289
+    }
+   ]
+  },
+  {
+   "code": "003586",
+   "name": "末広町",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.70278,
+   "lng": 139.771762,
+   "dailyPassengers": 27833,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27833
+    }
+   ]
+  },
+  {
+   "code": "003787",
+   "name": "桜田門",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.677455,
+   "lng": 139.751887,
+   "dailyPassengers": 13129,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13129
+    }
+   ]
+  },
+  {
+   "code": "003810",
+   "name": "溜池山王",
+   "ward": "千代田区",
+   "wardCode": "13101",
+   "lat": 35.67309,
+   "lng": 139.741293,
+   "dailyPassengers": null,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ],
+   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+  },
+  {
+   "code": "003823",
+   "name": "銀座",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.671984,
+   "lng": 139.764008,
+   "dailyPassengers": 230271,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "3号線銀座線",
+      "4号線丸ノ内線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 230271
+    }
+   ]
+  },
+  {
+   "code": "003756",
+   "name": "日本橋",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.682375,
+   "lng": 139.7741,
+   "dailyPassengers": 216753,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線",
+      "5号線東西線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 175343
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 41410
+    }
+   ]
+  },
+  {
+   "code": "003797",
+   "name": "八丁堀",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.675371,
+   "lng": 139.77733,
+   "dailyPassengers": 166605,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 102173
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 64432
+    }
+   ]
+  },
+  {
+   "code": "003838",
+   "name": "東銀座",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.669633,
+   "lng": 139.767147,
+   "dailyPassengers": 140168,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 82069
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 58099
+    }
+   ]
+  },
+  {
+   "code": "003716",
+   "name": "三越前",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.687174,
+   "lng": 139.773582,
+   "dailyPassengers": 117531,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "3号線銀座線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 117531
+    }
+   ]
+  },
+  {
+   "code": "003773",
+   "name": "茅場町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.680346,
+   "lng": 139.77927,
+   "dailyPassengers": 112343,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "5号線東西線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 112343
+    }
+   ]
+  },
+  {
+   "code": "003889",
+   "name": "月島",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.664711,
+   "lng": 139.784406,
+   "dailyPassengers": 100940,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 70195
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30745
+    }
+   ]
+  },
+  {
+   "code": "003721",
+   "name": "人形町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.686345,
+   "lng": 139.782172,
+   "dailyPassengers": 99358,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 65187
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34171
+    }
+   ]
+  },
+  {
+   "code": "003927",
+   "name": "勝どき",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.658949,
+   "lng": 139.777152,
+   "dailyPassengers": 91189,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 91189
+    }
+   ]
+  },
+  {
+   "code": "003753",
+   "name": "水天宮前",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.683003,
+   "lng": 139.785174,
+   "dailyPassengers": 74355,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 74355
+    }
+   ]
+  },
+  {
+   "code": "003860",
+   "name": "築地",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.667928,
+   "lng": 139.772472,
+   "dailyPassengers": 59492,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 59492
+    }
+   ]
+  },
+  {
+   "code": "003792",
+   "name": "京橋",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.676707,
+   "lng": 139.770104,
+   "dailyPassengers": 56104,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56104
+    }
+   ]
+  },
+  {
+   "code": "003668",
+   "name": "馬喰町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.693377,
+   "lng": 139.782429,
+   "dailyPassengers": 50414,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 50414
+    }
+   ]
+  },
+  {
+   "code": "003675",
+   "name": "馬喰横山",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.692007,
+   "lng": 139.782923,
+   "dailyPassengers": 46299,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 46299
+    }
+   ]
+  },
+  {
+   "code": "003833",
+   "name": "新富町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.670528,
+   "lng": 139.773594,
+   "dailyPassengers": 36625,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36625
+    }
+   ]
+  },
+  {
+   "code": "003703",
+   "name": "新日本橋",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.68903,
+   "lng": 139.774298,
+   "dailyPassengers": 36522,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36522
+    }
+   ]
+  },
+  {
+   "code": "003692",
+   "name": "小伝馬町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.690423,
+   "lng": 139.778758,
+   "dailyPassengers": 36068,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36068
+    }
+   ]
+  },
+  {
+   "code": "003801",
+   "name": "銀座一丁目",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.674525,
+   "lng": 139.766789,
+   "dailyPassengers": 33805,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 33805
+    }
+   ]
+  },
+  {
+   "code": "003796",
+   "name": "宝町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.675684,
+   "lng": 139.77209,
+   "dailyPassengers": 31022,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 31022
+    }
+   ]
+  },
+  {
+   "code": "003676",
+   "name": "東日本橋",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.691782,
+   "lng": 139.78478,
+   "dailyPassengers": 25398,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25398
+    }
+   ]
+  },
+  {
+   "code": "003886",
+   "name": "築地市場",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.66496,
+   "lng": 139.76675,
+   "dailyPassengers": 23281,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23281
+    }
+   ]
+  },
+  {
+   "code": "003706",
+   "name": "浜町",
+   "ward": "中央区",
+   "wardCode": "13102",
+   "lat": 35.68859,
+   "lng": 139.788125,
+   "dailyPassengers": 21447,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21447
+    }
+   ]
+  },
+  {
+   "code": "004095",
+   "name": "品川",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.628135,
+   "lng": 139.738535,
+   "dailyPassengers": 892969,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線",
+      "東海道線"
+     ],
+     "rows": 4,
+     "figureRows": 1,
+     "passengers": 575878
+    },
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 241688
+    },
+    {
+     "name": "東海旅客鉄道",
+     "lines": [
+      "東海道新幹線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 75403
+    }
+   ]
+  },
+  {
+   "code": "003872",
+   "name": "新橋",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.66639,
+   "lng": 139.7582,
+   "dailyPassengers": 787769,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 463256
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 204567
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 61689
+    },
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 58257
+    }
+   ]
+  },
+  {
+   "code": "003949",
+   "name": "浜松町",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.65541,
+   "lng": 139.757125,
+   "dailyPassengers": 267804,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 267804
+    }
+   ]
+  },
+  {
+   "code": "004000",
+   "name": "田町",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.64574,
+   "lng": 139.747605,
+   "dailyPassengers": 251710,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 251710
+    }
+   ]
+  },
+  {
+   "code": "003892",
+   "name": "六本木",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.664065,
+   "lng": 139.731275,
+   "dailyPassengers": 183792,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 110298
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 73494
+    }
+   ]
+  },
+  {
+   "code": "003883",
+   "name": "表参道",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.66514,
+   "lng": 139.712385,
+   "dailyPassengers": 176901,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "3号線銀座線",
+      "9号線千代田線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 176901
+    }
+   ]
+  },
+  {
+   "code": "003812",
+   "name": "青山一丁目",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.672957,
+   "lng": 139.724074,
+   "dailyPassengers": 124550,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "3号線銀座線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 100057
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24493
+    }
+   ]
+  },
+  {
+   "code": "003900",
+   "name": "神谷町",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.662625,
+   "lng": 139.744725,
+   "dailyPassengers": 107982,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 107982
+    }
+   ]
+  },
+  {
+   "code": "003986",
+   "name": "三田",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.648145,
+   "lng": 139.748888,
+   "dailyPassengers": 107560,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線",
+      "6号線三田線"
+     ],
+     "rows": 4,
+     "figureRows": 1,
+     "passengers": 107560
+    }
+   ]
+  },
+  {
+   "code": "003939",
+   "name": "大門",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.656678,
+   "lng": 139.755705,
+   "dailyPassengers": 101853,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線",
+      "1号線浅草線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 101853
+    }
+   ]
+  },
+  {
+   "code": "003835",
+   "name": "虎ノ門",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.67016,
+   "lng": 139.75012,
+   "dailyPassengers": 96029,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 96029
+    }
+   ]
+  },
+  {
+   "code": "003946",
+   "name": "モノレール浜松町",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.655745,
+   "lng": 139.75667,
+   "dailyPassengers": 94252,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 94252
+    }
+   ]
+  },
+  {
+   "code": "003788",
+   "name": "赤坂見附",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.676834,
+   "lng": 139.737326,
+   "dailyPassengers": 89214,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線",
+      "4号線丸ノ内線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 89214
+    }
+   ]
+  },
+  {
+   "code": "003810",
+   "name": "溜池山王",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.671509,
+   "lng": 139.741941,
+   "dailyPassengers": 82631,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 82631
+    }
+   ]
+  },
+  {
+   "code": "003822",
+   "name": "赤坂",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.672126,
+   "lng": 139.736396,
+   "dailyPassengers": 77718,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 77718
+    }
+   ]
+  },
+  {
+   "code": "003834",
+   "name": "外苑前",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.670375,
+   "lng": 139.717825,
+   "dailyPassengers": 74637,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 74637
+    }
+   ]
+  },
+  {
+   "code": "003884",
+   "name": "六本木一丁目",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.665075,
+   "lng": 139.7389,
+   "dailyPassengers": 74305,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 74305
+    }
+   ]
+  },
+  {
+   "code": "003941",
+   "name": "麻布十番",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.65649,
+   "lng": 139.736105,
+   "dailyPassengers": 70951,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43260
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27691
+    }
+   ]
+  },
+  {
+   "code": "003866",
+   "name": "虎ノ門ヒルズ",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.66733,
+   "lng": 139.747775,
+   "dailyPassengers": 56595,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56595
+    }
+   ]
+  },
+  {
+   "code": "003887",
+   "name": "汐留",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.664914,
+   "lng": 139.761272,
+   "dailyPassengers": 45681,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37899
+    },
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7782
+    }
+   ]
+  },
+  {
+   "code": "003911",
+   "name": "御成門",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.660978,
+   "lng": 139.751499,
+   "dailyPassengers": 43230,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43230
+    }
+   ]
+  },
+  {
+   "code": "003868",
+   "name": "乃木坂",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.666584,
+   "lng": 139.726235,
+   "dailyPassengers": 39194,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39194
+    }
+   ]
+  },
+  {
+   "code": "003842",
+   "name": "内幸町",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.66918,
+   "lng": 139.75533,
+   "dailyPassengers": 38025,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 38025
+    }
+   ]
+  },
+  {
+   "code": "003954",
+   "name": "赤羽橋",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.65497,
+   "lng": 139.744195,
+   "dailyPassengers": 37465,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37465
+    }
+   ]
+  },
+  {
+   "code": "004025",
+   "name": "白金高輪",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.643145,
+   "lng": 139.734285,
+   "dailyPassengers": 36926,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36926
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004042",
+   "name": "泉岳寺",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.63813,
+   "lng": 139.73973,
+   "dailyPassengers": 33601,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 33601
+    },
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004061",
+   "name": "高輪ゲートウェイ",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.635379,
+   "lng": 139.740644,
+   "dailyPassengers": 28418,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28418
+    }
+   ]
+  },
+  {
+   "code": "003962",
+   "name": "芝公園",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.653455,
+   "lng": 139.74972,
+   "dailyPassengers": 28023,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28023
+    }
+   ]
+  },
+  {
+   "code": "004112",
+   "name": "台場",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.62587,
+   "lng": 139.771375,
+   "dailyPassengers": 19936,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19936
+    }
+   ]
+  },
+  {
+   "code": "004044",
+   "name": "白金台",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.63777,
+   "lng": 139.72586,
+   "dailyPassengers": 16791,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16791
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004079",
+   "name": "高輪台",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.631673,
+   "lng": 139.73037,
+   "dailyPassengers": 13969,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13969
+    }
+   ]
+  },
+  {
+   "code": "004091",
+   "name": "お台場海浜公園",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.629805,
+   "lng": 139.77853,
+   "dailyPassengers": 13435,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13435
+    }
+   ]
+  },
+  {
+   "code": "003958",
+   "name": "竹芝",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.654065,
+   "lng": 139.762015,
+   "dailyPassengers": 5132,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5132
+    }
+   ]
+  },
+  {
+   "code": "004030",
+   "name": "芝浦ふ頭",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.64222,
+   "lng": 139.75787,
+   "dailyPassengers": 5032,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5032
+    }
+   ]
+  },
+  {
+   "code": "003979",
+   "name": "日の出",
+   "ward": "港区",
+   "wardCode": "13103",
+   "lat": 35.64926,
+   "lng": 139.75916,
+   "dailyPassengers": 2441,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2441
+    }
+   ]
+  },
+  {
+   "code": "003700",
+   "name": "新宿",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.689985,
+   "lng": 139.69921,
+   "dailyPassengers": 2713386,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線",
+      "山手線"
+     ],
+     "rows": 4,
+     "figureRows": 1,
+     "passengers": 1333618
+    },
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 728874
+    },
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 450952
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 199942
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003508",
+   "name": "高田馬場",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.712904,
+   "lng": 139.703829,
+   "dailyPassengers": 809212,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 359332
+    },
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 274114
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 175766
+    }
+   ]
+  },
+  {
+   "code": "003689",
+   "name": "新宿三丁目",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.690583,
+   "lng": 139.704752,
+   "dailyPassengers": 199171,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "4号線丸ノ内線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 152460
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 46711
+    }
+   ]
+  },
+  {
+   "code": "003648",
+   "name": "西武新宿",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.696171,
+   "lng": 139.70005,
+   "dailyPassengers": 147390,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 147390
+    }
+   ]
+  },
+  {
+   "code": "003671",
+   "name": "市ヶ谷",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.692878,
+   "lng": 139.73634,
+   "dailyPassengers": 133367,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 133367
+    }
+   ]
+  },
+  {
+   "code": "003728",
+   "name": "四ツ谷",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.6842,
+   "lng": 139.730082,
+   "dailyPassengers": 117584,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線",
+      "7号線南北線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 117584
+    }
+   ]
+  },
+  {
+   "code": "003601",
+   "name": "新大久保",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.70093,
+   "lng": 139.700255,
+   "dailyPassengers": 98492,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 98492
+    }
+   ]
+  },
+  {
+   "code": "003662",
+   "name": "西新宿",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.694515,
+   "lng": 139.69256,
+   "dailyPassengers": 85481,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 85481
+    }
+   ]
+  },
+  {
+   "code": "003570",
+   "name": "早稲田",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.70568,
+   "lng": 139.72219,
+   "dailyPassengers": 79978,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 79978
+    }
+   ]
+  },
+  {
+   "code": "003612",
+   "name": "東新宿",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.699829,
+   "lng": 139.707848,
+   "dailyPassengers": 68375,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 40302
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28073
+    }
+   ]
+  },
+  {
+   "code": "003604",
+   "name": "大久保",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.700635,
+   "lng": 139.697445,
+   "dailyPassengers": 51544,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 51544
+    }
+   ]
+  },
+  {
+   "code": "003690",
+   "name": "都庁前",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.69059,
+   "lng": 139.692625,
+   "dailyPassengers": 49779,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 49779
+    }
+   ]
+  },
+  {
+   "code": "003707",
+   "name": "新宿御苑前",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.688525,
+   "lng": 139.710915,
+   "dailyPassengers": 48832,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48832
+    }
+   ]
+  },
+  {
+   "code": "003495",
+   "name": "中井",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.71507,
+   "lng": 139.686645,
+   "dailyPassengers": 45031,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27638
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17393
+    }
+   ]
+  },
+  {
+   "code": "003774",
+   "name": "信濃町",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.679942,
+   "lng": 139.721099,
+   "dailyPassengers": 43682,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43682
+    }
+   ]
+  },
+  {
+   "code": "003713",
+   "name": "四谷三丁目",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.687835,
+   "lng": 139.719325,
+   "dailyPassengers": 42890,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 42890
+    }
+   ]
+  },
+  {
+   "code": "003578",
+   "name": "神楽坂",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.703865,
+   "lng": 139.73452,
+   "dailyPassengers": 40020,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 40020
+    }
+   ]
+  },
+  {
+   "code": "003544",
+   "name": "西早稲田",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.707808,
+   "lng": 139.709109,
+   "dailyPassengers": 37411,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37411
+    }
+   ]
+  },
+  {
+   "code": "003669",
+   "name": "新宿西口",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.69316,
+   "lng": 139.69916,
+   "dailyPassengers": 36754,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36754
+    }
+   ]
+  },
+  {
+   "code": "003673",
+   "name": "曙橋",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.69233,
+   "lng": 139.72258,
+   "dailyPassengers": 36403,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36403
+    }
+   ]
+  },
+  {
+   "code": "003696",
+   "name": "西新宿五丁目",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.6899,
+   "lng": 139.684665,
+   "dailyPassengers": 32776,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32776
+    }
+   ]
+  },
+  {
+   "code": "003623",
+   "name": "若松河田",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.699165,
+   "lng": 139.718185,
+   "dailyPassengers": 28849,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28849
+    }
+   ]
+  },
+  {
+   "code": "003448",
+   "name": "落合南長崎",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.72336,
+   "lng": 139.683472,
+   "dailyPassengers": 27118,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27118
+    }
+   ]
+  },
+  {
+   "code": "003618",
+   "name": "牛込柳町",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.69946,
+   "lng": 139.72519,
+   "dailyPassengers": 19954,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19954
+    }
+   ]
+  },
+  {
+   "code": "003775",
+   "name": "国立競技場",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.679858,
+   "lng": 139.714876,
+   "dailyPassengers": 13711,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13711
+    }
+   ]
+  },
+  {
+   "code": "003602",
+   "name": "牛込神楽坂",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.700915,
+   "lng": 139.73604,
+   "dailyPassengers": 13686,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13686
+    }
+   ]
+  },
+  {
+   "code": "003491",
+   "name": "下落合",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.715686,
+   "lng": 139.6953,
+   "dailyPassengers": 11882,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 11882
+    }
+   ]
+  },
+  {
+   "code": "003514",
+   "name": "早稲田",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.711875,
+   "lng": 139.719055,
+   "dailyPassengers": 3179,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3179
+    }
+   ]
+  },
+  {
+   "code": "003509",
+   "name": "面影橋",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.712855,
+   "lng": 139.714675,
+   "dailyPassengers": 822,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 822
+    }
+   ]
+  },
+  {
+   "code": "003595",
+   "name": "飯田橋",
+   "ward": "新宿区",
+   "wardCode": "13104",
+   "lat": 35.701551,
+   "lng": 139.743688,
+   "dailyPassengers": null,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線",
+      "8号線有楽町線"
+     ],
+     "rows": 2,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ],
+   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+  },
+  {
+   "code": "003542",
+   "name": "後楽園",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.70839,
+   "lng": 139.751788,
+   "dailyPassengers": 104894,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線",
+      "7号線南北線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 104894
+    }
+   ]
+  },
+  {
+   "code": "003484",
+   "name": "茗荷谷",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.7172,
+   "lng": 139.736895,
+   "dailyPassengers": 78606,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 78606
+    }
+   ]
+  },
+  {
+   "code": "003546",
+   "name": "本郷三丁目",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.70758,
+   "lng": 139.760614,
+   "dailyPassengers": 70357,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 51198
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19159
+    }
+   ]
+  },
+  {
+   "code": "003529",
+   "name": "春日",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.709948,
+   "lng": 139.753237,
+   "dailyPassengers": 65361,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線",
+      "6号線三田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 65361
+    }
+   ]
+  },
+  {
+   "code": "003615",
+   "name": "御茶ノ水",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.70043,
+   "lng": 139.764405,
+   "dailyPassengers": 54548,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 54548
+    }
+   ]
+  },
+  {
+   "code": "003534",
+   "name": "江戸川橋",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.709295,
+   "lng": 139.73413,
+   "dailyPassengers": 49844,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 49844
+    }
+   ]
+  },
+  {
+   "code": "003461",
+   "name": "白山",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.721334,
+   "lng": 139.752212,
+   "dailyPassengers": 48388,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48388
+    }
+   ]
+  },
+  {
+   "code": "003474",
+   "name": "護国寺",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.71918,
+   "lng": 139.72745,
+   "dailyPassengers": 40640,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 40640
+    }
+   ]
+  },
+  {
+   "code": "003580",
+   "name": "水道橋",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.703641,
+   "lng": 139.755123,
+   "dailyPassengers": 39624,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39624
+    }
+   ]
+  },
+  {
+   "code": "003558",
+   "name": "湯島",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.706805,
+   "lng": 139.769981,
+   "dailyPassengers": 37913,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37913
+    }
+   ]
+  },
+  {
+   "code": "003415",
+   "name": "千石",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.727965,
+   "lng": 139.744745,
+   "dailyPassengers": 31304,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 31304
+    }
+   ]
+  },
+  {
+   "code": "003434",
+   "name": "千駄木",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.725745,
+   "lng": 139.763305,
+   "dailyPassengers": 28507,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28507
+    }
+   ]
+  },
+  {
+   "code": "003483",
+   "name": "根津",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.717325,
+   "lng": 139.76575,
+   "dailyPassengers": 27937,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27937
+    }
+   ]
+  },
+  {
+   "code": "003481",
+   "name": "東大前",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.71803,
+   "lng": 139.757915,
+   "dailyPassengers": 27311,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27311
+    }
+   ]
+  },
+  {
+   "code": "003441",
+   "name": "本駒込",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.724364,
+   "lng": 139.753809,
+   "dailyPassengers": 21070,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21070
+    }
+   ]
+  },
+  {
+   "code": "003595",
+   "name": "飯田橋",
+   "ward": "文京区",
+   "wardCode": "13105",
+   "lat": 35.703102,
+   "lng": 139.745744,
+   "dailyPassengers": 18167,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18167
+    }
+   ]
+  },
+  {
+   "code": "003505",
+   "name": "上野",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.713315,
+   "lng": 139.777385,
+   "dailyPassengers": 529457,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北新幹線",
+      "東北線"
+     ],
+     "rows": 5,
+     "figureRows": 1,
+     "passengers": 340084
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "3号線銀座線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 189373
+    }
+   ]
+  },
+  {
+   "code": "003522",
+   "name": "浅草",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.710747,
+   "lng": 139.797772,
+   "dailyPassengers": 197745,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 108544
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 50125
+    },
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 39076
+    }
+   ]
+  },
+  {
+   "code": "003636",
+   "name": "浅草橋",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.697605,
+   "lng": 139.786455,
+   "dailyPassengers": 147750,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 99886
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 47864
+    }
+   ]
+  },
+  {
+   "code": "003555",
+   "name": "御徒町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.707195,
+   "lng": 139.774715,
+   "dailyPassengers": 125968,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 125968
+    }
+   ]
+  },
+  {
+   "code": "003556",
+   "name": "新御徒町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.707,
+   "lng": 139.781909,
+   "dailyPassengers": 84215,
+   "operators": [
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48374
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35841
+    }
+   ]
+  },
+  {
+   "code": "003571",
+   "name": "蔵前",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.705511,
+   "lng": 139.792254,
+   "dailyPassengers": 53056,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線",
+      "1号線浅草線"
+     ],
+     "rows": 2,
+     "figureRows": 2,
+     "passengers": 53056
+    }
+   ]
+  },
+  {
+   "code": "003460",
+   "name": "鶯谷",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.721455,
+   "lng": 139.77803,
+   "dailyPassengers": 48920,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48920
+    }
+   ]
+  },
+  {
+   "code": "003521",
+   "name": "京成上野",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.71131,
+   "lng": 139.77351,
+   "dailyPassengers": 48475,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48475
+    }
+   ]
+  },
+  {
+   "code": "003399",
+   "name": "三ノ輪",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.729285,
+   "lng": 139.791165,
+   "dailyPassengers": 46924,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 46924
+    }
+   ]
+  },
+  {
+   "code": "003560",
+   "name": "仲御徒町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.706655,
+   "lng": 139.77619,
+   "dailyPassengers": 41623,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 41623
+    }
+   ]
+  },
+  {
+   "code": "003469",
+   "name": "入谷",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.72056,
+   "lng": 139.784472,
+   "dailyPassengers": 38480,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 38480
+    }
+   ]
+  },
+  {
+   "code": "003530",
+   "name": "田原町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.709921,
+   "lng": 139.790307,
+   "dailyPassengers": 36681,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36681
+    }
+   ]
+  },
+  {
+   "code": "003543",
+   "name": "上野御徒町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.707959,
+   "lng": 139.773065,
+   "dailyPassengers": 34438,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34438
+    }
+   ]
+  },
+  {
+   "code": "003545",
+   "name": "上野広小路",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.707765,
+   "lng": 139.773013,
+   "dailyPassengers": 25666,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25666
+    }
+   ]
+  },
+  {
+   "code": "003502",
+   "name": "浅草",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.71393,
+   "lng": 139.792455,
+   "dailyPassengers": 24412,
+   "operators": [
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24412
+    }
+   ]
+  },
+  {
+   "code": "003519",
+   "name": "稲荷町",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.71139,
+   "lng": 139.782211,
+   "dailyPassengers": 18891,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "3号線銀座線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18891
+    }
+   ]
+  },
+  {
+   "code": "003417",
+   "name": "日暮里",
+   "ward": "台東区",
+   "wardCode": "13106",
+   "lat": 35.72727,
+   "lng": 139.770971,
+   "dailyPassengers": null,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ],
+   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+  },
+  {
+   "code": "003526",
+   "name": "押上",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.71022,
+   "lng": 139.81241,
+   "dailyPassengers": 526053,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 222826
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 183422
+    },
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 119805
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003639",
+   "name": "錦糸町",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.69744,
+   "lng": 139.814956,
+   "dailyPassengers": 299028,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 194098
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 104930
+    }
+   ]
+  },
+  {
+   "code": "003654",
+   "name": "両国",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.695755,
+   "lng": 139.79335,
+   "dailyPassengers": 72096,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 72096
+    }
+   ]
+  },
+  {
+   "code": "003646",
+   "name": "両国",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.69677,
+   "lng": 139.797432,
+   "dailyPassengers": 32508,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32508
+    }
+   ]
+  },
+  {
+   "code": "003479",
+   "name": "曳舟",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.718315,
+   "lng": 139.816638,
+   "dailyPassengers": 29890,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "亀戸線",
+      "伊勢崎線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 29890
+    }
+   ]
+  },
+  {
+   "code": "003709",
+   "name": "菊川",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.688405,
+   "lng": 139.806125,
+   "dailyPassengers": 24573,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24573
+    }
+   ]
+  },
+  {
+   "code": "003538",
+   "name": "本所吾妻橋",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.708604,
+   "lng": 139.804559,
+   "dailyPassengers": 21482,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21482
+    }
+   ]
+  },
+  {
+   "code": "003477",
+   "name": "京成曳舟",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.71864,
+   "lng": 139.82028,
+   "dailyPassengers": 19929,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19929
+    }
+   ]
+  },
+  {
+   "code": "003442",
+   "name": "東向島",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.724355,
+   "lng": 139.819335,
+   "dailyPassengers": 19220,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19220
+    }
+   ]
+  },
+  {
+   "code": "003422",
+   "name": "八広",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.72723,
+   "lng": 139.828305,
+   "dailyPassengers": 14618,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14618
+    }
+   ]
+  },
+  {
+   "code": "003355",
+   "name": "鐘ヶ淵",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.73376,
+   "lng": 139.82037,
+   "dailyPassengers": 12929,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12929
+    }
+   ]
+  },
+  {
+   "code": "003525",
+   "name": "小村井",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.71032,
+   "lng": 139.82761,
+   "dailyPassengers": 11154,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "亀戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 11154
+    }
+   ]
+  },
+  {
+   "code": "003548",
+   "name": "東あずま",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.707375,
+   "lng": 139.831595,
+   "dailyPassengers": 7938,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "亀戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7938
+    }
+   ]
+  },
+  {
+   "code": "003524",
+   "name": "とうきょうスカイツリー",
+   "ward": "墨田区",
+   "wardCode": "13107",
+   "lat": 35.710465,
+   "lng": 139.809395,
+   "dailyPassengers": null,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ],
+   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+  },
+  {
+   "code": "003997",
+   "name": "新木場",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.64583,
+   "lng": 139.8266,
+   "dailyPassengers": 296274,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 140156
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 95764
+    },
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 60354
+    }
+   ]
+  },
+  {
+   "code": "003951",
+   "name": "豊洲",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.655151,
+   "lng": 139.795992,
+   "dailyPassengers": 246184,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 210782
+    },
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35402
+    }
+   ]
+  },
+  {
+   "code": "003818",
+   "name": "門前仲町",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.672756,
+   "lng": 139.795126,
+   "dailyPassengers": 143409,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 108733
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34676
+    }
+   ]
+  },
+  {
+   "code": "003635",
+   "name": "亀戸",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.697735,
+   "lng": 139.8272,
+   "dailyPassengers": 135911,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 110086
+    },
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "亀戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25825
+    }
+   ]
+  },
+  {
+   "code": "003839",
+   "name": "東陽町",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.66959,
+   "lng": 139.81768,
+   "dailyPassengers": 114708,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 114708
+    }
+   ]
+  },
+  {
+   "code": "003754",
+   "name": "清澄白河",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.682944,
+   "lng": 139.798659,
+   "dailyPassengers": 80796,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 58792
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22004
+    }
+   ]
+  },
+  {
+   "code": "003704",
+   "name": "住吉",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.688954,
+   "lng": 139.815745,
+   "dailyPassengers": 74853,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 54816
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20037
+    }
+   ]
+  },
+  {
+   "code": "003711",
+   "name": "森下",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.68805,
+   "lng": 139.798195,
+   "dailyPassengers": 74094,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線",
+      "12号線大江戸線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 74094
+    }
+   ]
+  },
+  {
+   "code": "003840",
+   "name": "木場",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.66936,
+   "lng": 139.807115,
+   "dailyPassengers": 72289,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 72289
+    }
+   ]
+  },
+  {
+   "code": "004065",
+   "name": "国際展示場",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.63441,
+   "lng": 139.791695,
+   "dailyPassengers": 70461,
+   "operators": [
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 70461
+    }
+   ]
+  },
+  {
+   "code": "003854",
+   "name": "南砂町",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.668415,
+   "lng": 139.831695,
+   "dailyPassengers": 59562,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 59562
+    }
+   ]
+  },
+  {
+   "code": "004108",
+   "name": "東京テレポート",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.627085,
+   "lng": 139.77806,
+   "dailyPassengers": 45645,
+   "operators": [
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 45645
+    }
+   ]
+  },
+  {
+   "code": "003698",
+   "name": "大島",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.689761,
+   "lng": 139.83436,
+   "dailyPassengers": 31661,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 31661
+    }
+   ]
+  },
+  {
+   "code": "003928",
+   "name": "潮見",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.658865,
+   "lng": 139.81717,
+   "dailyPassengers": 30732,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30732
+    }
+   ]
+  },
+  {
+   "code": "003695",
+   "name": "東大島",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.689922,
+   "lng": 139.847307,
+   "dailyPassengers": 30424,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30424
+    }
+   ]
+  },
+  {
+   "code": "003999",
+   "name": "辰巳",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.645775,
+   "lng": 139.81033,
+   "dailyPassengers": 27776,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27776
+    }
+   ]
+  },
+  {
+   "code": "003702",
+   "name": "西大島",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.689358,
+   "lng": 139.82632,
+   "dailyPassengers": 27698,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27698
+    }
+   ]
+  },
+  {
+   "code": "004087",
+   "name": "東京ビッグサイト",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.63021,
+   "lng": 139.7913,
+   "dailyPassengers": 19291,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19291
+    }
+   ]
+  },
+  {
+   "code": "004001",
+   "name": "市場前",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.64569,
+   "lng": 139.78565,
+   "dailyPassengers": 16534,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16534
+    }
+   ]
+  },
+  {
+   "code": "004034",
+   "name": "東雲",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.64082,
+   "lng": 139.80416,
+   "dailyPassengers": 14700,
+   "operators": [
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14700
+    }
+   ]
+  },
+  {
+   "code": "003859",
+   "name": "越中島",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.668,
+   "lng": 139.792495,
+   "dailyPassengers": 10880,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10880
+    }
+   ]
+  },
+  {
+   "code": "003981",
+   "name": "新豊洲",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.64871,
+   "lng": 139.790115,
+   "dailyPassengers": 10511,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10511
+    }
+   ]
+  },
+  {
+   "code": "004144",
+   "name": "テレコムセンター",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.617725,
+   "lng": 139.779665,
+   "dailyPassengers": 9267,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9267
+    }
+   ]
+  },
+  {
+   "code": "004064",
+   "name": "有明",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.63455,
+   "lng": 139.79334,
+   "dailyPassengers": 9102,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9102
+    }
+   ]
+  },
+  {
+   "code": "004037",
+   "name": "有明テニスの森",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.63998,
+   "lng": 139.788895,
+   "dailyPassengers": 8868,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8868
+    }
+   ]
+  },
+  {
+   "code": "003610",
+   "name": "亀戸水神",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.699945,
+   "lng": 139.83339,
+   "dailyPassengers": 4434,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "亀戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 4434
+    }
+   ]
+  },
+  {
+   "code": "004128",
+   "name": "東京国際クルーズターミナル",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.621357,
+   "lng": 139.773103,
+   "dailyPassengers": 3503,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3503
+    }
+   ]
+  },
+  {
+   "code": "004119",
+   "name": "青海",
+   "ward": "江東区",
+   "wardCode": "13108",
+   "lat": 35.6248,
+   "lng": 139.781315,
+   "dailyPassengers": 2455,
+   "operators": [
+    {
+     "name": "ゆりかもめ",
+     "lines": [
+      "東京臨海新交通臨海線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2455
+    }
+   ]
+  },
+  {
+   "code": "004072",
+   "name": "目黒",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.632485,
+   "lng": 139.71566,
+   "dailyPassengers": 565824,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 379056
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 186768
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004110",
+   "name": "五反田",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.626306,
+   "lng": 139.723534,
+   "dailyPassengers": 375542,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 220642
+    },
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 95723
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 59177
+    }
+   ]
+  },
+  {
+   "code": "004197",
+   "name": "大井町",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.607385,
+   "lng": 139.734355,
+   "dailyPassengers": 366901,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 176304
+    },
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 116836
+    },
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 73761
+    }
+   ]
+  },
+  {
+   "code": "004135",
+   "name": "大崎",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.619945,
+   "lng": 139.728245,
+   "dailyPassengers": 290388,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 290388
+    },
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004123",
+   "name": "天王洲アイル",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.62287,
+   "lng": 139.750905,
+   "dailyPassengers": 54707,
+   "operators": [
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 31595
+    },
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23112
+    }
+   ]
+  },
+  {
+   "code": "004133",
+   "name": "武蔵小山",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.62051,
+   "lng": 139.70447,
+   "dailyPassengers": 54004,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 54004
+    }
+   ]
+  },
+  {
+   "code": "004215",
+   "name": "中延",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60572,
+   "lng": 139.71255,
+   "dailyPassengers": 49338,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27903
+    },
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21435
+    }
+   ]
+  },
+  {
+   "code": "004219",
+   "name": "旗の台",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.605135,
+   "lng": 139.703315,
+   "dailyPassengers": 39338,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線",
+      "池上線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 39338
+    }
+   ]
+  },
+  {
+   "code": "004235",
+   "name": "西大井",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.601699,
+   "lng": 139.721607,
+   "dailyPassengers": 39232,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39232
+    }
+   ]
+  },
+  {
+   "code": "004182",
+   "name": "品川シーサイド",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60979,
+   "lng": 139.749795,
+   "dailyPassengers": 37378,
+   "operators": [
+    {
+     "name": "東京臨海高速鉄道",
+     "lines": [
+      "臨海副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37378
+    }
+   ]
+  },
+  {
+   "code": "004184",
+   "name": "青物横丁",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60919,
+   "lng": 139.743135,
+   "dailyPassengers": 35970,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35970
+    }
+   ]
+  },
+  {
+   "code": "004157",
+   "name": "西小山",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.615435,
+   "lng": 139.69871,
+   "dailyPassengers": 33007,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 33007
+    }
+   ]
+  },
+  {
+   "code": "004114",
+   "name": "不動前",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.625454,
+   "lng": 139.713205,
+   "dailyPassengers": 29015,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29015
+    }
+   ]
+  },
+  {
+   "code": "004161",
+   "name": "戸越",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.614425,
+   "lng": 139.716375,
+   "dailyPassengers": 21299,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21299
+    }
+   ]
+  },
+  {
+   "code": "004155",
+   "name": "戸越銀座",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.61601,
+   "lng": 139.715,
+   "dailyPassengers": 19370,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19370
+    }
+   ]
+  },
+  {
+   "code": "004244",
+   "name": "立会川",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.598505,
+   "lng": 139.738945,
+   "dailyPassengers": 17669,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17669
+    }
+   ]
+  },
+  {
+   "code": "004225",
+   "name": "荏原町",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60381,
+   "lng": 139.707545,
+   "dailyPassengers": 15179,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15179
+    }
+   ]
+  },
+  {
+   "code": "004153",
+   "name": "新馬場",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.61658,
+   "lng": 139.741515,
+   "dailyPassengers": 15099,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15099
+    }
+   ]
+  },
+  {
+   "code": "004268",
+   "name": "大森海岸",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.587579,
+   "lng": 139.735337,
+   "dailyPassengers": 13644,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13644
+    }
+   ]
+  },
+  {
+   "code": "004186",
+   "name": "戸越公園",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60893,
+   "lng": 139.71839,
+   "dailyPassengers": 13597,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13597
+    }
+   ]
+  },
+  {
+   "code": "004181",
+   "name": "荏原中延",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.6099,
+   "lng": 139.71203,
+   "dailyPassengers": 12777,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12777
+    }
+   ]
+  },
+  {
+   "code": "004220",
+   "name": "鮫洲",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60507,
+   "lng": 139.742445,
+   "dailyPassengers": 9677,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9677
+    }
+   ]
+  },
+  {
+   "code": "004188",
+   "name": "下神明",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.60871,
+   "lng": 139.72631,
+   "dailyPassengers": 9364,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9364
+    }
+   ]
+  },
+  {
+   "code": "004125",
+   "name": "北品川",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.62244,
+   "lng": 139.739284,
+   "dailyPassengers": 8977,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8977
+    }
+   ]
+  },
+  {
+   "code": "004127",
+   "name": "大崎広小路",
+   "ward": "品川区",
+   "wardCode": "13109",
+   "lat": 35.622305,
+   "lng": 139.722355,
+   "dailyPassengers": 7648,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7648
+    }
+   ]
+  },
+  {
+   "code": "004014",
+   "name": "中目黒",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.644113,
+   "lng": 139.698829,
+   "dailyPassengers": 381738,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 381738
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "004196",
+   "name": "自由が丘",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.607395,
+   "lng": 139.66897,
+   "dailyPassengers": 136588,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線",
+      "東横線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 136588
+    }
+   ]
+  },
+  {
+   "code": "004094",
+   "name": "学芸大学",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.62877,
+   "lng": 139.68524,
+   "dailyPassengers": 72696,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 72696
+    }
+   ]
+  },
+  {
+   "code": "003972",
+   "name": "池尻大橋",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.650739,
+   "lng": 139.684758,
+   "dailyPassengers": 63191,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "田園都市線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 63191
+    }
+   ]
+  },
+  {
+   "code": "004200",
+   "name": "大岡山",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.607176,
+   "lng": 139.684735,
+   "dailyPassengers": 47370,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線",
+      "目黒線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 47370
+    }
+   ]
+  },
+  {
+   "code": "004143",
+   "name": "都立大学",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.61785,
+   "lng": 139.67644,
+   "dailyPassengers": 46393,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 46393
+    }
+   ]
+  },
+  {
+   "code": "003929",
+   "name": "駒場東大前",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.65867,
+   "lng": 139.684075,
+   "dailyPassengers": 35206,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35206
+    }
+   ]
+  },
+  {
+   "code": "004050",
+   "name": "祐天寺",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.63717,
+   "lng": 139.69075,
+   "dailyPassengers": 29907,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29907
+    }
+   ]
+  },
+  {
+   "code": "004180",
+   "name": "洗足",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.61009,
+   "lng": 139.694105,
+   "dailyPassengers": 14288,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14288
+    }
+   ]
+  },
+  {
+   "code": "004210",
+   "name": "緑が丘",
+   "ward": "目黒区",
+   "wardCode": "13110",
+   "lat": 35.606475,
+   "lng": 139.67915,
+   "dailyPassengers": 10090,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10090
+    }
+   ]
+  },
+  {
+   "code": "004330",
+   "name": "蒲田",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.56177,
+   "lng": 139.71459,
+   "dailyPassengers": 408525,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 251560
+    },
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線",
+      "池上線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 156965
+    }
+   ]
+  },
+  {
+   "code": "004264",
+   "name": "大森",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.588916,
+   "lng": 139.728149,
+   "dailyPassengers": 165460,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東海道線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 165460
+    }
+   ]
+  },
+  {
+   "code": "004368",
+   "name": "羽田空港第1・第2ターミナル",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.54972,
+   "lng": 139.785858,
+   "dailyPassengers": 111697,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 111697
+    }
+   ]
+  },
+  {
+   "code": "004331",
+   "name": "京急蒲田",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.561683,
+   "lng": 139.724337,
+   "dailyPassengers": 61303,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線",
+      "空港線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 61303
+    }
+   ]
+  },
+  {
+   "code": "004382",
+   "name": "羽田空港第3ターミナル",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.54498,
+   "lng": 139.767066,
+   "dailyPassengers": 47320,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36613
+    },
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10707
+    }
+   ]
+  },
+  {
+   "code": "004294",
+   "name": "平和島",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.578681,
+   "lng": 139.73497,
+   "dailyPassengers": 44102,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 44102
+    }
+   ]
+  },
+  {
+   "code": "004270",
+   "name": "西馬込",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.587305,
+   "lng": 139.70632,
+   "dailyPassengers": 43636,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43636
+    }
+   ]
+  },
+  {
+   "code": "004309",
+   "name": "池上",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.571947,
+   "lng": 139.70282,
+   "dailyPassengers": 35181,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35181
+    }
+   ]
+  },
+  {
+   "code": "004310",
+   "name": "下丸子",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.571325,
+   "lng": 139.68549,
+   "dailyPassengers": 31438,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 31438
+    }
+   ]
+  },
+  {
+   "code": "004367",
+   "name": "雑色",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.549775,
+   "lng": 139.715035,
+   "dailyPassengers": 30842,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30842
+    }
+   ]
+  },
+  {
+   "code": "004356",
+   "name": "大鳥居",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.55232,
+   "lng": 139.740225,
+   "dailyPassengers": 30660,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30660
+    }
+   ]
+  },
+  {
+   "code": "004373",
+   "name": "天空橋",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.548355,
+   "lng": 139.7546,
+   "dailyPassengers": 30427,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18979
+    },
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 11448
+    }
+   ]
+  },
+  {
+   "code": "004245",
+   "name": "田園調布",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.59729,
+   "lng": 139.667285,
+   "dailyPassengers": 30210,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線",
+      "目黒線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 30210
+    }
+   ]
+  },
+  {
+   "code": "004349",
+   "name": "糀谷",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.55445,
+   "lng": 139.72959,
+   "dailyPassengers": 28346,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28346
+    }
+   ]
+  },
+  {
+   "code": "004248",
+   "name": "馬込",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.596444,
+   "lng": 139.711855,
+   "dailyPassengers": 26346,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "1号線浅草線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 26346
+    }
+   ]
+  },
+  {
+   "code": "004317",
+   "name": "武蔵新田",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.567755,
+   "lng": 139.692435,
+   "dailyPassengers": 25710,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25710
+    }
+   ]
+  },
+  {
+   "code": "004329",
+   "name": "矢口渡",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.56245,
+   "lng": 139.70034,
+   "dailyPassengers": 25506,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25506
+    }
+   ]
+  },
+  {
+   "code": "004361",
+   "name": "羽田空港第2ターミナル",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.550795,
+   "lng": 139.7882,
+   "dailyPassengers": 24342,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24342
+    }
+   ]
+  },
+  {
+   "code": "004273",
+   "name": "御嶽山",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.585223,
+   "lng": 139.682381,
+   "dailyPassengers": 23587,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23587
+    }
+   ]
+  },
+  {
+   "code": "004259",
+   "name": "雪が谷大塚",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.591965,
+   "lng": 139.681125,
+   "dailyPassengers": 22365,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22365
+    }
+   ]
+  },
+  {
+   "code": "004307",
+   "name": "大森町",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.5725,
+   "lng": 139.73201,
+   "dailyPassengers": 21817,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21817
+    }
+   ]
+  },
+  {
+   "code": "004261",
+   "name": "多摩川",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.589645,
+   "lng": 139.668698,
+   "dailyPassengers": 21510,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線",
+      "東横線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 21510
+    }
+   ]
+  },
+  {
+   "code": "004372",
+   "name": "羽田空港第1ターミナル",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.549089,
+   "lng": 139.78465,
+   "dailyPassengers": 21124,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 21124
+    }
+   ]
+  },
+  {
+   "code": "004364",
+   "name": "穴守稲荷",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.550337,
+   "lng": 139.746688,
+   "dailyPassengers": 20698,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20698
+    }
+   ]
+  },
+  {
+   "code": "004299",
+   "name": "鵜の木",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.575385,
+   "lng": 139.68055,
+   "dailyPassengers": 19463,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19463
+    }
+   ]
+  },
+  {
+   "code": "004239",
+   "name": "洗足池",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.599675,
+   "lng": 139.690925,
+   "dailyPassengers": 17037,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17037
+    }
+   ]
+  },
+  {
+   "code": "004319",
+   "name": "梅屋敷",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.566785,
+   "lng": 139.72817,
+   "dailyPassengers": 16426,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16426
+    }
+   ]
+  },
+  {
+   "code": "004399",
+   "name": "六郷土手",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.54053,
+   "lng": 139.707565,
+   "dailyPassengers": 16205,
+   "operators": [
+    {
+     "name": "京浜急行電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16205
+    }
+   ]
+  },
+  {
+   "code": "004285",
+   "name": "流通センター",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.581445,
+   "lng": 139.749185,
+   "dailyPassengers": 15693,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15693
+    }
+   ]
+  },
+  {
+   "code": "004292",
+   "name": "久が原",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.579455,
+   "lng": 139.68567,
+   "dailyPassengers": 15640,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15640
+    }
+   ]
+  },
+  {
+   "code": "004305",
+   "name": "千鳥町",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.573,
+   "lng": 139.69142,
+   "dailyPassengers": 15216,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15216
+    }
+   ]
+  },
+  {
+   "code": "004232",
+   "name": "長原",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.60223,
+   "lng": 139.69797,
+   "dailyPassengers": 14880,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14880
+    }
+   ]
+  },
+  {
+   "code": "004247",
+   "name": "石川台",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.59686,
+   "lng": 139.68509,
+   "dailyPassengers": 14877,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14877
+    }
+   ]
+  },
+  {
+   "code": "004279",
+   "name": "沼部",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.58249,
+   "lng": 139.67317,
+   "dailyPassengers": 10289,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東急多摩川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10289
+    }
+   ]
+  },
+  {
+   "code": "004323",
+   "name": "蓮沼",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.56396,
+   "lng": 139.7086,
+   "dailyPassengers": 8254,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "池上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8254
+    }
+   ]
+  },
+  {
+   "code": "004212",
+   "name": "北千束",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.60628,
+   "lng": 139.69327,
+   "dailyPassengers": 7266,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7266
+    }
+   ]
+  },
+  {
+   "code": "004312",
+   "name": "昭和島",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.570621,
+   "lng": 139.749912,
+   "dailyPassengers": 5862,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5862
+    }
+   ]
+  },
+  {
+   "code": "004393",
+   "name": "新整備場",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.542816,
+   "lng": 139.786827,
+   "dailyPassengers": 4366,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 4366
+    }
+   ]
+  },
+  {
+   "code": "004348",
+   "name": "整備場",
+   "ward": "大田区",
+   "wardCode": "13111",
+   "lat": 35.5551,
+   "lng": 139.75336,
+   "dailyPassengers": 1749,
+   "operators": [
+    {
+     "name": "東京モノレール",
+     "lines": [
+      "東京モノレール羽田空港線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1749
+    }
+   ]
+  },
+  {
+   "code": "003908",
+   "name": "下北沢",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.661605,
+   "lng": 139.66657,
+   "dailyPassengers": 229107,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 121505
+    },
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 107602
+    }
+   ]
+  },
+  {
+   "code": "004016",
+   "name": "三軒茶屋",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.644105,
+   "lng": 139.669185,
+   "dailyPassengers": 167214,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線",
+      "田園都市線"
+     ],
+     "rows": 2,
+     "figureRows": 2,
+     "passengers": 167214
+    }
+   ]
+  },
+  {
+   "code": "004177",
+   "name": "二子玉川",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.611388,
+   "lng": 139.626337,
+   "dailyPassengers": 140353,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線",
+      "田園都市線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 140353
+    }
+   ]
+  },
+  {
+   "code": "003846",
+   "name": "明大前",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.669085,
+   "lng": 139.65038,
+   "dailyPassengers": 91172,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線",
+      "京王線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 91172
+    }
+   ]
+  },
+  {
+   "code": "003970",
+   "name": "経堂",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.65119,
+   "lng": 139.636675,
+   "dailyPassengers": 82232,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 82232
+    }
+   ]
+  },
+  {
+   "code": "004036",
+   "name": "成城学園前",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.640135,
+   "lng": 139.59908,
+   "dailyPassengers": 80513,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 80513
+    }
+   ]
+  },
+  {
+   "code": "003861",
+   "name": "千歳烏山",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.667835,
+   "lng": 139.600375,
+   "dailyPassengers": 79689,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 79689
+    }
+   ]
+  },
+  {
+   "code": "004069",
+   "name": "駒沢大学",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.633035,
+   "lng": 139.660965,
+   "dailyPassengers": 74266,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "田園都市線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 74266
+    }
+   ]
+  },
+  {
+   "code": "004078",
+   "name": "桜新町",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.631729,
+   "lng": 139.645467,
+   "dailyPassengers": 68296,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "田園都市線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 68296
+    }
+   ]
+  },
+  {
+   "code": "004109",
+   "name": "用賀",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.62668,
+   "lng": 139.634168,
+   "dailyPassengers": 65061,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "田園都市線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 65061
+    }
+   ]
+  },
+  {
+   "code": "003988",
+   "name": "千歳船橋",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.647675,
+   "lng": 139.62453,
+   "dailyPassengers": 55873,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 55873
+    }
+   ]
+  },
+  {
+   "code": "003874",
+   "name": "下高井戸",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.66608,
+   "lng": 139.642028,
+   "dailyPassengers": 55782,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39216
+    },
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16566
+    }
+   ]
+  },
+  {
+   "code": "004024",
+   "name": "祖師ヶ谷大蔵",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.643265,
+   "lng": 139.609795,
+   "dailyPassengers": 47616,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 47616
+    }
+   ]
+  },
+  {
+   "code": "003862",
+   "name": "桜上水",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.66764,
+   "lng": 139.631465,
+   "dailyPassengers": 36224,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36224
+    }
+   ]
+  },
+  {
+   "code": "003945",
+   "name": "梅ヶ丘",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.65602,
+   "lng": 139.65355,
+   "dailyPassengers": 32280,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32280
+    }
+   ]
+  },
+  {
+   "code": "004205",
+   "name": "尾山台",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.606935,
+   "lng": 139.65412,
+   "dailyPassengers": 30971,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30971
+    }
+   ]
+  },
+  {
+   "code": "004053",
+   "name": "喜多見",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.636501,
+   "lng": 139.586778,
+   "dailyPassengers": 30793,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30793
+    }
+   ]
+  },
+  {
+   "code": "003960",
+   "name": "豪徳寺",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.653715,
+   "lng": 139.647105,
+   "dailyPassengers": 27512,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27512
+    }
+   ]
+  },
+  {
+   "code": "004191",
+   "name": "等々力",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.60837,
+   "lng": 139.64796,
+   "dailyPassengers": 27098,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27098
+    }
+   ]
+  },
+  {
+   "code": "004175",
+   "name": "上野毛",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.611983,
+   "lng": 139.638932,
+   "dailyPassengers": 22230,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22230
+    }
+   ]
+  },
+  {
+   "code": "003830",
+   "name": "代田橋",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.671075,
+   "lng": 139.659395,
+   "dailyPassengers": 17148,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17148
+    }
+   ]
+  },
+  {
+   "code": "003899",
+   "name": "東松原",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.662634,
+   "lng": 139.655685,
+   "dailyPassengers": 15426,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15426
+    }
+   ]
+  },
+  {
+   "code": "003849",
+   "name": "上北沢",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.668845,
+   "lng": 139.623415,
+   "dailyPassengers": 14678,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14678
+    }
+   ]
+  },
+  {
+   "code": "003832",
+   "name": "芦花公園",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.670535,
+   "lng": 139.60825,
+   "dailyPassengers": 14016,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14016
+    }
+   ]
+  },
+  {
+   "code": "004216",
+   "name": "九品仏",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.605375,
+   "lng": 139.66101,
+   "dailyPassengers": 12729,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "大井町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12729
+    }
+   ]
+  },
+  {
+   "code": "004223",
+   "name": "奥沢",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.603945,
+   "lng": 139.67241,
+   "dailyPassengers": 12146,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "目黒線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12146
+    }
+   ]
+  },
+  {
+   "code": "003931",
+   "name": "世田谷代田",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.658355,
+   "lng": 139.6616,
+   "dailyPassengers": 9582,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9582
+    }
+   ]
+  },
+  {
+   "code": "004017",
+   "name": "松陰神社前",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.643885,
+   "lng": 139.65499,
+   "dailyPassengers": 9531,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9531
+    }
+   ]
+  },
+  {
+   "code": "003914",
+   "name": "池ノ上",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.66037,
+   "lng": 139.673455,
+   "dailyPassengers": 9179,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9179
+    }
+   ]
+  },
+  {
+   "code": "004020",
+   "name": "上町",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.643565,
+   "lng": 139.646365,
+   "dailyPassengers": 8814,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8814
+    }
+   ]
+  },
+  {
+   "code": "003901",
+   "name": "新代田",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.662495,
+   "lng": 139.66139,
+   "dailyPassengers": 8765,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8765
+    }
+   ]
+  },
+  {
+   "code": "003880",
+   "name": "東北沢",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.66544,
+   "lng": 139.67304,
+   "dailyPassengers": 8030,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8030
+    }
+   ]
+  },
+  {
+   "code": "003957",
+   "name": "山下",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.654196,
+   "lng": 139.646461,
+   "dailyPassengers": 7784,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7784
+    }
+   ]
+  },
+  {
+   "code": "003996",
+   "name": "若林",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.645925,
+   "lng": 139.65991,
+   "dailyPassengers": 7606,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7606
+    }
+   ]
+  },
+  {
+   "code": "004021",
+   "name": "世田谷",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.643495,
+   "lng": 139.65084,
+   "dailyPassengers": 7592,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7592
+    }
+   ]
+  },
+  {
+   "code": "003989",
+   "name": "宮の坂",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.64755,
+   "lng": 139.64492,
+   "dailyPassengers": 4002,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 4002
+    }
+   ]
+  },
+  {
+   "code": "003915",
+   "name": "松原",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.6602,
+   "lng": 139.641895,
+   "dailyPassengers": 3113,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3113
+    }
+   ]
+  },
+  {
+   "code": "004006",
+   "name": "西太子堂",
+   "ward": "世田谷区",
+   "wardCode": "13112",
+   "lat": 35.64452,
+   "lng": 139.66635,
+   "dailyPassengers": 734,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "世田谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 734
+    }
+   ]
+  },
+  {
+   "code": "003922",
+   "name": "渋谷",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.65945,
+   "lng": 139.701035,
+   "dailyPassengers": 2897703,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線",
+      "田園都市線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 1770430
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 648828
+    },
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 286940
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "11号線半蔵門線",
+      "13号線副都心線",
+      "3号線銀座線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 191505
+    }
+   ]
+  },
+  {
+   "code": "003991",
+   "name": "恵比寿",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.647015,
+   "lng": 139.708726,
+   "dailyPassengers": 356771,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 252020
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 104751
+    }
+   ]
+  },
+  {
+   "code": "003847",
+   "name": "代々木上原",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.66902,
+   "lng": 139.679883,
+   "dailyPassengers": 269075,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 269075
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003743",
+   "name": "代々木",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.683795,
+   "lng": 139.70221,
+   "dailyPassengers": 136902,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線",
+      "山手線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 113164
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23738
+    }
+   ]
+  },
+  {
+   "code": "003828",
+   "name": "原宿",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.671319,
+   "lng": 139.702692,
+   "dailyPassengers": 134814,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 134814
+    }
+   ]
+  },
+  {
+   "code": "003844",
+   "name": "明治神宮前",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.669126,
+   "lng": 139.703945,
+   "dailyPassengers": 105665,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "9号線千代田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 105665
+    }
+   ]
+  },
+  {
+   "code": "003806",
+   "name": "笹塚",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.67366,
+   "lng": 139.667175,
+   "dailyPassengers": 73199,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 73199
+    }
+   ]
+  },
+  {
+   "code": "003764",
+   "name": "初台",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.68142,
+   "lng": 139.68827,
+   "dailyPassengers": 59407,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 59407
+    }
+   ]
+  },
+  {
+   "code": "003969",
+   "name": "広尾",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.6515,
+   "lng": 139.722209,
+   "dailyPassengers": 58660,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 58660
+    }
+   ]
+  },
+  {
+   "code": "003767",
+   "name": "千駄ヶ谷",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.681196,
+   "lng": 139.71153,
+   "dailyPassengers": 34572,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34572
+    }
+   ]
+  },
+  {
+   "code": "003791",
+   "name": "幡ヶ谷",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.67676,
+   "lng": 139.67772,
+   "dailyPassengers": 29965,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29965
+    }
+   ]
+  },
+  {
+   "code": "003845",
+   "name": "代々木公園",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.669107,
+   "lng": 139.689791,
+   "dailyPassengers": 28862,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28862
+    }
+   ]
+  },
+  {
+   "code": "003985",
+   "name": "代官山",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.64825,
+   "lng": 139.70349,
+   "dailyPassengers": 28772,
+   "operators": [
+    {
+     "name": "東急電鉄",
+     "lines": [
+      "東横線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28772
+    }
+   ]
+  },
+  {
+   "code": "003780",
+   "name": "北参道",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.678505,
+   "lng": 139.705472,
+   "dailyPassengers": 23768,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23768
+    }
+   ]
+  },
+  {
+   "code": "003837",
+   "name": "代々木八幡",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.669694,
+   "lng": 139.689068,
+   "dailyPassengers": 18567,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18567
+    }
+   ]
+  },
+  {
+   "code": "003778",
+   "name": "参宮橋",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.678605,
+   "lng": 139.693585,
+   "dailyPassengers": 13182,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13182
+    }
+   ]
+  },
+  {
+   "code": "003938",
+   "name": "神泉",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.657174,
+   "lng": 139.693131,
+   "dailyPassengers": 10963,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10963
+    }
+   ]
+  },
+  {
+   "code": "003750",
+   "name": "南新宿",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.683555,
+   "lng": 139.69865,
+   "dailyPassengers": 3926,
+   "operators": [
+    {
+     "name": "小田急電鉄",
+     "lines": [
+      "小田原線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3926
+    }
+   ]
+  },
+  {
+   "code": "003700",
+   "name": "新宿",
+   "ward": "渋谷区",
+   "wardCode": "13113",
+   "lat": 35.687625,
+   "lng": 139.69935,
+   "dailyPassengers": null,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ],
+   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+  },
+  {
+   "code": "003568",
+   "name": "中野",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.70574,
+   "lng": 139.665605,
+   "dailyPassengers": 406312,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 406312
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003643",
+   "name": "中野坂上",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.697085,
+   "lng": 139.682205,
+   "dailyPassengers": 97406,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線",
+      "4号線丸ノ内線分岐線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 73237
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24169
+    }
+   ]
+  },
+  {
+   "code": "003549",
+   "name": "東中野",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.70737,
+   "lng": 139.68325,
+   "dailyPassengers": 92396,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 73912
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18484
+    }
+   ]
+  },
+  {
+   "code": "003638",
+   "name": "新中野",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.697475,
+   "lng": 139.66951,
+   "dailyPassengers": 33550,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 33550
+    }
+   ]
+  },
+  {
+   "code": "003451",
+   "name": "鷺ノ宮",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.72262,
+   "lng": 139.639845,
+   "dailyPassengers": 30388,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30388
+    }
+   ]
+  },
+  {
+   "code": "003523",
+   "name": "落合",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.710635,
+   "lng": 139.685965,
+   "dailyPassengers": 26664,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 26664
+    }
+   ]
+  },
+  {
+   "code": "003473",
+   "name": "野方",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.71958,
+   "lng": 139.653515,
+   "dailyPassengers": 23415,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23415
+    }
+   ]
+  },
+  {
+   "code": "003679",
+   "name": "中野新橋",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.691669,
+   "lng": 139.674013,
+   "dailyPassengers": 20570,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線分岐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20570
+    }
+   ]
+  },
+  {
+   "code": "003489",
+   "name": "新井薬師前",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.715763,
+   "lng": 139.672589,
+   "dailyPassengers": 19709,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19709
+    }
+   ]
+  },
+  {
+   "code": "003688",
+   "name": "中野富士見町",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.69082,
+   "lng": 139.668155,
+   "dailyPassengers": 19307,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線分岐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19307
+    }
+   ]
+  },
+  {
+   "code": "003475",
+   "name": "沼袋",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.71916,
+   "lng": 139.66484,
+   "dailyPassengers": 18003,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18003
+    }
+   ]
+  },
+  {
+   "code": "003453",
+   "name": "都立家政",
+   "ward": "中野区",
+   "wardCode": "13114",
+   "lat": 35.72219,
+   "lng": 139.64543,
+   "dailyPassengers": 17816,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17816
+    }
+   ]
+  },
+  {
+   "code": "003575",
+   "name": "荻窪",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.70443,
+   "lng": 139.620245,
+   "dailyPassengers": 250115,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 164158
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 85957
+    }
+   ]
+  },
+  {
+   "code": "003573",
+   "name": "高円寺",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.705324,
+   "lng": 139.6497,
+   "dailyPassengers": 95432,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 95432
+    }
+   ]
+  },
+  {
+   "code": "003579",
+   "name": "西荻窪",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.703782,
+   "lng": 139.59945,
+   "dailyPassengers": 85340,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 85340
+    }
+   ]
+  },
+  {
+   "code": "003574",
+   "name": "阿佐ヶ谷",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.704878,
+   "lng": 139.635855,
+   "dailyPassengers": 84048,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "中央線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 84048
+    }
+   ]
+  },
+  {
+   "code": "003751",
+   "name": "方南町",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.683515,
+   "lng": 139.657935,
+   "dailyPassengers": 40171,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線分岐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 40171
+    }
+   ]
+  },
+  {
+   "code": "003710",
+   "name": "久我山",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.68814,
+   "lng": 139.599325,
+   "dailyPassengers": 38168,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 38168
+    }
+   ]
+  },
+  {
+   "code": "003752",
+   "name": "高井戸",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.68326,
+   "lng": 139.61523,
+   "dailyPassengers": 37789,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37789
+    }
+   ]
+  },
+  {
+   "code": "003836",
+   "name": "八幡山",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.670075,
+   "lng": 139.61448,
+   "dailyPassengers": 37716,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "京王線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37716
+    }
+   ]
+  },
+  {
+   "code": "003632",
+   "name": "新高円寺",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.69786,
+   "lng": 139.64851,
+   "dailyPassengers": 35288,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35288
+    }
+   ]
+  },
+  {
+   "code": "003628",
+   "name": "東高円寺",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.697965,
+   "lng": 139.658295,
+   "dailyPassengers": 33021,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 33021
+    }
+   ]
+  },
+  {
+   "code": "003794",
+   "name": "永福町",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.676225,
+   "lng": 139.64267,
+   "dailyPassengers": 30039,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30039
+    }
+   ]
+  },
+  {
+   "code": "003619",
+   "name": "南阿佐ヶ谷",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.699455,
+   "lng": 139.635575,
+   "dailyPassengers": 27693,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27693
+    }
+   ]
+  },
+  {
+   "code": "003763",
+   "name": "浜田山",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.681575,
+   "lng": 139.627575,
+   "dailyPassengers": 27565,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27565
+    }
+   ]
+  },
+  {
+   "code": "003444",
+   "name": "下井草",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.72387,
+   "lng": 139.624735,
+   "dailyPassengers": 22499,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22499
+    }
+   ]
+  },
+  {
+   "code": "003437",
+   "name": "上井草",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.725255,
+   "lng": 139.602955,
+   "dailyPassengers": 18819,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18819
+    }
+   ]
+  },
+  {
+   "code": "003440",
+   "name": "井荻",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.724661,
+   "lng": 139.615615,
+   "dailyPassengers": 18679,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18679
+    }
+   ]
+  },
+  {
+   "code": "003777",
+   "name": "西永福",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.678875,
+   "lng": 139.635155,
+   "dailyPassengers": 17596,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 17596
+    }
+   ]
+  },
+  {
+   "code": "003736",
+   "name": "富士見ヶ丘",
+   "ward": "杉並区",
+   "wardCode": "13115",
+   "lat": 35.684809,
+   "lng": 139.607195,
+   "dailyPassengers": 13091,
+   "operators": [
+    {
+     "name": "京王電鉄",
+     "lines": [
+      "井の頭線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13091
+    }
+   ]
+  },
+  {
+   "code": "003390",
+   "name": "池袋",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.730275,
+   "lng": 139.711085,
+   "dailyPassengers": 2364011,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線",
+      "赤羽線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 998256
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "4号線丸ノ内線",
+      "8号線有楽町線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 518135
+    },
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 428121
+    },
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 419499
+    }
+   ]
+  },
+  {
+   "code": "003354",
+   "name": "巣鴨",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.73378,
+   "lng": 139.738035,
+   "dailyPassengers": 188319,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 134320
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 53999
+    }
+   ]
+  },
+  {
+   "code": "003343",
+   "name": "駒込",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.736862,
+   "lng": 139.748054,
+   "dailyPassengers": 124751,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 87080
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37671
+    }
+   ]
+  },
+  {
+   "code": "003375",
+   "name": "大塚",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.731785,
+   "lng": 139.72794,
+   "dailyPassengers": 108702,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 108702
+    }
+   ]
+  },
+  {
+   "code": "003470",
+   "name": "目白",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.72039,
+   "lng": 139.70628,
+   "dailyPassengers": 67082,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 67082
+    }
+   ]
+  },
+  {
+   "code": "003286",
+   "name": "板橋",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.744993,
+   "lng": 139.719171,
+   "dailyPassengers": 65264,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "赤羽線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 65264
+    }
+   ]
+  },
+  {
+   "code": "003432",
+   "name": "東池袋",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.72595,
+   "lng": 139.718865,
+   "dailyPassengers": 45348,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 45348
+    }
+   ]
+  },
+  {
+   "code": "003361",
+   "name": "要町",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.733215,
+   "lng": 139.69848,
+   "dailyPassengers": 40890,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "8号線有楽町線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 40890
+    }
+   ]
+  },
+  {
+   "code": "003324",
+   "name": "千川",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.738175,
+   "lng": 139.6894,
+   "dailyPassengers": 39136,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "8号線有楽町線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 39136
+    }
+   ]
+  },
+  {
+   "code": "003293",
+   "name": "西巣鴨",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.743415,
+   "lng": 139.728725,
+   "dailyPassengers": 29560,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29560
+    }
+   ]
+  },
+  {
+   "code": "003431",
+   "name": "新大塚",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.726129,
+   "lng": 139.729355,
+   "dailyPassengers": 25769,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "4号線丸ノ内線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25769
+    }
+   ]
+  },
+  {
+   "code": "003393",
+   "name": "東長崎",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.72997,
+   "lng": 139.683185,
+   "dailyPassengers": 25544,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25544
+    }
+   ]
+  },
+  {
+   "code": "003426",
+   "name": "椎名町",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.726495,
+   "lng": 139.694315,
+   "dailyPassengers": 20617,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20617
+    }
+   ]
+  },
+  {
+   "code": "003471",
+   "name": "雑司が谷",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.7202,
+   "lng": 139.714715,
+   "dailyPassengers": 19401,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19401
+    }
+   ]
+  },
+  {
+   "code": "003285",
+   "name": "下板橋",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.745065,
+   "lng": 139.71568,
+   "dailyPassengers": 16048,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16048
+    }
+   ]
+  },
+  {
+   "code": "003315",
+   "name": "北池袋",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.740335,
+   "lng": 139.716395,
+   "dailyPassengers": 10356,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10356
+    }
+   ]
+  },
+  {
+   "code": "003378",
+   "name": "大塚駅前",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.73162,
+   "lng": 139.729455,
+   "dailyPassengers": 7990,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 7990
+    }
+   ]
+  },
+  {
+   "code": "003436",
+   "name": "東池袋四丁目",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.7255,
+   "lng": 139.720735,
+   "dailyPassengers": 3743,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3743
+    }
+   ]
+  },
+  {
+   "code": "003310",
+   "name": "新庚申塚",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.741105,
+   "lng": 139.73035,
+   "dailyPassengers": 2649,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2649
+    }
+   ]
+  },
+  {
+   "code": "003468",
+   "name": "鬼子母神前",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.72058,
+   "lng": 139.715155,
+   "dailyPassengers": 2564,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2564
+    }
+   ]
+  },
+  {
+   "code": "003319",
+   "name": "庚申塚",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.739125,
+   "lng": 139.729555,
+   "dailyPassengers": 2450,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2450
+    }
+   ]
+  },
+  {
+   "code": "003490",
+   "name": "学習院下",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.71575,
+   "lng": 139.71231,
+   "dailyPassengers": 1716,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1716
+    }
+   ]
+  },
+  {
+   "code": "003407",
+   "name": "向原",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.728765,
+   "lng": 139.724805,
+   "dailyPassengers": 1460,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1460
+    }
+   ]
+  },
+  {
+   "code": "003351",
+   "name": "巣鴨新田",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.73516,
+   "lng": 139.72791,
+   "dailyPassengers": 1180,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1180
+    }
+   ]
+  },
+  {
+   "code": "003443",
+   "name": "都電雑司ヶ谷",
+   "ward": "豊島区",
+   "wardCode": "13116",
+   "lat": 35.724081,
+   "lng": 139.717824,
+   "dailyPassengers": 1067,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1067
+    }
+   ]
+  },
+  {
+   "code": "003155",
+   "name": "赤羽",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.777725,
+   "lng": 139.720842,
+   "dailyPassengers": 188334,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線",
+      "赤羽線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 188334
+    }
+   ]
+  },
+  {
+   "code": "003236",
+   "name": "王子",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.754448,
+   "lng": 139.737296,
+   "dailyPassengers": 178128,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 117716
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 60412
+    }
+   ]
+  },
+  {
+   "code": "003141",
+   "name": "赤羽岩淵",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.783355,
+   "lng": 139.72211,
+   "dailyPassengers": 94035,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 94035
+    },
+    {
+     "name": "埼玉高速鉄道",
+     "lines": [
+      "埼玉高速鉄道線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003335",
+   "name": "田端",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.737475,
+   "lng": 139.761575,
+   "dailyPassengers": 80958,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "山手線",
+      "東北線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 80958
+    }
+   ]
+  },
+  {
+   "code": "003218",
+   "name": "十条",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.76039,
+   "lng": 139.72225,
+   "dailyPassengers": 67506,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "赤羽線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 67506
+    }
+   ]
+  },
+  {
+   "code": "003210",
+   "name": "東十条",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.763829,
+   "lng": 139.726718,
+   "dailyPassengers": 45690,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 45690
+    }
+   ]
+  },
+  {
+   "code": "003107",
+   "name": "浮間舟渡",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.791259,
+   "lng": 139.691387,
+   "dailyPassengers": 43438,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43438
+    }
+   ]
+  },
+  {
+   "code": "003130",
+   "name": "北赤羽",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.78699,
+   "lng": 139.70577,
+   "dailyPassengers": 36982,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36982
+    }
+   ]
+  },
+  {
+   "code": "003207",
+   "name": "王子神谷",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.765292,
+   "lng": 139.735643,
+   "dailyPassengers": 36275,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36275
+    }
+   ]
+  },
+  {
+   "code": "003278",
+   "name": "尾久",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.746822,
+   "lng": 139.753882,
+   "dailyPassengers": 20858,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20858
+    }
+   ]
+  },
+  {
+   "code": "003153",
+   "name": "志茂",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.778025,
+   "lng": 139.7325,
+   "dailyPassengers": 15187,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15187
+    }
+   ]
+  },
+  {
+   "code": "003277",
+   "name": "上中里",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.747079,
+   "lng": 139.745924,
+   "dailyPassengers": 14482,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14482
+    }
+   ]
+  },
+  {
+   "code": "003239",
+   "name": "王子駅前",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.752744,
+   "lng": 139.738233,
+   "dailyPassengers": 9239,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9239
+    }
+   ]
+  },
+  {
+   "code": "003279",
+   "name": "西ヶ原",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.745945,
+   "lng": 139.74226,
+   "dailyPassengers": 8976,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "7号線南北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8976
+    }
+   ]
+  },
+  {
+   "code": "003246",
+   "name": "梶原",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.75107,
+   "lng": 139.7473,
+   "dailyPassengers": 2628,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2628
+    }
+   ]
+  },
+  {
+   "code": "003289",
+   "name": "西ヶ原四丁目",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.744235,
+   "lng": 139.732685,
+   "dailyPassengers": 2515,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2515
+    }
+   ]
+  },
+  {
+   "code": "003276",
+   "name": "滝野川一丁目",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.7473,
+   "lng": 139.735415,
+   "dailyPassengers": 1610,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1610
+    }
+   ]
+  },
+  {
+   "code": "003256",
+   "name": "飛鳥山",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.750065,
+   "lng": 139.73732,
+   "dailyPassengers": 993,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 993
+    }
+   ]
+  },
+  {
+   "code": "003253",
+   "name": "栄町",
+   "ward": "北区",
+   "wardCode": "13117",
+   "lat": 35.75084,
+   "lng": 139.74222,
+   "dailyPassengers": 789,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 789
+    }
+   ]
+  },
+  {
+   "code": "003368",
+   "name": "西日暮里",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.732357,
+   "lng": 139.766889,
+   "dailyPassengers": 353501,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "東北線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 179212
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 154330
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19959
+    }
+   ]
+  },
+  {
+   "code": "003417",
+   "name": "日暮里",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.727874,
+   "lng": 139.771329,
+   "dailyPassengers": 348027,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線",
+      "東北線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 214154
+    },
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 101435
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32438
+    }
+   ]
+  },
+  {
+   "code": "003302",
+   "name": "町屋",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.742307,
+   "lng": 139.781524,
+   "dailyPassengers": 80085,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 60574
+    },
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19511
+    }
+   ]
+  },
+  {
+   "code": "003363",
+   "name": "南千住",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.732985,
+   "lng": 139.79895,
+   "dailyPassengers": 79673,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34172
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32611
+    },
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12890
+    }
+   ]
+  },
+  {
+   "code": "003359",
+   "name": "三河島",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.733382,
+   "lng": 139.777075,
+   "dailyPassengers": 24202,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24202
+    }
+   ]
+  },
+  {
+   "code": "003266",
+   "name": "熊野前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.74918,
+   "lng": 139.76928,
+   "dailyPassengers": 13313,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー",
+      "荒川線"
+     ],
+     "rows": 2,
+     "figureRows": 2,
+     "passengers": 13313
+    }
+   ]
+  },
+  {
+   "code": "003299",
+   "name": "町屋駅前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.742775,
+   "lng": 139.780775,
+   "dailyPassengers": 8555,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8555
+    }
+   ]
+  },
+  {
+   "code": "003339",
+   "name": "新三河島",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.737273,
+   "lng": 139.774048,
+   "dailyPassengers": 5882,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5882
+    }
+   ]
+  },
+  {
+   "code": "003298",
+   "name": "赤土小学校前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.74306,
+   "lng": 139.76913,
+   "dailyPassengers": 5630,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5630
+    }
+   ]
+  },
+  {
+   "code": "003252",
+   "name": "荒川車庫前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.75086,
+   "lng": 139.752805,
+   "dailyPassengers": 3350,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3350
+    }
+   ]
+  },
+  {
+   "code": "003370",
+   "name": "三ノ輪橋",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.73222,
+   "lng": 139.791505,
+   "dailyPassengers": 3266,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3266
+    }
+   ]
+  },
+  {
+   "code": "003255",
+   "name": "小台",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.75049,
+   "lng": 139.761735,
+   "dailyPassengers": 3186,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3186
+    }
+   ]
+  },
+  {
+   "code": "003259",
+   "name": "宮ノ前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.749885,
+   "lng": 139.765765,
+   "dailyPassengers": 3101,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3101
+    }
+   ]
+  },
+  {
+   "code": "003254",
+   "name": "荒川遊園地前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.750648,
+   "lng": 139.757475,
+   "dailyPassengers": 2207,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 2207
+    }
+   ]
+  },
+  {
+   "code": "003350",
+   "name": "荒川区役所前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.735365,
+   "lng": 139.78601,
+   "dailyPassengers": 1689,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1689
+    }
+   ]
+  },
+  {
+   "code": "003284",
+   "name": "東尾久三丁目",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.745624,
+   "lng": 139.773849,
+   "dailyPassengers": 1563,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 1563
+    }
+   ]
+  },
+  {
+   "code": "003322",
+   "name": "荒川二丁目",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.7386,
+   "lng": 139.78469,
+   "dailyPassengers": 845,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 845
+    }
+   ]
+  },
+  {
+   "code": "003291",
+   "name": "町屋二丁目",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.743915,
+   "lng": 139.776425,
+   "dailyPassengers": 775,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 775
+    }
+   ]
+  },
+  {
+   "code": "003357",
+   "name": "荒川一中前",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.73369,
+   "lng": 139.788805,
+   "dailyPassengers": 699,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 699
+    }
+   ]
+  },
+  {
+   "code": "003306",
+   "name": "荒川七丁目",
+   "ward": "荒川区",
+   "wardCode": "13118",
+   "lat": 35.742,
+   "lng": 139.784045,
+   "dailyPassengers": 473,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "荒川線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 473
+    }
+   ]
+  },
+  {
+   "code": "003194",
+   "name": "東武練馬",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.76865,
+   "lng": 139.66254,
+   "dailyPassengers": 56181,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56181
+    }
+   ]
+  },
+  {
+   "code": "003156",
+   "name": "成増",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.777571,
+   "lng": 139.632947,
+   "dailyPassengers": 53301,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 53301
+    }
+   ]
+  },
+  {
+   "code": "003212",
+   "name": "上板橋",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.763615,
+   "lng": 139.676205,
+   "dailyPassengers": 51233,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 51233
+    }
+   ]
+  },
+  {
+   "code": "003163",
+   "name": "地下鉄成増",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.77674,
+   "lng": 139.63117,
+   "dailyPassengers": 50698,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 50698
+    }
+   ]
+  },
+  {
+   "code": "003269",
+   "name": "大山",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.748371,
+   "lng": 139.702647,
+   "dailyPassengers": 48683,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 48683
+    }
+   ]
+  },
+  {
+   "code": "003223",
+   "name": "ときわ台",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.758905,
+   "lng": 139.68876,
+   "dailyPassengers": 43271,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43271
+    }
+   ]
+  },
+  {
+   "code": "003216",
+   "name": "板橋本町",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.7611,
+   "lng": 139.705605,
+   "dailyPassengers": 37555,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37555
+    }
+   ]
+  },
+  {
+   "code": "003245",
+   "name": "板橋区役所前",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.751305,
+   "lng": 139.710055,
+   "dailyPassengers": 34519,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34519
+    }
+   ]
+  },
+  {
+   "code": "003165",
+   "name": "志村坂上",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.77634,
+   "lng": 139.69473,
+   "dailyPassengers": 30150,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30150
+    }
+   ]
+  },
+  {
+   "code": "003158",
+   "name": "志村三丁目",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.777465,
+   "lng": 139.68586,
+   "dailyPassengers": 30055,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 30055
+    }
+   ]
+  },
+  {
+   "code": "003117",
+   "name": "高島平",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.788935,
+   "lng": 139.661295,
+   "dailyPassengers": 27789,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27789
+    }
+   ]
+  },
+  {
+   "code": "003233",
+   "name": "中板橋",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.75628,
+   "lng": 139.694385,
+   "dailyPassengers": 27781,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27781
+    }
+   ]
+  },
+  {
+   "code": "003128",
+   "name": "西台",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.78708,
+   "lng": 139.67268,
+   "dailyPassengers": 25605,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25605
+    }
+   ]
+  },
+  {
+   "code": "003193",
+   "name": "本蓮沼",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.768985,
+   "lng": 139.70211,
+   "dailyPassengers": 25190,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 25190
+    }
+   ]
+  },
+  {
+   "code": "003268",
+   "name": "新板橋",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.74884,
+   "lng": 139.719365,
+   "dailyPassengers": 24762,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 24762
+    }
+   ]
+  },
+  {
+   "code": "003140",
+   "name": "蓮根",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.784055,
+   "lng": 139.67906,
+   "dailyPassengers": 19363,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 19363
+    }
+   ]
+  },
+  {
+   "code": "003184",
+   "name": "下赤塚",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.770485,
+   "lng": 139.64485,
+   "dailyPassengers": 14727,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "東上本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14727
+    }
+   ]
+  },
+  {
+   "code": "003104",
+   "name": "西高島平",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.791895,
+   "lng": 139.645685,
+   "dailyPassengers": 12970,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12970
+    }
+   ]
+  },
+  {
+   "code": "003112",
+   "name": "新高島平",
+   "ward": "板橋区",
+   "wardCode": "13119",
+   "lat": 35.79022,
+   "lng": 139.65433,
+   "dailyPassengers": 9534,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "6号線三田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9534
+    }
+   ]
+  },
+  {
+   "code": "003294",
+   "name": "小竹向原",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.743395,
+   "lng": 139.67952,
+   "dailyPassengers": 317839,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "13号線副都心線",
+      "8号線有楽町線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 317839
+    },
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "西武有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003328",
+   "name": "練馬",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.737935,
+   "lng": 139.65444,
+   "dailyPassengers": 173987,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線",
+      "西武有楽町線",
+      "豊島線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 121493
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 52494
+    }
+   ]
+  },
+  {
+   "code": "003263",
+   "name": "大泉学園",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.749353,
+   "lng": 139.586804,
+   "dailyPassengers": 80236,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 80236
+    }
+   ]
+  },
+  {
+   "code": "003292",
+   "name": "石神井公園",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.74364,
+   "lng": 139.606555,
+   "dailyPassengers": 76732,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 76732
+    }
+   ]
+  },
+  {
+   "code": "003225",
+   "name": "光が丘",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.75847,
+   "lng": 139.62924,
+   "dailyPassengers": 56838,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 56838
+    }
+   ]
+  },
+  {
+   "code": "003228",
+   "name": "平和台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.757555,
+   "lng": 139.6543,
+   "dailyPassengers": 42893,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 42893
+    }
+   ]
+  },
+  {
+   "code": "003427",
+   "name": "上石神井",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.726195,
+   "lng": 139.59229,
+   "dailyPassengers": 41728,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 41728
+    }
+   ]
+  },
+  {
+   "code": "003186",
+   "name": "地下鉄赤塚",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.769981,
+   "lng": 139.644,
+   "dailyPassengers": 40077,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 40077
+    }
+   ]
+  },
+  {
+   "code": "003345",
+   "name": "中村橋",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.73667,
+   "lng": 139.63717,
+   "dailyPassengers": 38455,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 38455
+    }
+   ]
+  },
+  {
+   "code": "003261",
+   "name": "氷川台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.74962,
+   "lng": 139.66547,
+   "dailyPassengers": 37978,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "8号線有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 37978
+    }
+   ]
+  },
+  {
+   "code": "003337",
+   "name": "江古田",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.737465,
+   "lng": 139.672785,
+   "dailyPassengers": 32177,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32177
+    }
+   ]
+  },
+  {
+   "code": "003305",
+   "name": "豊島園",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.742035,
+   "lng": 139.64802,
+   "dailyPassengers": 29508,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "豊島線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15214
+    },
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 14294
+    }
+   ]
+  },
+  {
+   "code": "003419",
+   "name": "武蔵関",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.727615,
+   "lng": 139.576365,
+   "dailyPassengers": 29438,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29438
+    }
+   ]
+  },
+  {
+   "code": "003367",
+   "name": "新江古田",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.732492,
+   "lng": 139.670566,
+   "dailyPassengers": 28904,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 28904
+    }
+   ]
+  },
+  {
+   "code": "003349",
+   "name": "富士見台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.73585,
+   "lng": 139.629815,
+   "dailyPassengers": 27732,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 27732
+    }
+   ]
+  },
+  {
+   "code": "003314",
+   "name": "練馬高野台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.740615,
+   "lng": 139.616835,
+   "dailyPassengers": 26372,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 26372
+    }
+   ]
+  },
+  {
+   "code": "003243",
+   "name": "練馬春日町",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.75136,
+   "lng": 139.64076,
+   "dailyPassengers": 22655,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "12号線大江戸線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22655
+    }
+   ]
+  },
+  {
+   "code": "003321",
+   "name": "桜台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.738745,
+   "lng": 139.6624,
+   "dailyPassengers": 15032,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "池袋線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 15032
+    }
+   ]
+  },
+  {
+   "code": "003311",
+   "name": "新桜台",
+   "ward": "練馬区",
+   "wardCode": "13120",
+   "lat": 35.741021,
+   "lng": 139.668662,
+   "dailyPassengers": 9867,
+   "operators": [
+    {
+     "name": "西武鉄道",
+     "lines": [
+      "西武有楽町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9867
+    }
+   ]
+  },
+  {
+   "code": "003260",
+   "name": "北千住",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.749865,
+   "lng": 139.805175,
+   "dailyPassengers": 1434911,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 688265
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 397464
+    },
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "2号線日比谷線",
+      "9号線千代田線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 241001
+    },
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 108181
+    }
+   ]
+  },
+  {
+   "code": "003214",
+   "name": "綾瀬",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.762285,
+   "lng": 139.82489,
+   "dailyPassengers": 384554,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 384554
+    },
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003101",
+   "name": "竹ノ塚",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.79437,
+   "lng": 139.79072,
+   "dailyPassengers": 67699,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 67699
+    }
+   ]
+  },
+  {
+   "code": "003159",
+   "name": "西新井",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.77728,
+   "lng": 139.790365,
+   "dailyPassengers": 62984,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線",
+      "大師線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 62984
+    }
+   ]
+  },
+  {
+   "code": "003162",
+   "name": "北綾瀬",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.77689,
+   "lng": 139.832095,
+   "dailyPassengers": 43371,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "9号線千代田線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43371
+    }
+   ]
+  },
+  {
+   "code": "003200",
+   "name": "五反野",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.765905,
+   "lng": 139.80963,
+   "dailyPassengers": 36724,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 36724
+    }
+   ]
+  },
+  {
+   "code": "003176",
+   "name": "梅島",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.772345,
+   "lng": 139.798075,
+   "dailyPassengers": 35416,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 35416
+    }
+   ]
+  },
+  {
+   "code": "003133",
+   "name": "六町",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.78478,
+   "lng": 139.821805,
+   "dailyPassengers": 34213,
+   "operators": [
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34213
+    }
+   ]
+  },
+  {
+   "code": "003290",
+   "name": "京成関屋",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.743965,
+   "lng": 139.81185,
+   "dailyPassengers": 23344,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23344
+    }
+   ]
+  },
+  {
+   "code": "003288",
+   "name": "牛田",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.744545,
+   "lng": 139.81177,
+   "dailyPassengers": 20820,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 20820
+    }
+   ]
+  },
+  {
+   "code": "003301",
+   "name": "千住大橋",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.74241,
+   "lng": 139.79705,
+   "dailyPassengers": 16762,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 16762
+    }
+   ]
+  },
+  {
+   "code": "003060",
+   "name": "見沼代親水公園",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.814605,
+   "lng": 139.7707,
+   "dailyPassengers": 13889,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13889
+    }
+   ]
+  },
+  {
+   "code": "003177",
+   "name": "青井",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.772,
+   "lng": 139.820245,
+   "dailyPassengers": 13288,
+   "operators": [
+    {
+     "name": "首都圏新都市鉄道",
+     "lines": [
+      "常磐新線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 13288
+    }
+   ]
+  },
+  {
+   "code": "003171",
+   "name": "江北",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.773785,
+   "lng": 139.770345,
+   "dailyPassengers": 12958,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12958
+    }
+   ]
+  },
+  {
+   "code": "003150",
+   "name": "大師前",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.77895,
+   "lng": 139.781655,
+   "dailyPassengers": 12621,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "大師線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12621
+    }
+   ]
+  },
+  {
+   "code": "003144",
+   "name": "西新井大師西",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.78116,
+   "lng": 139.77014,
+   "dailyPassengers": 12405,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 12405
+    }
+   ]
+  },
+  {
+   "code": "003120",
+   "name": "谷在家",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.78868,
+   "lng": 139.7701,
+   "dailyPassengers": 11064,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 11064
+    }
+   ]
+  },
+  {
+   "code": "003209",
+   "name": "扇大橋",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.764135,
+   "lng": 139.77085,
+   "dailyPassengers": 10663,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 10663
+    }
+   ]
+  },
+  {
+   "code": "003078",
+   "name": "舎人",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.80572,
+   "lng": 139.770135,
+   "dailyPassengers": 9542,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 9542
+    }
+   ]
+  },
+  {
+   "code": "003196",
+   "name": "高野",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.768255,
+   "lng": 139.77072,
+   "dailyPassengers": 6635,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 6635
+    }
+   ]
+  },
+  {
+   "code": "003224",
+   "name": "小菅",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.758685,
+   "lng": 139.81265,
+   "dailyPassengers": 6261,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 6261
+    }
+   ]
+  },
+  {
+   "code": "003098",
+   "name": "舎人公園",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.796665,
+   "lng": 139.77012,
+   "dailyPassengers": 5729,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5729
+    }
+   ]
+  },
+  {
+   "code": "003297",
+   "name": "堀切",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.743345,
+   "lng": 139.81738,
+   "dailyPassengers": 4217,
+   "operators": [
+    {
+     "name": "東武鉄道",
+     "lines": [
+      "伊勢崎線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 4217
+    }
+   ]
+  },
+  {
+   "code": "003235",
+   "name": "足立小台",
+   "ward": "足立区",
+   "wardCode": "13121",
+   "lat": 35.754635,
+   "lng": 139.770205,
+   "dailyPassengers": 3685,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "日暮里・舎人ライナー"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 3685
+    }
+   ]
+  },
+  {
+   "code": "003486",
+   "name": "新小岩",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.716791,
+   "lng": 139.857646,
+   "dailyPassengers": 146776,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 146776
+    }
+   ]
+  },
+  {
+   "code": "003248",
+   "name": "京成高砂",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.75087,
+   "lng": 139.86659,
+   "dailyPassengers": 102056,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "成田空港線",
+      "本線",
+      "金町線"
+     ],
+     "rows": 3,
+     "figureRows": 1,
+     "passengers": 102056
+    },
+    {
+     "name": "北総鉄道",
+     "lines": [
+      "北総線"
+     ],
+     "rows": 1,
+     "figureRows": 0,
+     "passengers": null
+    }
+   ]
+  },
+  {
+   "code": "003191",
+   "name": "金町",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.76951,
+   "lng": 139.87039,
+   "dailyPassengers": 99396,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 99396
+    }
+   ]
+  },
+  {
+   "code": "003199",
+   "name": "亀有",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.766555,
+   "lng": 139.847549,
+   "dailyPassengers": 79818,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "常磐線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 79818
+    }
+   ]
+  },
+  {
+   "code": "003280",
+   "name": "青砥",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.74587,
+   "lng": 139.85627,
+   "dailyPassengers": 48727,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線",
+      "本線"
+     ],
+     "rows": 2,
+     "figureRows": 1,
+     "passengers": 48727
+    }
+   ]
+  },
+  {
+   "code": "003323",
+   "name": "京成立石",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.73819,
+   "lng": 139.84816,
+   "dailyPassengers": 34621,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 34621
+    }
+   ]
+  },
+  {
+   "code": "003274",
+   "name": "お花茶屋",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.747615,
+   "lng": 139.839885,
+   "dailyPassengers": 32727,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 32727
+    }
+   ]
+  },
+  {
+   "code": "003195",
+   "name": "京成金町",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.76845,
+   "lng": 139.87035,
+   "dailyPassengers": 23574,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "金町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 23574
+    }
+   ]
+  },
+  {
+   "code": "003273",
+   "name": "堀切菖蒲園",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.74765,
+   "lng": 139.82754,
+   "dailyPassengers": 22096,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 22096
+    }
+   ]
+  },
+  {
+   "code": "003376",
+   "name": "四ツ木",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.731715,
+   "lng": 139.834655,
+   "dailyPassengers": 18180,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "押上線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18180
+    }
+   ]
+  },
+  {
+   "code": "003232",
+   "name": "柴又",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.756419,
+   "lng": 139.875299,
+   "dailyPassengers": 8624,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "金町線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 8624
+    }
+   ]
+  },
+  {
+   "code": "003244",
+   "name": "新柴又",
+   "ward": "葛飾区",
+   "wardCode": "13122",
+   "lat": 35.75135,
+   "lng": 139.87982,
+   "dailyPassengers": 5520,
+   "operators": [
+    {
+     "name": "北総鉄道",
+     "lines": [
+      "北総線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 5520
+    }
+   ]
+  },
+  {
+   "code": "003360",
+   "name": "小岩",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.73333,
+   "lng": 139.88185,
+   "dailyPassengers": 120166,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 120166
+    }
+   ]
+  },
+  {
+   "code": "003894",
+   "name": "葛西",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.663616,
+   "lng": 139.87253,
+   "dailyPassengers": 99258,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 99258
+    }
+   ]
+  },
+  {
+   "code": "003890",
+   "name": "西葛西",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.664564,
+   "lng": 139.8596,
+   "dailyPassengers": 96546,
+   "operators": [
+    {
+     "name": "東京地下鉄",
+     "lines": [
+      "5号線東西線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 96546
+    }
+   ]
+  },
+  {
+   "code": "003561",
+   "name": "平井",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.706448,
+   "lng": 139.842387,
+   "dailyPassengers": 62126,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "総武線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 62126
+    }
+   ]
+  },
+  {
+   "code": "003745",
+   "name": "船堀",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.683785,
+   "lng": 139.863855,
+   "dailyPassengers": 58409,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 58409
+    }
+   ]
+  },
+  {
+   "code": "003667",
+   "name": "瑞江",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.69339,
+   "lng": 139.89781,
+   "dailyPassengers": 55028,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 55028
+    }
+   ]
+  },
+  {
+   "code": "003724",
+   "name": "一之江",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.68594,
+   "lng": 139.88289,
+   "dailyPassengers": 43043,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 43043
+    }
+   ]
+  },
+  {
+   "code": "003565",
+   "name": "篠崎",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.70612,
+   "lng": 139.903885,
+   "dailyPassengers": 39512,
+   "operators": [
+    {
+     "name": "東京都",
+     "lines": [
+      "10号線新宿線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 39512
+    }
+   ]
+  },
+  {
+   "code": "004012",
+   "name": "葛西臨海公園",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.64417,
+   "lng": 139.861485,
+   "dailyPassengers": 29022,
+   "operators": [
+    {
+     "name": "東日本旅客鉄道",
+     "lines": [
+      "京葉線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 29022
+    }
+   ]
+  },
+  {
+   "code": "003303",
+   "name": "京成小岩",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.742215,
+   "lng": 139.883615,
+   "dailyPassengers": 18036,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 18036
+    }
+   ]
+  },
+  {
+   "code": "003331",
+   "name": "江戸川",
+   "ward": "江戸川区",
+   "wardCode": "13123",
+   "lat": 35.737857,
+   "lng": 139.89576,
+   "dailyPassengers": 6229,
+   "operators": [
+    {
+     "name": "京成電鉄",
+     "lines": [
+      "本線"
+     ],
+     "rows": 1,
+     "figureRows": 1,
+     "passengers": 6229
+    }
+   ]
+  }
+ ]
+}

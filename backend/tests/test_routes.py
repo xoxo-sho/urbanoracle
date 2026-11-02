@@ -162,12 +162,12 @@ def test_envelope_neutralizes_a_non_finite_value_from_a_service(client, monkeypa
     """
     from services import transport
 
+    # The snapshot itself is validated at startup; this bypasses the record
+    # builder to put a NaN on the wire the way a future service bug could.
     monkeypatch.setattr(
         transport,
-        "load_stations",
-        lambda ridership=None: [
-            {"id": "ts-0", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}
-        ],
+        "rows",
+        lambda snapshot: [{"id": "s12-000000-13101", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}],
     )
 
     resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})

@@ -35,10 +35,6 @@ class Settings:
         return os.environ.get("ESTAT_API_KEY", "")
 
     @property
-    def ODPT_API_KEY(self) -> str:
-        return os.environ.get("ODPT_API_KEY", "")
-
-    @property
     def STATIC_DIR(self) -> str:
         return os.environ.get("STATIC_DIR", "")
 
@@ -82,19 +78,17 @@ class Settings:
         return Path(__file__).resolve().parents[1] / "data" / "population_trends.json"
 
     @property
-    def DATA_DIR(self) -> Path:
-        """Where the committed GeoJSON assets live.
+    def STATIONS_PATH(self) -> Path:
+        """The committed 駅別乗降客数 snapshot (real-data plan PR 4), validated at startup.
 
-        In the container the Next export is copied to STATIC_DIR, so
-        public/data lands at STATIC_DIR/data. Locally and in tests there is
-        no export, so fall back to the repo's public/data.
+        Ships with backend/ in the image, like the 人口推移 snapshot. The
+        override exists so a test can point the app at a broken file and prove
+        that it refuses to start.
         """
-        explicit = os.environ.get("DATA_DIR")
+        explicit = os.environ.get("STATIONS_PATH")
         if explicit:
             return Path(explicit)
-        if self.STATIC_DIR:
-            return Path(self.STATIC_DIR) / "data"
-        return Path(__file__).resolve().parents[2] / "public" / "data"
+        return Path(__file__).resolve().parents[1] / "data" / "stations.json"
 
 
 settings = Settings()

@@ -7,7 +7,7 @@
 | 地価 | 国土数値情報 (MLIT) | 不要 | GeoJSON | 年1回（3月） | `LandPricePoint` |
 | 人口統計 | e-Stat API | API キー（無料） | JSON | 年1回（国勢調査） | `DemographicsData` |
 | 災害リスク | ハザードマップポータル | 不要 | タイル / GeoJSON | 不定期 | `DisasterRisk` |
-| 交通 | ODPT / 国土数値情報 | API キー（無料） | JSON-LD / GeoJSON | 年1回 | `TransportStation` |
+| 交通 | 国土数値情報 S12・N03（委託スナップショット） | 不要 | GeoJSON → JSON | 年1回（S12 の年度版） | `TransportStation` |
 | 用途地域 | 国土数値情報 (MLIT) | 不要 | GeoJSON / Shapefile | 年1回 | `ZoningArea` |
 
 ---
@@ -261,69 +261,44 @@ curl -o flood-tokyo.zip \
 
 ## 5. 交通データ
 
-### 5.1 データ元
+### 5.1 データ元（real-data plan PR 4、2026-11-02）
 
-**公共交通オープンデータセンター（ODPT）**
+駅の位置・路線名・乗降客数はすべて **国土数値情報 駅別乗降客数データ（S12）** の
+委託スナップショット `backend/data/stations.json` から配信する（Architect 決定 3）。
+ODPT はコードパスから外れた。
 
-- URL: https://developer.odpt.org/
-- API ドキュメント: https://developer.odpt.org/documents
-- 認証: API キー（無料、デベロッパー登録が必要）
-- ライセンス: CC BY 4.0（事業者により異なる）
+| 項目 | 値 |
+|---|---|
+| 駅別乗降客数データ | S12-25（2024年度（令和6年度）版、更新 2026年4月）: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html — `S12-25_GML.zip` 6,913,743 bytes, sha256 `0785e932…7a28` |
+| 行政区域データ | N03-20260101（2026年（令和8年）1月1日時点、東京都）: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html — `N03-20260101_13_GML.zip` 13,153,227 bytes, sha256 `94f10b26…ff16` |
+| ライセンス | いずれも「オープンデータ（CC_BY_4.0）」（国土数値情報 利用規約 https://nlftp.mlit.go.jp/ksj/other/agreement.html） |
+| クレジット | 加工の形、作成者名なし（決定 12）: 「出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）」／「「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成」／「「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成」 |
+| 区の判定 | S12 の各行（運営会社 × 路線 × 駅、線形）の中点を含む N03 の区ポリゴン（点の包含判定）。端点が別区にまたがる 26 行は中点で決め、スナップショットの `straddlingRows` に記録 |
+| 乗降客数の定義 | 乗降客数2024 = 2024年度の1日平均（人/日）。駅の値は事業者ごとの値（重複コード 1・データ有無コード 1 の行）の合計で、乗換客は事業者ごとに数えられる。JR東日本の値は乗車人員を2倍した値（原典資料による）: 新宿・東京・池袋・渋谷・小岩で JR東日本「各駅の乗車人員」2024年度・2023年度の値のちょうど 2 倍であることを確認 |
+| ビルド | `python -I etl/stations.py extract`（生 zip → `backend/tests/fixtures/stations/` の抜粋）、`python -I etl/stations.py build`（抜粋 → スナップショット）。標準ライブラリのみ |
+| 起動時検証 | `backend/services/transport.py check_at_startup`: ファイルの欠落・不整合はプロセスを止め、デプロイを失敗させる（リクエストでは答えない） |
 
-**補助: 国土数値情報 鉄道データ**
+### 5.2 配信するフィールド（`TransportStation`）
 
-- URL: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-v3_1.html
-- 認証: 不要
-- 形式: GeoJSON
+| フィールド | 値 |
+|---|---|
+| `id` | `s12-{グループコード}-{区コード}` |
+| `code` | S12_001g グループコード（300m 以内の同名駅を 1 駅にまとめた単位） |
+| `name` | 駅名 + 「駅」 |
+| `lat` / `lng` | 線形の中点 |
+| `dailyPassengers` | 事業者ごとの値の合計。どの事業者にも値がなければ `null`（0 にはしない） |
+| `lines` | 「JR 中央線」「メトロ 4号線丸ノ内線」「都営 10号線新宿線」「ゆりかもめ 東京臨海新交通臨海線」の形 |
+| `ward` / `wardCode` | N03 の区名・全国地方公共団体コード |
+| `operators[]` | `{ name, lines, passengers }` — 事業者別パネル（T2）の元。合計は乗降客指標（K3）に一致 |
+| `note` | 値が他路線駅の行に記載されている駅（重複コード 2）の説明 |
 
-### 5.2 必要なフィールド
+エンベロープの `sources` は `ridership` / `stations` / `wards` ごとに `{ year, table, label }`
+（PR 2 の形）。画面の年次表記はすべてここから読む。
 
-| アプリの型フィールド | ODPT のフィールド | 変換 |
-|-------------------|-----------------|------|
-| `id` | `owl:sameAs` | URI → 短縮ID |
-| `name` | `dc:title` | そのまま使用 |
-| `lat` | `geo:lat` | 数値 |
-| `lng` | `geo:long` | 数値 |
-| `type` | `odpt:stationType` | `"odpt.StationType:Train"` → `"train"` |
-| `dailyPassengers` | `odpt:passengerSurvey` | 別 API で取得 |
-| `lines` | `odpt:railway` | 路線URIを日本語名に変換 |
+### 5.3 乗降客数推移（T3）
 
-### 5.3 取得方法
-
-```
-# 駅一覧（東京都内）
-GET https://api.odpt.org/api/v4/odpt:Station
-  ?acl:consumerKey={ODPT_API_KEY}
-  &odpt:operator=odpt.Operator:JR-East,odpt.Operator:TokyoMetro,odpt.Operator:Toei
-
-# 乗降客数データ
-GET https://api.odpt.org/api/v4/odpt:PassengerSurvey
-  ?acl:consumerKey={ODPT_API_KEY}
-  &odpt:operator=odpt.Operator:JR-East
-```
-
-### 5.4 データ変換例
-
-```typescript
-// ODPT Station → TransportStation
-function transformStation(
-  station: ODPTStation,
-  passengers: number,
-  lines: string[]
-): TransportStation {
-  return {
-    id: station["owl:sameAs"].replace("odpt.Station:", ""),
-    name: station["dc:title"],
-    lat: station["geo:lat"],
-    lng: station["geo:long"],
-    type: "train",
-    dailyPassengers: passengers,
-    lines,
-  };
-}
-```
-
----
+交通タブの「乗降客数推移」は本 PR の対象外で、サンプルデータのまま（SAMPLE 表示）。
+S12 の複数年列から作る作業は RECON §9 行 4b。
 
 ## 6. 用途地域データ
 
@@ -383,7 +358,6 @@ GeoJSON のポリゴンとして取得し、MapLibre の `fill` レイヤーと�
 | サービス | 環境変数名 | 取得先 |
 |---------|-----------|--------|
 | e-Stat | `ESTAT_API_KEY` | https://www.e-stat.go.jp/api/ → ユーザー登録 |
-| ODPT | `ODPT_API_KEY` | https://developer.odpt.org/ → デベロッパー登録 |
 | REINFOLIB | `REINFOLIB_API_KEY` | https://www.reinfolib.mlit.go.jp/ → API利用申請 |
 
 ### 7.2 設定方法
@@ -391,7 +365,6 @@ GeoJSON のポリゴンとして取得し、MapLibre の `fill` レイヤーと�
 ```bash
 # .env.local（リポジトリにはコミットしない）
 ESTAT_API_KEY=your_estat_api_key
-ODPT_API_KEY=your_odpt_api_key
 REINFOLIB_API_KEY=your_reinfolib_api_key
 ```
 

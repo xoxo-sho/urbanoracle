@@ -117,8 +117,9 @@ export function buildStationGeoJSON(
     type: "FeatureCollection",
     // Stations with no published ridership are omitted rather than drawn at
     // radius 0: the map sizes its circles by passenger volume, and a station
-    // ODPT does not cover would otherwise render as the smallest possible
-    // dot — visually indistinguishable from a genuinely quiet station.
+    // the source counts on another row would otherwise render as the
+    // smallest possible dot — visually indistinguishable from a genuinely
+    // quiet station.
     features: stations
       .filter((s) => typeof s.dailyPassengers === "number")
       .map((s) => ({

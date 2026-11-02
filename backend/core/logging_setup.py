@@ -2,8 +2,8 @@
 
 main.py needs the root logger at INFO so the provisioning audit trail reaches
 Cloud Run. That also let httpx's INFO "HTTP Request: GET <url>" line through,
-and the e-Stat appId and the ODPT consumer key are URL query parameters — so
-every cold fetch wrote both keys to stderr.
+and the e-Stat appId is a URL query parameter — so every cold fetch wrote the
+key to stderr.
 
 Two layers:
 
@@ -18,9 +18,10 @@ Two layers:
 import logging
 import re
 
-# Query parameters that carry a credential in this service's outbound URLs:
-# e-Stat sends appId (services/demographics.py), ODPT sends acl:consumerKey
-# (services/odpt.py). httpx does not log headers.
+# Query parameters that carry a credential in an outbound URL: e-Stat sends
+# appId (services/demographics.py); acl:consumerKey is the consumer-key form
+# the retired ridership upstream used, kept masked in case a URL of that shape
+# is ever logged again. httpx does not log headers.
 SECRET_QUERY_PARAMS = ("appId", "acl:consumerKey")
 MASK = "***"
 

@@ -1,7 +1,7 @@
 """UrbanOracle identity models — the ONLY persisted data.
 
 UrbanOracle persists no aggregation data: the demographics and transport
-panels are fetched from external APIs per-request (e-Stat / ODPT), hazard
+panels are fetched from external APIs per-request (e-Stat) or served from committed snapshots, hazard
 tiles load from GSI in the browser, and everything is transformed in memory; the
 station/ward GeoJSON is served from disk. Postgres holds identity only, so
 there are deliberately NO geometry columns and no PostGIS dependency.

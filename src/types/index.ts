@@ -58,17 +58,33 @@ export interface DisasterRisk {
   description: string;
 }
 
+/** One operator at a station (real-data plan PR 4): its lines there and its
+ * own 乗降客数 (the 事業者別 panel sums these; a ward's total is their sum). */
+export interface StationOperator {
+  name: string;
+  lines: string[];
+  // null when the source counts this operator's passengers on another row
+  // (国土数値情報 S12 重複コード 2). Never 0 — that would claim no passengers.
+  passengers: number | null;
+}
+
 export interface TransportStation {
   id: string;
+  /** The source's station group code (S12_001g). */
+  code?: string;
   name: string;
   lat: number;
   lng: number;
   type: "train" | "bus" | "subway";
-  // null when ODPT does not cover the station (JR East, Keio, Odakyu…)
-  // or reports boardings-only. Never 0 — that would claim no passengers.
+  // The sum over the station's operators; null when none carries a figure.
+  // Never 0 — that would claim no passengers.
   dailyPassengers: number | null;
   lines: string[];
   ward?: string;
+  wardCode?: string;
+  operators?: StationOperator[];
+  /** Why the figure is null, when the source says (e.g. counted on another row). */
+  note?: string;
 }
 
 export interface ZoningArea {

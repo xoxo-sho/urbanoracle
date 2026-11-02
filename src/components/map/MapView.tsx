@@ -16,7 +16,7 @@ interface MapViewProps {
   onSelectWard: (ward: string | null) => void;
   layers: DataLayer[];
   stations: TransportStation[];
-  /** Ridership on the station bubbles is ODPT data only when the feed is live. */
+  /** Ridership on the station bubbles is the 国土数値情報 snapshot's only when the answer arrived. */
   transportIsLive?: boolean;
 }
 
@@ -151,7 +151,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
       m.addSource("stations", {
         type: "geojson",
         data: buildStationGeoJSON(stations),
-        ...(transportIsLive ? { attribution: `乗降客数: ${SOURCES.odpt.label}` } : {}),
+        ...(transportIsLive ? { attribution: `乗降客数: ${SOURCES.ksj.label}` } : {}),
       });
 
       m.addLayer({

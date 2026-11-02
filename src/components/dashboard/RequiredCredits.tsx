@@ -1,10 +1,9 @@
 import {
-  CONTACT_EMAIL,
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
-  ODPT_NOTICE,
-  TOEI_CC_BY_CREDIT,
-  formatFetchedAtJst,
+  KSJ_N03_EDITED,
+  KSJ_S12_EDITED,
+  KSJ_SOURCE,
 } from "@/lib/credits";
 
 /**
@@ -24,21 +23,16 @@ export function EstatCredits() {
 }
 
 /**
- * ODPT: the 取得日時 of the data (guideline 2.2.1), the notice for a published
- * application with its contact address (guideline 3.1), and the CC BY 4.0
- * credit for 東京都交通局 data (ODPT FAQ).
+ * 国土数値情報: the 出典 line (利用規約 1)ア) and the 加工 statements (1)イ) for the
+ * station snapshot — 駅別乗降客数データ S12 and 行政区域データ N03 — in the form
+ * with no editor name (Architect decision 12, real-data plan PR 4).
  */
-export function OdptNotice({ fetchedAt }: { fetchedAt: string | null }) {
-  const when = fetchedAt ? formatFetchedAtJst(fetchedAt) : null;
+export function KsjCredits() {
   return (
-    <div className="credit-block" data-credit="odpt">
-      {when && <p>{when}</p>}
-      <p>
-        {ODPT_NOTICE}
-        <br />
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
-      </p>
-      <p>{TOEI_CC_BY_CREDIT}</p>
+    <div className="credit-block" data-credit="ksj">
+      <p>{KSJ_SOURCE}</p>
+      <p>{KSJ_S12_EDITED}</p>
+      <p>{KSJ_N03_EDITED}</p>
     </div>
   );
 }

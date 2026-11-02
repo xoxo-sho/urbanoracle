@@ -25,6 +25,7 @@ type Partial = {
   unavailable?: string[];
   isLive?: boolean;
   fetchedAt?: string | null;
+  sources?: Record<string, { year: number; table: string; label: string }>;
 };
 const gate = vi.hoisted(() => ({ state: {} as Record<string, Partial> }));
 

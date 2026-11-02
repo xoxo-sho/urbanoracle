@@ -21,22 +21,23 @@ from routers.auth import router as auth_router
 from routers.data import router as data_router
 from routers.health import router as health_router
 from routers.verification import router as verification_router
-from services import population_trends
+from services import population_trends, transport
 
 # uvicorn configures only its own loggers, so application logger.info() calls
 # were being dropped and never reached Cloud Run — which silently removed the
 # provisioning audit trail (which layer admitted which scrubbed address).
 # Only WARNING and above were surfacing. This attaches a handler to the root
 # logger at INFO so the audit trail is visible in production — while keeping
-# httpx's request-URL lines (which carried the e-Stat and ODPT keys) out, and
-# masking secret query parameters in every record (core/logging_setup.py).
+# httpx's request-URL lines (which carried the e-Stat key) out, and masking
+# secret query parameters in every record (core/logging_setup.py).
 configure_logging()
 
-# The 人口推移 snapshot has no upstream, so the only thing that can be wrong
-# with it is the file itself — and that is checked here, at import, not on a
-# request: a missing or malformed snapshot stops the process, Cloud Run refuses
-# the revision and the deploy fails (real-data plan PR 3).
+# The two committed snapshots have no upstream, so the only thing that can be
+# wrong with them is the file itself — and that is checked here, at import,
+# not on a request: a missing or malformed snapshot stops the process, Cloud
+# Run refuses the revision and the deploy fails (real-data plan PR 3, PR 4).
 population_trends.check_at_startup(settings.POPULATION_TRENDS_PATH)
+transport.check_at_startup(settings.STATIONS_PATH)
 
 app = FastAPI(
     title="UrbanOracle API",

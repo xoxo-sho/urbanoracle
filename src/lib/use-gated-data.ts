@@ -12,7 +12,7 @@ import type { FieldSource, FieldSources } from "@/types";
  *   loading      request in flight — no numbers yet
  *   ok           the server answered with everything it was asked for
  *   partial      it answered, but `unavailable` names record fields the
- *                upstream did not deliver (e.g. dailyPassengers with ODPT down)
+ *                upstream did not deliver (e.g. growthRate when the e-Stat growth table is down)
  *   unavailable  the surface could not get its data: HTTP 503
  *                {status:"unavailable"}, any other non-2xx, a transport
  *                failure, or a 2xx body without `data`
