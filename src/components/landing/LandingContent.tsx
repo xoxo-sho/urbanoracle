@@ -8,6 +8,8 @@ import type { LpKey } from "@/i18n/lp";
 import {
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
+  KSJ_L01_EDITED,
+  KSJ_L01_EDITED_EN,
   KSJ_N03_EDITED,
   KSJ_N03_EDITED_EN,
   KSJ_S12_EDITED,
@@ -24,6 +26,7 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: KSJ_SOURCE, en: KSJ_SOURCE_EN },
   { ja: KSJ_S12_EDITED, en: KSJ_S12_EDITED_EN },
   { ja: KSJ_N03_EDITED, en: KSJ_N03_EDITED_EN },
+  { ja: KSJ_L01_EDITED, en: KSJ_L01_EDITED_EN },
 ];
 
 /**
@@ -64,6 +67,7 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "livePopTrend", "livePopTrendYear"],
   ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcKsj", "liveStations", "liveStationsYear"],
+  ["srcKsj", "liveLandPrice", "liveLandPriceYear"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
   ["srcTiles", "liveTiles", "none"],
@@ -72,7 +76,6 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
 // Surfaces still fed from src/data/sample.ts, or from a hardcoded table.
 const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [
   ["sampleHero", "none"],
-  ["sampleLandPrice", "none"],
   ["sampleDisaster", "none"],
   ["sampleZoning", "none"],
   ["sampleRidership", "none"],

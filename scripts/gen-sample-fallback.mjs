@@ -9,9 +9,9 @@ const js = src
 
 // Only the sets the server still serves. sampleDemographics and
 // sampleTransportStations left with real-data plan PR 1: the two live
-// endpoints answer 503 on failure instead of falling back to them.
+// endpoints answer 503 on failure instead of falling back to them; the land
+// price points left with PR 5 (the 地価 surfaces read the 地価公示 snapshot).
 const wanted = [
-  "sampleLandPrices",
   "sampleDisasterRisks",
 ];
 const body = `${js}\nreturn { ${wanted.join(", ")} };`;

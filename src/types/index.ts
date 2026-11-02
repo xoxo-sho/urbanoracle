@@ -13,16 +13,6 @@ export interface DataLayer {
   enabled: boolean;
 }
 
-export interface LandPricePoint {
-  id: string;
-  lat: number;
-  lng: number;
-  price: number; // 円/m²
-  year: number;
-  address: string;
-  landUse: string;
-}
-
 // Fields are nullable because the upstream statistics suppress cells for
 // small populations (e-Stat emits "-", "***", "X"). null means "not
 // published" — rendered as データなし — and is deliberately distinct from 0.
@@ -97,6 +87,10 @@ export interface ZoningArea {
   areaPct: number; // 面積割合 (%)
 }
 
+/**
+ * The LP hero's sample set (src/data/sample.ts, HeroSpread.tsx) — the only
+ * reader since real-data plan PR 5; PR 7 switches the hero with its downside.
+ */
 export interface LandPriceSummary {
   region: string;
   avgPrice: number; // 平均地価 円/m²
@@ -104,6 +98,31 @@ export interface LandPriceSummary {
   minPrice: number;
   changeRate: number; // 前年比 %
   count: number; // データ地点数
+}
+
+/**
+ * One use's figures in one ward from the 地価公示 snapshot (real-data plan
+ * PR 5, Architect decision 4): the simple mean of the 地価公示価格 over all n
+ * points of that use, and the simple mean 対前年変動率 over its nContinuing
+ * 継続 points — null when none continues from the previous year, never 0.
+ */
+export interface LandUseFigures {
+  n: number;
+  meanPrice: number; // 円/m²
+  minPrice?: number;
+  maxPrice?: number;
+  nContinuing: number;
+  meanChange: number | null; // %
+}
+
+/** One ward of /api/v1/land-prices: 住宅地 and 商業地 series, 工業地 as a count only. */
+export interface LandPriceWard {
+  region: string;
+  code: string;
+  n: number;
+  residential: LandUseFigures;
+  commercial: LandUseFigures;
+  industrial: { n: number };
 }
 
 export interface PopulationTrend {

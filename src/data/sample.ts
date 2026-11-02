@@ -1,7 +1,6 @@
 import type {
   DataLayer,
   DisasterRisk,
-  LandPricePoint,
   LandPriceSummary,
   TransportTrend,
   WardProfile,
@@ -14,17 +13,6 @@ export const dataLayers: DataLayer[] = [
   { id: "disaster-risk", label: "災害リスク", description: "洪水・地震・土砂災害・津波", color: "var(--down-text)", enabled: false },
   { id: "transportation", label: "交通", description: "鉄道・バス路線・乗降客数", color: "var(--ink-4)", enabled: false },
   { id: "zoning", label: "用途地域", description: "用途地域・容積率・建蔽率", color: "var(--ink-5)", enabled: false },
-];
-
-export const sampleLandPrices: LandPricePoint[] = [
-  { id: "lp-1", lat: 35.6812, lng: 139.7671, price: 5_300_000, year: 2025, address: "東京都千代田区丸の内一丁目", landUse: "商業地" },
-  { id: "lp-2", lat: 35.6895, lng: 139.6917, price: 4_120_000, year: 2025, address: "東京都新宿区西新宿二丁目", landUse: "商業地" },
-  { id: "lp-3", lat: 35.6585, lng: 139.7454, price: 3_850_000, year: 2025, address: "東京都港区六本木六丁目", landUse: "商業地" },
-  { id: "lp-4", lat: 35.7296, lng: 139.7109, price: 1_280_000, year: 2025, address: "東京都豊島区東池袋一丁目", landUse: "商業地" },
-  { id: "lp-5", lat: 35.6622, lng: 139.7038, price: 2_950_000, year: 2025, address: "東京都渋谷区道玄坂一丁目", landUse: "商業地" },
-  { id: "lp-6", lat: 35.6710, lng: 139.7636, price: 4_600_000, year: 2025, address: "東京都中央区銀座四丁目", landUse: "商業地" },
-  { id: "lp-7", lat: 35.6284, lng: 139.7387, price: 1_850_000, year: 2025, address: "東京都品川区北品川一丁目", landUse: "商業地" },
-  { id: "lp-8", lat: 35.7100, lng: 139.8107, price: 420_000, year: 2025, address: "東京都江東区豊洲三丁目", landUse: "住宅地" },
 ];
 
 export const sampleDisasterRisks: DisasterRisk[] = [
@@ -42,7 +30,10 @@ export const sampleDisasterRisks: DisasterRisk[] = [
   { id: "dr-12", type: "landslide", level: 2, region: "北区", description: "飛鳥山周辺の急傾斜地" },
 ];
 
-// 全23区の地価サマリー
+// The LP hero's set (src/components/landing/HeroSpread.tsx), its only reader
+// since real-data plan PR 5: the dashboard's 地価 surfaces read the 地価公示
+// snapshot (/api/v1/land-prices). PR 7 switches the hero together with its
+// downside and deletes this.
 export const sampleLandPriceSummary: LandPriceSummary[] = [
   { region: "千代田区", avgPrice: 5_300_000, maxPrice: 8_200_000, minPrice: 2_100_000, changeRate: 4.2, count: 38 },
   { region: "中央区", avgPrice: 4_800_000, maxPrice: 7_600_000, minPrice: 1_800_000, changeRate: 3.8, count: 42 },

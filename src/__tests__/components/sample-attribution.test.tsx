@@ -301,19 +301,19 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
     const transport = dataLayers.map((l) => ({ ...l, enabled: l.id === "transportation" }));
 
     it("loading → 乗降客数: 読み込み中, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="loading" />);
+      const { container } = render(<MapLegend layers={transport} transportStatus="loading" landPriceStatus="ok" />);
       expect(container.textContent).toContain(LOADING_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
     it("unavailable → 乗降客数: 取得失敗, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="unavailable" />);
+      const { container } = render(<MapLegend layers={transport} transportStatus="unavailable" landPriceStatus="ok" />);
       expect(container.textContent).toContain(FAILED_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
     it("ok → cites 国土数値情報 with the payload's year, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="ok" transportSources={TRANSPORT_SOURCES} />);
+      const { container } = render(<MapLegend layers={transport} transportStatus="ok" transportSources={TRANSPORT_SOURCES} landPriceStatus="ok" />);
       expect(container.textContent).toContain(SOURCES.ksj.label);
       expect(container.textContent).toContain(`${RIDERSHIP_YEAR}年度`);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);

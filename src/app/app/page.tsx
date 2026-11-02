@@ -11,9 +11,9 @@ import TransportPanel from "@/components/dashboard/TransportPanel";
 import WardRadar from "@/components/dashboard/WardRadar";
 import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
+import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
 import {
   dataLayers,
-  sampleLandPriceSummary,
   sampleDisasterRisks,
   sampleTransportTrends,
   sampleZoning,
@@ -23,6 +23,7 @@ import type {
   DataLayer,
   DemographicsData,
   DisasterRisk,
+  LandPriceWard,
   PopulationTrend,
   TransportStation,
   DataCategory,
@@ -40,9 +41,13 @@ import {
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
+  KSJ_L01_EDITED,
   KSJ_N03_EDITED,
   KSJ_S12_EDITED,
   KSJ_SOURCE,
+  LAND_PRICE_CHANGE_NOTE,
+  LAND_PRICE_MEAN_NOTE,
+  LAND_PRICE_USES_NOTE,
   MENCHO_EDITED,
   MENCHO_REMARKS,
   MENCHO_SOURCE,
@@ -52,12 +57,14 @@ import {
 } from "@/lib/credits";
 import {
   censusLine,
+  landPriceLine,
   ridershipSource,
   tileSourceLine,
   transportLine,
   transportTileLine,
   trendLine,
 } from "@/lib/census-sources";
+import { landPriceStops, type LandUse } from "@/lib/land-price";
 import { useGatedData } from "@/lib/use-gated-data";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
@@ -91,6 +98,8 @@ const GROWTH_FIELD = "growthRate";
 export default function Home() {
   const [activeTab, setActiveTab] = useState("land-price");
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
+  // One switch for every 地価 surface (real-data plan PR 5): 住宅地 by default.
+  const [landUse, setLandUse] = useState<LandUse>("residential");
 
   // The two live endpoints have no fallback: while loading or failed their
   // surfaces say so (real-data plan PR 1). /disaster-risks has no upstream yet
@@ -105,6 +114,15 @@ export default function Home() {
   const populationTrends = useGatedData<PopulationTrend[]>("/api/v1/population-trends");
   const trendSources = populationTrends.sources ?? {};
   const trendSource = trendLine(trendSources);
+  // The 地価公示 snapshot (real-data plan PR 5): one record per ward with the
+  // 住宅地 / 商業地 figures and their counts; the payload names the edition and
+  // year every 地価 surface prints.
+  const landPrices = useGatedData<LandPriceWard[]>("/api/v1/land-prices");
+  const landPriceRows = useMemo(() => landPrices.data ?? [], [landPrices.data]);
+  const landPriceSources = landPrices.sources ?? {};
+  const landPriceProvenance = landPriceLine(landPriceSources);
+  // The choropleth's stops for the chosen use, from the data; the legend prints the same array.
+  const landStops = useMemo(() => landPriceStops(landPriceRows, landUse), [landPriceRows, landUse]);
 
   const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
   const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
@@ -145,11 +163,6 @@ export default function Home() {
     if (!selectedWard) return stations;
     return stations.filter((s) => s.ward === selectedWard);
   }, [selectedWard, stations]);
-
-  const filteredPriceSummary = useMemo(() => {
-    if (!selectedWard) return sampleLandPriceSummary;
-    return sampleLandPriceSummary.filter((p) => p.region === selectedWard);
-  }, [selectedWard]);
 
   const filteredProfiles = useMemo(() => {
     if (!selectedWard) return sampleWardProfiles;
@@ -241,6 +254,10 @@ export default function Home() {
                 layers={layers}
                 stations={stations}
                 transportIsLive={transport.status === "ok"}
+                landPrices={landPriceRows}
+                landUse={landUse}
+                landPriceStops={landStops}
+                landPriceStatus={landPrices.status}
               />
               <div className="absolute top-3 left-3 z-10">
                 <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
@@ -251,6 +268,10 @@ export default function Home() {
                 layers={layers}
                 transportStatus={transport.status}
                 transportSources={transportSources}
+                landPriceStatus={landPrices.status}
+                landPriceSources={landPriceSources}
+                landUse={landUse}
+                landPriceStops={landStops}
               />
             </div>
 
@@ -325,16 +346,26 @@ export default function Home() {
               {/* Land Price */}
               <TabsContent value="land-price" className="mt-4 flex-1 overflow-y-auto">
                 <div className="space-y-4">
+                  <div className="flex items-center justify-end">
+                    <LandUseSwitch value={landUse} onChange={setLandUse} />
+                  </div>
                   <LandPriceChart
-                    prices={selectedWard ? filteredPriceSummary : sampleLandPriceSummary}
-                    allPrices={sampleLandPriceSummary}
+                    wards={landPriceRows}
+                    status={landPrices.status}
+                    sources={landPriceSources}
+                    landUse={landUse}
                     demographics={demographicsRows}
+                    demographicsStatus={demographics.status}
+                    demographicsSources={censusSources}
                     selectedWard={selectedWard}
                   />
                   {!selectedWard && (
                     <WardTable
                       demographics={demographicsRows}
-                      landPrices={sampleLandPriceSummary}
+                      landPrices={landPriceRows}
+                      landUse={landUse}
+                      landPriceStatus={landPrices.status}
+                      landPriceSources={landPriceSources}
                       onSelectWard={setSelectedWard}
                       status={demographics.status}
                       unavailable={demographics.unavailable}
@@ -472,6 +503,14 @@ export default function Home() {
                   </li>
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>
+                {landPrices.data !== null && (
+                  <li data-source="land-prices">
+                    地価公示 平均価格・変動率（地価タブ・区別テーブルの地価列・地図の塗り分け）: {KSJ_SOURCE}
+                    {landPriceProvenance ? ` ／ ${landPriceProvenance}` : ""}
+                    {" ／ "}{KSJ_L01_EDITED}
+                    <span className="block">{LAND_PRICE_MEAN_NOTE} ／ {LAND_PRICE_CHANGE_NOTE} ／ {LAND_PRICE_USES_NOTE}</span>
+                  </li>
+                )}
                 {transport.status === "ok" && (
                   <li data-source="stations">
                     駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）: {KSJ_SOURCE}
@@ -492,12 +531,11 @@ export default function Home() {
             <div data-provenance="sample" className="sample-block">
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
-                <li>区別平均地価・密度 vs 地価・区別テーブルの地価列</li>
                 <li>災害種別・リスク一覧・高リスク指標</li>
                 <li>用途地域</li>
                 <li>乗降客数推移</li>
                 <li>区別総合比較</li>
-                <li>地図の塗り分け: {CHOROPLETH_NOTE}</li>
+                <li>地図の塗り分け（人口・災害）: {CHOROPLETH_NOTE}</li>
               </ul>
             </div>
           </div>

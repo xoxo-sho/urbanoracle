@@ -55,6 +55,15 @@ export const KSJ_S12_EDITED_EN =
 export const KSJ_N03_EDITED = `「国土数値情報（行政区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
 export const KSJ_N03_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (administrative area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+/**
+ * 国土数値情報 利用規約 1)イ for the 地価公示 snapshot (real-data plan PR 5:
+ * 地価公示データ L01), the same 加工 form with no editor name (Architect
+ * decision 12). Recorded in the snapshot's `credit.edited_l01`
+ * (backend/data/land_prices.json).
+ */
+export const KSJ_L01_EDITED = `「国土数値情報（地価公示データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_L01_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (published land price data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 
 /**
  * What a 乗降客数 figure is (real-data plan PR 4): the snapshot sums each
@@ -65,6 +74,17 @@ export const KSJ_N03_EDITED_EN =
  */
 export const RIDERSHIP_DEFINITION_NOTE = "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）";
 export const RIDERSHIP_JR_NOTE = "JR東日本の値は乗車人員を2倍した値（原典資料による）";
+
+/**
+ * What a 地価 figure is (real-data plan PR 5, Architect decision 4): per ward
+ * and use, the simple mean of the 地価公示価格 over every point, the simple mean
+ * 対前年変動率 over the 継続 points — the definitions 東京都 publishes its
+ * 区市町村別 tables with — and 工業地 as a count only. The three sentences come
+ * from the snapshot's `notes`.
+ */
+export const LAND_PRICE_MEAN_NOTE = "平均価格は各用途の全地点の地価公示価格の単純平均";
+export const LAND_PRICE_CHANGE_NOTE = "変動率は継続地点（前年と比較できる地点）の対前年変動率の単純平均";
+export const LAND_PRICE_USES_NOTE = "住宅地と商業地のみ区別に集計（用途区分 000 住宅地、005 商業地）；工業地は地点数のみ";
 
 /** dataofjapan/land README: name the upstream, 地球地図日本. */
 export const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";

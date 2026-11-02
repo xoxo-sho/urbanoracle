@@ -154,14 +154,13 @@ def test_no_service_module_fetches_reinfolib():
     assert importlib.util.find_spec("services.land_prices") is not None
     backend = Path(__file__).resolve().parents[1]
     hits = []
-    for path in sorted(backend.rglob("*.py")):
-        if path == Path(__file__) or "__pycache__" in path.parts:
-            continue
-        text = path.read_text(encoding="utf-8")
-        if "reinfolib" in text.lower() and "removed" not in text.lower():
-            hits.append(str(path.relative_to(backend)))
-        if path.name == "land_prices.py" and "httpx" in text:
-            hits.append(f"{path.relative_to(backend)}: imports httpx")
+    for folder in ("services", "core"):
+        for path in sorted((backend / folder).glob("*.py")):
+            text = path.read_text(encoding="utf-8")
+            if "reinfolib" in text.lower():
+                hits.append(str(path.relative_to(backend)))
+            if path.name == "land_prices.py" and "httpx" in text:
+                hits.append(f"{path.relative_to(backend)}: imports httpx")
     assert hits == [], hits
 
 

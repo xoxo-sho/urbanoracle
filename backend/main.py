@@ -21,7 +21,7 @@ from routers.auth import router as auth_router
 from routers.data import router as data_router
 from routers.health import router as health_router
 from routers.verification import router as verification_router
-from services import population_trends, transport
+from services import land_prices, population_trends, transport
 
 # uvicorn configures only its own loggers, so application logger.info() calls
 # were being dropped and never reached Cloud Run — which silently removed the
@@ -32,12 +32,13 @@ from services import population_trends, transport
 # secret query parameters in every record (core/logging_setup.py).
 configure_logging()
 
-# The two committed snapshots have no upstream, so the only thing that can be
-# wrong with them is the file itself — and that is checked here, at import,
+# The three committed snapshots have no upstream, so the only thing that can
+# be wrong with them is the file itself — and that is checked here, at import,
 # not on a request: a missing or malformed snapshot stops the process, Cloud
-# Run refuses the revision and the deploy fails (real-data plan PR 3, PR 4).
+# Run refuses the revision and the deploy fails (real-data plan PR 3, 4, 5).
 population_trends.check_at_startup(settings.POPULATION_TRENDS_PATH)
 transport.check_at_startup(settings.STATIONS_PATH)
+land_prices.check_at_startup(settings.LAND_PRICES_PATH)
 
 app = FastAPI(
     title="UrbanOracle API",

@@ -90,5 +90,18 @@ class Settings:
             return Path(explicit)
         return Path(__file__).resolve().parents[1] / "data" / "stations.json"
 
+    @property
+    def LAND_PRICES_PATH(self) -> Path:
+        """The committed 地価公示 snapshot (real-data plan PR 5), validated at startup.
+
+        Ships with backend/ in the image, like the other two snapshots. The
+        override exists so a test can point the app at a broken file and prove
+        that it refuses to start.
+        """
+        explicit = os.environ.get("LAND_PRICES_PATH")
+        if explicit:
+            return Path(explicit)
+        return Path(__file__).resolve().parents[1] / "data" / "land_prices.json"
+
 
 settings = Settings()

@@ -62,7 +62,7 @@ const ja = {
   upLabel: "上振れ",
   upTitle: "資産価値が伸びる根拠",
   upBody:
-    "国勢調査の人口と年齢構成、5年間の人口増減率、駅別の乗降客数。エリアの伸びを支える指標を、区単位で並べて比較します。地価の前年比は現在、サンプルデータ（暫定）で表示しています。",
+    "国勢調査の人口と年齢構成、5年間の人口増減率、駅別の乗降客数、地価公示の区別平均価格と変動率。エリアの伸びを支える指標を、区単位で並べて比較します。このページのヒーローに示す地価前年比は現在、サンプルデータ（暫定）です。",
   downLabel: "下振れ",
   downTitle: "価値を毀損する要因",
   downBody:
@@ -89,17 +89,18 @@ const ja = {
   liveMenchoYear: "2025年10月1日時点",
   liveStations: "駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）",
   liveStationsYear: "2024年度 駅別乗降客数データ（S12-25）・行政区域データ（N03-20260101）",
+  liveLandPrice: "地価公示の区別平均価格・変動率（住宅地／商業地：地価タブ・区別テーブルの地価列・地図の塗り分け）",
+  liveLandPriceYear: "2026年地価公示（2026年1月1日時点）・地価公示データ（L01-26）",
   liveHazard: "浸水・津波・土砂災害の想定区域（地図の重ね表示）",
   liveBoundaries: "行政区界（区境界ポリゴン）",
   liveTiles: "地図タイル（淡色地図）",
   sampleHero: "LP ヒーロー（地価前年比 × 想定災害規模）",
-  sampleLandPrice: "区別平均地価・密度 vs 地価・区別テーブルの地価列",
   sampleDisaster: "災害種別・リスク一覧・高リスク指標",
   sampleZoning: "用途地域（面積構成・容積率・建蔽率）",
   sampleRidership: "乗降客数推移",
   sampleRadar: "区別総合比較（レーダー）",
   sampleRadarScale: "0–100",
-  sampleChoropleth: `地図の塗り分け: ${CHOROPLETH_NOTE}`,
+  sampleChoropleth: `地図の塗り分け（人口・災害）: ${CHOROPLETH_NOTE}`,
 
   provRequiredTitle: "データ提供元が求める表示",
 
@@ -139,7 +140,7 @@ const en = {
   upLabel: "Upside",
   upTitle: "Grounds for rising asset value",
   upBody:
-    "Population and age composition from the Population Census, the 5-year population change rate, and ridership by station. These indicators behind an area's growth are compared side by side, ward by ward. Year-on-year land price change is currently shown with sample data (provisional).",
+    "Population and age composition from the Population Census, the 5-year population change rate, ridership by station, and the published land price (chika koji) average and year-on-year change by ward. These indicators behind an area's growth are compared side by side, ward by ward. The year-on-year land price shown in this page's hero is currently sample data (provisional).",
   downLabel: "Downside",
   downTitle: "Factors that erode value",
   downBody:
@@ -166,17 +167,18 @@ const en = {
   liveMenchoYear: "As of 2025/10/1",
   liveStations: "Ridership and station locations by station (Transport tab, ridership metric, station bubbles on the map)",
   liveStationsYear: "FY2024 ridership by station (S12-25), administrative area data (N03-20260101)",
+  liveLandPrice: "Published land price (chika koji) average and year-on-year change by ward (residential / commercial: Land price tab, land price column of the ward table, map shading)",
+  liveLandPriceYear: "2026 published land prices (as of 2026/1/1), published land price data (L01-26)",
   liveHazard: "Assumed flood, tsunami and landslide hazard areas (map overlay)",
   liveBoundaries: "Administrative boundaries (ward boundary polygons)",
   liveTiles: "Map tiles (pale map)",
   sampleHero: "LP hero (year-on-year land price × projected disaster scale)",
-  sampleLandPrice: "Average land price by ward, density vs land price, land price column of the ward table",
   sampleDisaster: "Disaster types, risk list, high-risk indicator",
   sampleZoning: "Zoning (area mix, floor area ratio, building coverage ratio)",
   sampleRidership: "Ridership trend",
   sampleRadar: "Overall comparison by ward (radar)",
   sampleRadarScale: "0–100",
-  sampleChoropleth: "Map shading: fixed reference values — not real data",
+  sampleChoropleth: "Map shading (population, disaster): fixed reference values — not real data",
 
   provRequiredTitle: "Notices the data providers require (the prescribed Japanese text, each followed by a translation)",
 

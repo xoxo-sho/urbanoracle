@@ -113,3 +113,29 @@ export function transportLine(sources: FieldSources | null | undefined): string 
 export function transportTileLine(source: FieldSource): string {
   return `${source.year}年度 国土数値情報 ${source.table}`;
 }
+
+// ---- 地価公示 (real-data plan PR 5) -----------------------------------------------
+
+/** The price source of the /land-prices payload, or null when it names none. */
+export function landPriceSource(sources: FieldSources | null | undefined): FieldSource | null {
+  const s = sources?.price;
+  return s && Number.isFinite(s.year) ? s : null;
+}
+
+/** 「2026年地価公示」, from the payload; null when it names no year. */
+export function landPriceYearLabel(sources: FieldSources | null | undefined): string | null {
+  const s = landPriceSource(sources);
+  return s ? `${s.year}年地価公示` : null;
+}
+
+/**
+ * The provenance line of the 地価 surfaces:
+ * 「2026年地価公示 ／ 国土数値情報 地価公示データ 2026年（令和8年）版 地価公示価格（2026年1月1日時点、円/m²）（L01-26）」.
+ * The label carries the reference date as the payload states it. Null when
+ * the payload names no price source.
+ */
+export function landPriceLine(sources: FieldSources | null | undefined): string | null {
+  const s = landPriceSource(sources);
+  if (!s) return null;
+  return `${s.year}年地価公示 ／ ${s.label}（${s.table}）`;
+}

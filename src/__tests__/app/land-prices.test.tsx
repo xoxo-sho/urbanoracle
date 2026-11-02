@@ -84,8 +84,7 @@ const KSJ_SOURCE = `出典：国土交通省国土数値情報ダウンロード
 const EDITED_L01 = `「国土数値情報（地価公示データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`;
 const PRICE_NOTE = "平均価格は各用途の全地点の地価公示価格の単純平均";
 const CHANGE_NOTE = "変動率は継続地点（前年と比較できる地点）の対前年変動率の単純平均";
-const USES = { residential: "住宅地", commercial: "商業地" } as const;
-type Use = keyof typeof USES;
+type Use = "residential" | "commercial";
 
 const snapshot = loadLandPricesSnapshot();
 const ROWS = landPricesSnapshotRows(snapshot);
@@ -361,15 +360,15 @@ describe("区別平均価格 bar — every ward's mean with its n; the selected 
   it("格差 is recomputed per use over the 23 wards", async () => {
     await renderSettled();
     const panel = openTab("地価");
-    const gap = (use: Use) => surface(panel, "land-price-bar").querySelector("[data-gap]")?.textContent ?? "";
+    const gap = () => surface(panel, "land-price-bar").querySelector("[data-gap]")?.textContent ?? "";
     const res = gapOf("residential");
-    expect(gap("residential")).toContain(`${res.ratio}倍`);
-    expect(gap("residential")).toContain(res.top.replace("区", ""));
-    expect(gap("residential")).toContain(res.bottom.replace("区", ""));
+    expect(gap()).toContain(`${res.ratio}倍`);
+    expect(gap()).toContain(res.top.replace("区", ""));
+    expect(gap()).toContain(res.bottom.replace("区", ""));
     switchUse(panel, "commercial");
     const com = gapOf("commercial");
-    expect(gap("commercial")).toContain(`${com.ratio}倍`);
-    expect(gap("commercial")).toContain(com.top.replace("区", ""));
+    expect(gap()).toContain(`${com.ratio}倍`);
+    expect(gap()).toContain(com.top.replace("区", ""));
     expect(com.ratio).not.toBe(res.ratio);
   });
 });
