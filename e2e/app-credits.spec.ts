@@ -70,8 +70,30 @@ const trendRows = trends.points.flatMap((p) => [
   { year: p.year, population: p.population, region: trends.region },
   ...p.wards.map((w) => ({ year: p.year, population: w.population, region: w.name })),
 ]);
+// The 地価公示 snapshot route (real-data plan PR 5) answers from the committed snapshot itself.
+interface SnapshotLandPriceWard {
+  code: string;
+  name: string;
+  n: number;
+  residential: Record<string, number | null>;
+  commercial: Record<string, number | null>;
+  industrial: { n: number };
+}
+const landPrices = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "land_prices.json"), "utf8")) as {
+  sources: Record<string, unknown>;
+  wards: SnapshotLandPriceWard[];
+};
+const landPriceRows = landPrices.wards.map((w) => ({
+  region: w.name,
+  code: w.code,
+  n: w.n,
+  residential: w.residential,
+  commercial: w.commercial,
+  industrial: w.industrial,
+}));
 const API: Record<string, unknown> = {
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
+  "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
   "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },
   "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
   "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },

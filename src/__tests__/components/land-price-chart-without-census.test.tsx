@@ -1,33 +1,60 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
-import { sampleLandPriceSummary } from "@/data/sample";
 import { SOURCES } from "@/lib/sources";
+import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
+import { LAND_PRICES_FIXTURE, LAND_PRICES_SOURCES } from "@/__tests__/fixtures/live-data";
 
 /**
- * The 密度 vs 地価 scatter (L2) is a consumer of /demographics that PR 1 did
- * not list: its x and z come from the census. While the census is loading or
- * failed the page hands it no rows. It must render without crashing, draw no
- * point from invented values, and keep its own (PR 5) sample label — nothing
- * here may fall back to the deleted sample demographics.
+ * The 密度 vs 地価 scatter (L2) consumes two payloads: the census (x and z)
+ * and the 地価公示 snapshot (y). While the census is loading or failed the page
+ * hands it no rows. It must then say so — 読み込み中 or 取得失敗 naming e-Stat —
+ * never draw a point from invented values and never an empty plot (real-data
+ * plan PR 5, the Architect's addition of 2026-10-30); the bar beside it,
+ * which needs the 地価 payload alone, keeps its figures.
  */
 describe("LandPriceChart without census rows (demographics loading or failed)", () => {
-  it("renders both sections, with no point data and no census number", () => {
+  it("census failed: the bar keeps its 23-ward figures, the scatter says 取得失敗 and names e-Stat, no point, no sample label", () => {
     const { container } = render(
       <LandPriceChart
-        prices={sampleLandPriceSummary}
-        allPrices={sampleLandPriceSummary}
+        wards={LAND_PRICES_FIXTURE}
+        status="ok"
+        sources={LAND_PRICES_SOURCES}
+        landUse="residential"
         demographics={[]}
+        demographicsStatus="unavailable"
         selectedWard={null}
       />
     );
     const text = container.textContent ?? "";
-    expect(text).toContain("区別平均地価");
-    expect(text).toContain("密度 vs 地価");
-    // The 16 sample price rows still label themselves; the scatter has nothing to plot.
-    expect(container.querySelectorAll('[data-provenance="sample"]')).toHaveLength(2);
-    expect(text).toContain(SOURCES.sample.label);
+    expect(text).toContain("区別平均価格（住宅地）");
+    expect(text).toContain("密度 vs 地価（住宅地）");
+    expect(container.querySelectorAll("[data-ward-price]")).toHaveLength(LAND_PRICES_FIXTURE.length);
+    const scatter = container.querySelector('[data-surface="land-price-scatter"]')!;
+    expect(scatter.querySelector('[data-state="unavailable"]')).not.toBeNull();
+    expect(scatter.textContent).toContain(FAILED_TEXT);
+    expect(scatter.textContent).toContain(SOURCES.estat.label);
+    expect(scatter.querySelectorAll("[data-point]")).toHaveLength(0);
+    expect(container.querySelector('[data-provenance="sample"]')).toBeNull();
     // 世田谷区's deleted sample population, 939,099 → 「93.9万」, must not reappear anywhere.
     expect(text).not.toContain("93.9万");
+  });
+
+  it("census loading: the scatter says 読み込み中 and draws nothing", () => {
+    const { container } = render(
+      <LandPriceChart
+        wards={LAND_PRICES_FIXTURE}
+        status="ok"
+        sources={LAND_PRICES_SOURCES}
+        landUse="residential"
+        demographics={[]}
+        demographicsStatus="loading"
+        selectedWard={null}
+      />
+    );
+    const scatter = container.querySelector('[data-surface="land-price-scatter"]')!;
+    expect(scatter.querySelector('[data-state="loading"]')).not.toBeNull();
+    expect(scatter.textContent).toContain(LOADING_TEXT);
+    expect(scatter.querySelectorAll("[data-point]")).toHaveLength(0);
   });
 });

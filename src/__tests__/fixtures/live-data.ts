@@ -213,3 +213,102 @@ export const POPULATION_TRENDS_SOURCES: FieldSources = {
   ),
   "2025": { year: 2025, table: expected.meta.tables.population, label: "令和7年国勢調査 人口等基本集計（確報）男女別人口" },
 };
+
+// ---- 地価公示 (real-data plan PR 5) ------------------------------------------------
+//
+// What /api/v1/land-prices serves: the committed snapshot built by
+// etl/land_prices.py from the L01-26 excerpt (backend/tests/fixtures/land_prices/),
+// one record per ward with the 住宅地 / 商業地 figures and their counts. The
+// year and the 国土数値情報 id come from the committed meta, so the two sides
+// of the contract cannot drift apart.
+
+import type { LandPriceWard, LandUseFigures } from "@/types";
+import l01Meta from "../../../backend/tests/fixtures/land_prices/ksj.meta.json";
+
+export const LAND_PRICE_YEAR = l01Meta.L01.year;
+export const LAND_PRICE_TABLE = l01Meta.L01.id;
+export const LAND_PRICES_SOURCES: FieldSources = {
+  price: {
+    year: LAND_PRICE_YEAR,
+    table: LAND_PRICE_TABLE,
+    label: `国土数値情報 地価公示データ ${l01Meta.L01.edition} 地価公示価格（2026年1月1日時点、円/m²）`,
+  },
+  change: {
+    year: LAND_PRICE_YEAR,
+    table: LAND_PRICE_TABLE,
+    label: `国土数値情報 地価公示データ ${l01Meta.L01.edition} 対前年変動率（2025年1月1日→2026年1月1日、%）`,
+  },
+};
+
+/** The committed snapshot the route serves (backend/data/land_prices.json), as the builder writes it. */
+export interface LandPricesSnapshot {
+  year: number;
+  referenceDate: string;
+  sources: FieldSources;
+  credit: { source: string; edited_l01: string };
+  notes: { price: string; change: string; uses: string };
+  total: { n: number; residential: LandUseFigures; commercial: LandUseFigures; industrial: { n: number } };
+  wards: {
+    code: string;
+    name: string;
+    n: number;
+    residential: LandUseFigures;
+    commercial: LandUseFigures;
+    industrial: { n: number };
+  }[];
+}
+
+export function loadLandPricesSnapshot(): LandPricesSnapshot {
+  const file = path.join(process.cwd(), "backend", "data", "land_prices.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no land-prices snapshot at ${file} — etl/land_prices.py build has not been run`);
+  }
+  return JSON.parse(text) as LandPricesSnapshot;
+}
+
+/** The client records the route makes of the snapshot's wards (backend/services/land_prices.py rows). */
+export function landPricesSnapshotRows(snapshot: LandPricesSnapshot): LandPriceWard[] {
+  return snapshot.wards.map((w) => ({
+    region: w.name,
+    code: w.code,
+    n: w.n,
+    residential: { ...w.residential },
+    commercial: { ...w.commercial },
+    industrial: { n: w.industrial.n },
+  }));
+}
+
+/**
+ * A three-ward answer for component tests, the wards of DEMOGRAPHICS_FIXTURE.
+ * The figures are shaped like the snapshot's (a mean, a count, a count of
+ * continuing points, a mean change) and are not real figures.
+ */
+export const LAND_PRICES_FIXTURE: LandPriceWard[] = [
+  {
+    region: "江東区",
+    code: "13108",
+    n: 47,
+    residential: { n: 26, meanPrice: 661_538, minPrice: 371_000, maxPrice: 1_020_000, nContinuing: 25, meanChange: 11.93 },
+    commercial: { n: 17, meanPrice: 1_310_294, minPrice: 600_000, maxPrice: 3_100_000, nContinuing: 17, meanChange: 15.56 },
+    industrial: { n: 4 },
+  },
+  {
+    region: "足立区",
+    code: "13121",
+    n: 108,
+    residential: { n: 71, meanPrice: 410_761, minPrice: 227_000, maxPrice: 700_000, nContinuing: 70, meanChange: 6.35 },
+    commercial: { n: 32, meanPrice: 847_281, minPrice: 350_000, maxPrice: 3_000_000, nContinuing: 30, meanChange: 8.52 },
+    industrial: { n: 5 },
+  },
+  {
+    region: "北区",
+    code: "13117",
+    n: 54,
+    residential: { n: 31, meanPrice: 742_000, minPrice: 460_000, maxPrice: 1_100_000, nContinuing: 29, meanChange: 11.63 },
+    commercial: { n: 23, meanPrice: 1_505_826, minPrice: 700_000, maxPrice: 4_000_000, nContinuing: 22, meanChange: 16.17 },
+    industrial: { n: 0 },
+  },
+];

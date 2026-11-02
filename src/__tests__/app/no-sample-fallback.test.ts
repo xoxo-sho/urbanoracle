@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -55,5 +55,53 @@ describe("PR 3: 人口推移 is the committed census snapshot, not samplePopulat
   it("the backend sample copy and its generator carry no population trend", () => {
     expect(read("backend/data/sample_fallback.json")).not.toContain("samplePopulationTrends");
     expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("samplePopulationTrends");
+  });
+});
+
+describe("PR 5: the 地価 surfaces read the 地価公示 snapshot; the sample fields stay only for the LP hero", () => {
+  // RED on main (4b09098). sampleLandPrices and WARD_META.avgLandPrice /
+  // priceChange leave; sampleLandPriceSummary stays, read by HeroSpread alone
+  // until PR 7 switches the hero together with its downside.
+  function walk(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        if (entry !== "__tests__" && entry !== "node_modules") walk(full, out);
+      } else if (/\.(ts|tsx)$/.test(entry)) out.push(full);
+    }
+    return out;
+  }
+  const importers = (symbol: string) =>
+    walk(resolve(REPO_ROOT, "src"))
+      .filter((file) => new RegExp(`\\b${symbol}\\b`).test(readFileSync(file, "utf8")))
+      .map((file) => relative(REPO_ROOT, file))
+      .filter((file) => file !== "src/data/sample.ts")
+      .sort();
+
+  it("sample.ts no longer exports sampleLandPrices, and no type for its points remains", () => {
+    expect(read("src/data/sample.ts")).not.toMatch(/export const sampleLandPrices\b/);
+    expect(read("src/types/index.ts")).not.toContain("LandPricePoint");
+  });
+
+  it("HeroSpread is the only reader of sampleLandPriceSummary; no dashboard surface reads it", () => {
+    expect(importers("sampleLandPriceSummary")).toEqual(["src/components/landing/HeroSpread.tsx"]);
+    expect(read("src/app/app/page.tsx")).not.toContain("sampleLandPriceSummary");
+  });
+
+  it("WARD_META carries no 地価 field; the map and legend read none", () => {
+    for (const file of ["src/data/ward-boundaries.ts", "src/components/map/MapView.tsx", "src/components/map/MapLegend.tsx"]) {
+      expect(read(file), file).not.toContain("avgLandPrice");
+      expect(read(file), file).not.toContain("priceChange");
+    }
+  });
+
+  it("the backend sample copy and its generator carry no land price points", () => {
+    expect(read("backend/data/sample_fallback.json")).not.toContain("sampleLandPrices");
+    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("sampleLandPrices");
+  });
+
+  it("the LP dictionary and provenance table have no sample row for the dashboard's 地価 surfaces", () => {
+    expect(read("src/i18n/lp.ts")).not.toMatch(/\bsampleLandPrice\b/);
+    expect(read("src/components/landing/LandingContent.tsx")).not.toMatch(/\bsampleLandPrice\b/);
   });
 });

@@ -56,6 +56,8 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import Home from "@/app/app/page";
 import {
+  LAND_PRICES_FIXTURE,
+  LAND_PRICES_SOURCES,
   POPULATION_TRENDS_FIXTURE,
   POPULATION_TRENDS_SOURCES,
   STATIONS_FIXTURE,
@@ -126,6 +128,9 @@ const DISASTER = json(200, { data: [], isLive: false });
 // The 人口推移 snapshot route (PR 3): answers so the page settles; its own
 // states are guarded in population-trends.test.tsx.
 const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+// The 地価公示 snapshot route (PR 5): answers so the page settles; its own
+// states are guarded in land-prices.test.tsx.
+const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -144,9 +149,10 @@ async function renderSettled(routes: { demographics: Route; transport: Route }) 
     "/api/v1/transport": routes.transport,
     "/api/v1/disaster-risks": DISASTER,
     "/api/v1/population-trends": TRENDS,
+    "/api/v1/land-prices": LAND_PRICES,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(4));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
   // Let each response → json → setState chain drain.
   for (let i = 0; i < 2; i++) {
     await act(async () => {

@@ -27,24 +27,24 @@ vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
 // /disaster-risks with nothing (the page keeps its sample set for that one
 // until real-data plan PR 7).
 vi.mock("@/lib/use-gated-data", async () => {
-  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, STATIONS_FIXTURE, TRANSPORT_SOURCES } = await import("@/__tests__/fixtures/live-data");
+  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, LAND_PRICES_FIXTURE, LAND_PRICES_SOURCES, STATIONS_FIXTURE, TRANSPORT_SOURCES } =
+    await import("@/__tests__/fixtures/live-data");
+  const answers: Record<string, { data: unknown; sources: Record<string, unknown> }> = {
+    "/api/v1/demographics": { data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES },
+    "/api/v1/transport": { data: STATIONS_FIXTURE, sources: TRANSPORT_SOURCES },
+    "/api/v1/land-prices": { data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES },
+  };
   return {
     useGatedData: (endpoint: string) => {
       gate.requested.push(endpoint);
       const live = endpoint !== "/api/v1/disaster-risks";
       return {
         status: "ok",
-        data:
-          endpoint === "/api/v1/demographics"
-            ? DEMOGRAPHICS_FIXTURE
-            : endpoint === "/api/v1/transport"
-              ? STATIONS_FIXTURE
-              : null,
+        data: answers[endpoint]?.data ?? null,
         unavailable: [],
         isLive: live,
         fetchedAt: null,
-        sources:
-          endpoint === "/api/v1/demographics" ? DEMOGRAPHICS_SOURCES : endpoint === "/api/v1/transport" ? TRANSPORT_SOURCES : {},
+        sources: answers[endpoint]?.sources ?? {},
       };
     },
   };
@@ -59,6 +59,7 @@ const ESTAT_EDITED = "「令和7年国勢調査 人口等基本集計」（総�
 const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）";
 const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_L01_EDITED = "「国土数値情報（地価公示データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const RETIRED = "OD" + "PT";
 const WARD_CREDIT = "区境界: dataofjapan/land（出典：地球地図日本）";
 // 国土地理院コンテンツ利用規約 1)ア / 1)イ: the ward areas under the density come from the 面積調.
@@ -149,6 +150,32 @@ describe("/app 交通 tab — the 国土数値情報 credits next to the station
   });
 });
 
+describe("/app 地価 tab — the 国土数値情報 credit next to the 地価公示 figures (real-data plan PR 5)", () => {
+  it("shows the 出典 line and the 加工 statement for 地価公示データ, in the form with no editor name", () => {
+    render(<Home />);
+    fireEvent.click(screen.getByRole("tab", { name: "地価" }));
+    const panel = screen.getByRole("tabpanel");
+    const credit = within(panel).getByText(KSJ_L01_EDITED).closest('[data-credit="ksj-l01"]');
+    expect(credit).not.toBeNull();
+    const text = credit!.textContent ?? "";
+    expect(text).toContain(KSJ_SOURCE);
+    expect(text).toContain(KSJ_L01_EDITED);
+    expect(text).not.toMatch(/をもとに.*作成/);
+    expect(panel.querySelector('[data-provenance="sample"]')).toBeNull();
+  });
+});
+
+describe("/app データ出典 — the 地価公示 snapshot", () => {
+  it("carries the 加工 statement for 地価公示データ under 実データ", () => {
+    const { container } = render(<Home />);
+    const live = container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
+    expect(live).toContain(KSJ_L01_EDITED);
+    expect(live).toContain("地価公示");
+    const sample = container.querySelector('footer [data-provenance="sample"]')?.textContent ?? "";
+    expect(sample).not.toContain("区別平均地価");
+  });
+});
+
 describe("/app データ出典 — the station snapshot", () => {
   it("carries the 国土数値情報 出典 line and both 加工 statements under 実データ", () => {
     const { container } = render(<Home />);
@@ -162,9 +189,9 @@ describe("/app データ出典 — the station snapshot", () => {
 });
 
 describe("/app data requests", () => {
-  it("does not request /api/v1/land-prices", () => {
+  it("requests /api/v1/land-prices (the committed 地価公示 snapshot, real-data plan PR 5) and /api/v1/demographics", () => {
     render(<Home />);
-    expect(gate.requested).not.toContain("/api/v1/land-prices");
+    expect(gate.requested).toContain("/api/v1/land-prices");
     expect(gate.requested).toContain("/api/v1/demographics");
   });
 });

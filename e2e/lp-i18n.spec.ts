@@ -3,6 +3,8 @@ import { LP_COPY } from "../src/i18n/lp";
 import {
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
+  KSJ_L01_EDITED,
+  KSJ_L01_EDITED_EN,
   KSJ_N03_EDITED,
   KSJ_N03_EDITED_EN,
   KSJ_S12_EDITED,
@@ -78,6 +80,7 @@ const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [KSJ_SOURCE, KSJ_SOURCE_EN],
   [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
   [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
+  [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
 ];
 
 /**
