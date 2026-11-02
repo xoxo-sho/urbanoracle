@@ -5,11 +5,11 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
  * Required credits and notices on /app (RECON 2026-10-data-terms §7.1).
  *
  * The prescribed sentences are compared verbatim: e-Stat's API credit (API
- * terms 第7条 + credit page), ODPT's notice for published applications
- * (developer guideline 3.1) and the CC BY credit for 東京都交通局 data (ODPT
- * FAQ), the 取得日時 the guideline asks for (2.2.1), and the boundary credit
- * dataofjapan/land asks for. Every endpoint is reported live here, as it is
- * in production when the upstream answers.
+ * terms 第7条 + credit page), the 国土数値情報 出典 line and the two 加工
+ * statements for the station snapshot (利用規約 1)ア / 1)イ, Architect
+ * decision 12: no editor name), and the boundary credit dataofjapan/land
+ * asks for. Every endpoint is reported live here, as it is in production
+ * when the upstream answers.
  */
 
 const gate = vi.hoisted(() => ({ requested: [] as string[] }));
@@ -27,7 +27,7 @@ vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
 // /disaster-risks with nothing (the page keeps its sample set for that one
 // until real-data plan PR 7).
 vi.mock("@/lib/use-gated-data", async () => {
-  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, STATIONS_FIXTURE } = await import("@/__tests__/fixtures/live-data");
+  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, STATIONS_FIXTURE, TRANSPORT_SOURCES } = await import("@/__tests__/fixtures/live-data");
   return {
     useGatedData: (endpoint: string) => {
       gate.requested.push(endpoint);
@@ -42,8 +42,9 @@ vi.mock("@/lib/use-gated-data", async () => {
               : null,
         unavailable: [],
         isLive: live,
-        fetchedAt: endpoint === "/api/v1/transport" ? "2026-10-17T05:30:00+00:00" : null,
-        sources: endpoint === "/api/v1/demographics" ? DEMOGRAPHICS_SOURCES : {},
+        fetchedAt: null,
+        sources:
+          endpoint === "/api/v1/demographics" ? DEMOGRAPHICS_SOURCES : endpoint === "/api/v1/transport" ? TRANSPORT_SOURCES : {},
       };
     },
   };
@@ -55,12 +56,10 @@ const ESTAT_API_CREDIT =
   "このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。";
 const ESTAT_SOURCE = "出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）";
 const ESTAT_EDITED = "「令和7年国勢調査 人口等基本集計」（総務省統計局）を加工して作成";
-const ODPT_NOTICE =
-  "本アプリケーションが利用する公共交通データは、公共交通オープンデータセンターにおいて提供されるものです。公共交通事業者により提供されたデータを元にしていますが、必ずしも正確・完全なものとは限りません。本アプリケーションの表示内容について、公共交通事業者への直接の問合せは行わないでください。本アプリケーションに関するお問い合わせは、以下のメールアドレスにお願いします。";
-const CONTACT = "contact@dxalabs.com";
-const TOEI_CC_BY =
-  "このアプリは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
-const FETCHED_AT = "取得日時: 2026-10-17 14:30（日本時間）";
+const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）";
+const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const RETIRED = "OD" + "PT";
 const WARD_CREDIT = "区境界: dataofjapan/land（出典：地球地図日本）";
 // 国土地理院コンテンツ利用規約 1)ア / 1)イ: the ward areas under the density come from the 面積調.
 const MENCHO_SOURCE = "出典：国土地理院ウェブサイト（https://www.gsi.go.jp/KOKUJYOHO/MENCHO-title.htm）";
@@ -127,26 +126,38 @@ describe("/app 人口 tab", () => {
   });
 });
 
-describe("/app 交通 tab — ODPT notices next to the station data", () => {
-  it("shows the ODPT notice with contact@dxalabs.com as a mailto link", () => {
+describe("/app 交通 tab — the 国土数値情報 credits next to the station data", () => {
+  it("shows the 出典 line and both 加工 statements, in the form with no editor name", () => {
     render(<Home />);
     fireEvent.click(screen.getByRole("tab", { name: "交通" }));
     const panel = screen.getByRole("tabpanel");
-    expect(panel.textContent).toContain(ODPT_NOTICE);
-    const link = within(panel).getByRole("link", { name: CONTACT });
-    expect(link.getAttribute("href")).toBe(`mailto:${CONTACT}`);
+    const credit = within(panel).getByText(KSJ_S12_EDITED).closest('[data-credit="ksj"]');
+    expect(credit).not.toBeNull();
+    const text = credit!.textContent ?? "";
+    expect(text).toContain(KSJ_SOURCE);
+    expect(text).toContain(KSJ_S12_EDITED);
+    expect(text).toContain(KSJ_N03_EDITED);
+    expect(text).not.toMatch(/をもとに.*作成/);
   });
 
-  it("shows the 取得日時 of the ODPT data in Japan time", () => {
+  it("names no retired source and no bundled-data note", () => {
     render(<Home />);
     fireEvent.click(screen.getByRole("tab", { name: "交通" }));
-    expect(screen.getByRole("tabpanel").textContent).toContain(FETCHED_AT);
+    const text = screen.getByRole("tabpanel").textContent ?? "";
+    expect(text).not.toContain(RETIRED);
+    expect(text).not.toContain("同梱データ（出典未確認）");
   });
+});
 
-  it("shows the CC BY 4.0 credit for 東京都交通局 data", () => {
-    render(<Home />);
-    fireEvent.click(screen.getByRole("tab", { name: "交通" }));
-    expect(screen.getByRole("tabpanel").textContent).toContain(TOEI_CC_BY);
+describe("/app データ出典 — the station snapshot", () => {
+  it("carries the 国土数値情報 出典 line and both 加工 statements under 実データ", () => {
+    const { container } = render(<Home />);
+    const live = container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
+    expect(live).toContain(KSJ_SOURCE);
+    expect(live).toContain(KSJ_S12_EDITED);
+    expect(live).toContain(KSJ_N03_EDITED);
+    expect(dataSources(container).textContent).not.toContain(RETIRED);
+    expect(dataSources(container).textContent).not.toContain("出典未確認");
   });
 });
 

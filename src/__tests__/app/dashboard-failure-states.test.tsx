@@ -16,12 +16,13 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
  * scoped to a touched surface.
  *
  * Stage 2 architect decisions: a full failure is HTTP 503 `{status:"unavailable"}`
- * (CHANGE 1); when the station file loads but ODPT does not, the server says
- * `status:"partial"` with `unavailable:["dailyPassengers"]`, and every
- * ridership cell, the K3 tile and the legend read 取得失敗 — データなし is
- * reserved for a station the upstream genuinely has no figure for (CHANGE 2);
- * the 23 ward names are reference facts, so S0 lists all 23 in
- * 全国地方公共団体コード order in every state (CHANGE 3).
+ * (CHANGE 1); the 23 ward names are reference facts, so S0 lists all 23 in
+ * 全国地方公共団体コード order in every state (CHANGE 3). CHANGE 2 — the partial
+ * answer when the ridership upstream was down — left with that upstream in
+ * real-data plan PR 4: /transport now serves a committed snapshot with no
+ * runtime failure of its own, so its states are 読み込み中, 取得失敗 and data
+ * (stations-ridership.test.tsx), and データなし is a station the source counts
+ * on another row.
  *
  * RED on main (8d17736).
  */
@@ -54,7 +55,12 @@ const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import Home from "@/app/app/page";
-import { POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
+import {
+  POPULATION_TRENDS_FIXTURE,
+  POPULATION_TRENDS_SOURCES,
+  STATIONS_FIXTURE,
+  TRANSPORT_SOURCES,
+} from "@/__tests__/fixtures/live-data";
 
 const LOADING = "読み込み中";
 const FAILED = "取得失敗";
@@ -99,13 +105,7 @@ const DEMOGRAPHICS_OK = [
   { region: "足立区", population: 691_428, density: 12_984, growthRate: -1.2, ageGroups: { young: 11, working: 62, elderly: 27 } },
   { region: "北区", population: 355_777, density: 17_262, growthRate: null, ageGroups: { young: 10, working: 63, elderly: 27 } },
 ];
-const STATIONS_OK = [
-  { id: "ts-0", name: "豊洲駅", lat: 35.6549, lng: 139.7963, type: "train", dailyPassengers: 0, lines: ["メトロ 有楽町線"], ward: "江東区" },
-  { id: "ts-1", name: "東陽町駅", lat: 35.6697, lng: 139.8172, type: "train", dailyPassengers: null, lines: ["メトロ 東西線"], ward: "江東区" },
-];
-// F4: the station file loaded, ODPT did not. Real stations, and the server
-// names the field it could not fill — those cells are 取得失敗, not データなし.
-const STATIONS_NO_RIDERSHIP = STATIONS_OK.map((s) => ({ ...s, dailyPassengers: null }));
+const STATIONS_OK = STATIONS_FIXTURE;
 
 // The e-Stat growth table (0004050417) failed, the census table answered: the
 // server names growthRate as the field it could not fill. Every growth cell
@@ -119,13 +119,7 @@ const DEMOGRAPHICS_PARTIAL = json(200, {
   unavailable: ["growthRate"],
   isLive: true,
 });
-const TRANSPORT = json(200, { status: "ok", data: STATIONS_OK, isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
-const TRANSPORT_PARTIAL = json(200, {
-  status: "partial",
-  data: STATIONS_NO_RIDERSHIP,
-  unavailable: ["dailyPassengers"],
-  isLive: false,
-});
+const TRANSPORT = json(200, { status: "ok", data: STATIONS_OK, isLive: true, sources: TRANSPORT_SOURCES });
 const UNAVAILABLE = json(503, { status: "unavailable" });
 // Outside PR 1; it answers so the page settles.
 const DISASTER = json(200, { data: [], isLive: false });
@@ -389,12 +383,7 @@ describe("M6: what the map is handed — a consumer of /transport PR 1 did not l
     }
   });
 
-  it("partial → the real stations, no live claim; ok → the real stations, live", async () => {
-    const partial = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT_PARTIAL });
-    expect(mapProps(partial.container).stations).toHaveLength(2);
-    expect(mapProps(partial.container).live).toBe("false");
-    partial.unmount();
-
+  it("ok → the real stations, live", async () => {
     const ok = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT });
     expect(mapProps(ok.container).stations).toHaveLength(2);
     expect(mapProps(ok.container).live).toBe("true");
@@ -443,33 +432,5 @@ describe("partial — census answered, the growth table did not (e-Stat 00040504
     expect(live).not.toContain("増減");
     expect(live).not.toContain("成長率指標");
     expect(footerSampleGroup(container)).not.toContain("人口・密度");
-  });
-});
-
-describe("partial — stations answered, ridership did not (F4, ODPT down)", () => {
-  it("K3 reads 取得失敗 for the ridership sum: not データなし, not SAMPLE", async () => {
-    const { container } = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT_PARTIAL });
-    const passengers = keyMetric(container, "乗降客");
-    expect(passengers.textContent).toContain(FAILED);
-    expect(passengers.textContent).not.toContain(NO_DATA);
-    expectNoSample(passengers, "tile 乗降客");
-  });
-
-  it("T1–T2 list the real stations with 取得失敗 ridership and no SAMPLE label; M6 legend and footer agree", async () => {
-    const { container } = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT_PARTIAL });
-    const transport = openTab("交通");
-    // Station names and positions are real and still render.
-    expect(transport.textContent).toContain("豊洲駅");
-    expect(transport.textContent).toContain("東陽町駅");
-    // The ridership the upstream did not deliver is 取得失敗, never データなし.
-    expect(transport.textContent).toContain(FAILED);
-    expect(transport.textContent).not.toContain(NO_DATA);
-    expect(sampleNodesOutsidePr1(transport), "交通 tab SAMPLE nodes (乗降客数推移 only)").toBeLessThanOrEqual(1);
-
-    const legend = stationLegend(container);
-    expectNoSample(legend, "station legend");
-    expect(legend.textContent).toContain(FAILED);
-
-    expect(footerSampleGroup(container)).not.toContain("駅別乗降客数");
   });
 });

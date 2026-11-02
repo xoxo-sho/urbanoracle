@@ -315,7 +315,6 @@ TypeScript 型チェック + Next.js ビルドが実行される。エラーが�
 ```bash
 # .env.local
 ESTAT_API_KEY=your_api_key_here
-ODPT_API_KEY=your_api_key_here
 ```
 
 `.env.local` は `.gitignore` に含まれているため、リポジトリにはコミットされない。

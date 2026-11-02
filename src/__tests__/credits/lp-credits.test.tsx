@@ -11,19 +11,21 @@ import LandingPage from "@/app/page";
 
 const ESTAT_API_CREDIT =
   "このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。";
-const ODPT_NOTICE =
-  "本アプリケーションが利用する公共交通データは、公共交通オープンデータセンターにおいて提供されるものです。公共交通事業者により提供されたデータを元にしていますが、必ずしも正確・完全なものとは限りません。本アプリケーションの表示内容について、公共交通事業者への直接の問合せは行わないでください。本アプリケーションに関するお問い合わせは、以下のメールアドレスにお願いします。";
-const CONTACT = "contact@dxalabs.com";
-const TOEI_CC_BY =
-  "このアプリは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
+const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）";
+const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const RETIRED = "OD" + "PT";
+const RETIRED_JA = "公共交通オープン" + "データ";
 const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
 
 const ESTAT_API_CREDIT_EN =
   "Translation: This service uses the API function of e-Stat, the Portal Site of Official Statistics of Japan, but the content of the service is not guaranteed by the national government.";
-const ODPT_NOTICE_EN =
-  "Translation: The public transport data used by this application is provided by the Public Transportation Open Data Center. It is based on data provided by public transport operators but is not necessarily accurate or complete. Please do not contact the public transport operators directly about what this application shows. Please send enquiries about this application to the email address below.";
-const TOEI_CC_BY_EN =
-  "Translation: This app uses the following work in modified form: Bureau of Transportation, Tokyo Metropolitan Government and the Association for Open Data of Public Transportation, passenger survey data, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja).";
+const KSJ_SOURCE_EN =
+  "Translation: Source: National Land Numerical Information download site, Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+const KSJ_S12_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (station ridership data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+const KSJ_N03_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (administrative area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 
 function sourcesSection(container: HTMLElement): HTMLElement {
   const table = container.querySelector("table");
@@ -37,13 +39,17 @@ afterEach(() => {
 });
 
 describe("landing page データ出典 — Japanese", () => {
-  it("carries the e-Stat API credit, the ODPT notice with contact@dxalabs.com and the 東京都交通局 CC BY credit", () => {
+  it("carries the e-Stat API credit and the 国土数値情報 出典 line with both 加工 statements; nothing names the retired source", () => {
     const { container } = render(<LandingPage />);
     const text = sourcesSection(container).textContent ?? "";
     expect(text).toContain(ESTAT_API_CREDIT);
-    expect(text).toContain(ODPT_NOTICE);
-    expect(text).toContain(CONTACT);
-    expect(text).toContain(TOEI_CC_BY);
+    expect(text).toContain(KSJ_SOURCE);
+    expect(text).toContain(KSJ_S12_EDITED);
+    expect(text).toContain(KSJ_N03_EDITED);
+    expect(text).not.toMatch(/をもとに.*作成/);
+    expect(container.textContent).not.toContain(RETIRED);
+    expect(container.textContent).not.toContain(RETIRED_JA);
+    expect(container.textContent).not.toContain("同梱データ（出典未確認）");
   });
 
   it("names 地球地図日本 for the boundaries and 地理院タイル for the map tiles, and no longer CARTO, OpenStreetMap or 不動産情報ライブラリ", () => {
@@ -66,11 +72,14 @@ describe("landing page データ出典 — English", () => {
     expect(text).toContain(ESTAT_API_CREDIT);
     expect(text).toContain(ESTAT_API_CREDIT_EN);
     expect(text.indexOf(ESTAT_API_CREDIT_EN)).toBeGreaterThan(text.indexOf(ESTAT_API_CREDIT));
-    expect(text).toContain(ODPT_NOTICE);
-    expect(text).toContain(ODPT_NOTICE_EN);
-    expect(text.indexOf(ODPT_NOTICE_EN)).toBeGreaterThan(text.indexOf(ODPT_NOTICE));
-    expect(text).toContain(TOEI_CC_BY);
-    expect(text).toContain(TOEI_CC_BY_EN);
-    expect(text.indexOf(TOEI_CC_BY_EN)).toBeGreaterThan(text.indexOf(TOEI_CC_BY));
+    for (const [ja, en] of [
+      [KSJ_SOURCE, KSJ_SOURCE_EN],
+      [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
+      [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
+    ]) {
+      expect(text).toContain(ja);
+      expect(text).toContain(en);
+      expect(text.indexOf(en)).toBeGreaterThan(text.indexOf(ja));
+    }
   });
 });

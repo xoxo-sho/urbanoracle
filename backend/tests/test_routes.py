@@ -119,74 +119,15 @@ def test_disaster_risks_reports_is_live_false(client):
     assert resp.json()["isLive"] is False
 
 
-def test_transport_without_odpt_is_not_claimed_live(client):
-    """Stations are real, ridership is not — so the response is not live.
-
-    Claiming isLive with every dailyPassengers null would present "unknown"
-    as though it had been measured. The answer is partial and says which
-    field is missing (test_failure_states pins the shape).
-    """
-    resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})
-    body = resp.json()
-    assert body["isLive"] is False
-    assert body["status"] == "partial"
-    assert len(body["data"]) == 50
-    # Never 0 — absence is null.
-    assert all(s["dailyPassengers"] is None for s in body["data"])
-
-
-def test_transport_with_odpt_is_live_and_carries_ridership(client, monkeypatch):
-    from services import odpt
-
-    async def fake_ridership():
-        return {odpt.normalize_station_name("東京"): 500000}, 2024
-
-    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
-
-    resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})
-    body = resp.json()
-    assert body["isLive"] is True
-    tokyo = [s for s in body["data"] if s["name"] == "東京駅"]
-    assert tokyo and tokyo[0]["dailyPassengers"] == 500000
-    # Stations ODPT does not cover stay null rather than becoming 0.
-    uncovered = [s for s in body["data"] if s["name"] != "東京駅"]
-    assert all(s["dailyPassengers"] is None for s in uncovered)
-
-
-def test_live_transport_response_carries_fetched_at_in_iso8601_with_an_offset(client, monkeypatch):
-    """ODPT developer guideline 2.2.1: show the 取得日時 of static data."""
-    from datetime import datetime
-
-    from services import odpt
-
-    async def fake_ridership():
-        return {odpt.normalize_station_name("東京"): 500000}, 2024
-
-    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
-
+def test_transport_is_live_and_complete_from_the_committed_snapshot(client):
+    """Real-data plan PR 4: the stations and their ridership are the committed
+    国土数値情報 S12 snapshot, validated at startup — no upstream, so no partial
+    answer and no 取得日時 to show."""
     body = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"}).json()
     assert body["isLive"] is True
-    assert datetime.fromisoformat(body["fetchedAt"]).utcoffset() is not None
-
-
-def test_cached_transport_response_keeps_the_original_fetched_at(client, monkeypatch):
-    from services import odpt
-
-    async def fake_ridership():
-        return {odpt.normalize_station_name("東京"): 500000}, 2024
-
-    monkeypatch.setattr(odpt, "fetch_ridership", fake_ridership)
-    headers = {"Authorization": "Bearer active-token"}
-
-    first = client.get("/api/v1/transport", headers=headers).json()
-    second = client.get("/api/v1/transport", headers=headers).json()
-    assert second["fetchedAt"] == first["fetchedAt"]
-
-
-def test_transport_without_odpt_carries_no_fetched_at(client):
-    body = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"}).json()
-    assert body["isLive"] is False
-    assert "fetchedAt" not in body
+    assert body["status"] == "ok"
+    assert "unavailable" not in body and "fetchedAt" not in body
+    assert body["sources"]["ridership"]["table"].startswith("S12")
 
 
 def test_land_prices_route_is_not_served(client):
@@ -221,12 +162,12 @@ def test_envelope_neutralizes_a_non_finite_value_from_a_service(client, monkeypa
     """
     from services import transport
 
+    # The snapshot itself is validated at startup; this bypasses the record
+    # builder to put a NaN on the wire the way a future service bug could.
     monkeypatch.setattr(
         transport,
-        "load_stations",
-        lambda ridership=None: [
-            {"id": "ts-0", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}
-        ],
+        "rows",
+        lambda snapshot: [{"id": "s12-000000-13101", "name": "壊れた駅", "lat": float("nan"), "lng": 139.7}],
     )
 
     resp = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"})

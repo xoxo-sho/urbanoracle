@@ -24,9 +24,9 @@ The demographics route fetches three e-Stat tables of the 令和7年国勢調査
 
 Caching: a 503 or a partial answer is never stored as a complete answer. Each
 healthy table is cached on its own, and the failed table is retried on the
-next request; the transport route keeps nothing from a partial or failed
-answer (its healthy half is a local file) and retries ODPT or the file on
-the next request.
+next request. Since real-data plan PR 4 the transport route serves a committed
+snapshot validated at startup, so it has no runtime failure to report here
+(test_stations.py covers it).
 """
 
 import json
@@ -40,7 +40,7 @@ import core.authz as authz
 from core import cache
 from core.database import get_session
 from main import app
-from services import demographics, odpt, transport
+from services import demographics, transport
 
 ACTIVE = {"Authorization": "Bearer active-token"}
 ACTIVE_CLAIMS = {
@@ -49,11 +49,10 @@ ACTIVE_CLAIMS = {
     "email_verified": True,
 }
 
-# Values that exist only in the sample set (src/data/sample.ts and its copy
-# backend/data/sample_fallback.json @ 8d17736): 千代田区 population 67,927 and
-# 新宿駅 ridership 775,386. Either one in a failure response is the sample leaking.
+# A value that exists only in the sample set (src/data/sample.ts and its copy
+# backend/data/sample_fallback.json @ 8d17736): 千代田区 population 67,927. In a
+# failure response it is the sample leaking.
 SAMPLE_DEMOGRAPHICS_MARKER = "67927"
-SAMPLE_STATION_MARKER = "775386"
 
 SAMPLE_FALLBACK_JSON = Path(__file__).resolve().parents[1] / "data" / "sample_fallback.json"
 
@@ -93,10 +92,9 @@ def _estat_body(values: list[dict]) -> dict:
 def client(db_session, monkeypatch):
     monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
-    # No upstream credentials: e-Stat and ODPT both raise before any network
-    # I/O, unless a test installs the scripted e-Stat below.
+    # No upstream credentials: e-Stat raises before any network I/O, unless a
+    # test installs the scripted e-Stat below.
     monkeypatch.delenv("ESTAT_API_KEY", raising=False)
-    monkeypatch.delenv("ODPT_API_KEY", raising=False)
     monkeypatch.setattr(
         authz, "decode_auth_token", lambda tok: ACTIVE_CLAIMS if tok == "active-token" else None
     )
@@ -177,10 +175,6 @@ def _get_demographics(client):
     return client.get("/api/v1/demographics", headers=ACTIVE)
 
 
-def _get_transport(client):
-    return client.get("/api/v1/transport", headers=ACTIVE)
-
-
 # --- full failures -----------------------------------------------------------
 
 
@@ -206,17 +200,6 @@ def test_census_with_no_usable_population_is_a_full_failure(client, estat):
     _assert_unavailable(_get_demographics(client))
 
 
-def test_transport_station_file_failure_is_unavailable_not_sample(client, monkeypatch):
-    """F3: the committed GeoJSON unreadable ⇒ unavailable, not the ten sample stations."""
-    monkeypatch.setattr(
-        transport, "stations_path", lambda: Path("/nonexistent/tokyo-stations.geojson")
-    )
-
-    resp = _get_transport(client)
-    _assert_unavailable(resp)
-    assert SAMPLE_STATION_MARKER not in resp.text, "sample 新宿駅 ridership served as data"
-
-
 # --- partial answers ---------------------------------------------------------
 
 
@@ -238,26 +221,6 @@ def test_growth_table_failure_is_partial_and_names_growth_rate(client, estat):
     chiyoda = next(r for r in body["data"] if r["region"] == "千代田区")
     assert chiyoda["population"] == CHIYODA_POPULATION
     assert chiyoda["growthRate"] is None
-
-
-def test_transport_without_odpt_is_partial_and_names_the_missing_field(client):
-    """F4 (CHANGE 2): the station file loaded, ODPT did not.
-
-    Real stations, no ridership. The body says so in a way the client can
-    branch on: ``status: "partial"`` and ``unavailable`` listing the record
-    field the upstream did not deliver. Every ``dailyPassengers`` is None; it
-    is the ``unavailable`` entry that tells the client to render those cells
-    as 取得失敗 rather than データなし.
-    """
-    resp = _get_transport(client)
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body.get("status") == "partial", f"body keys: {sorted(body)}"
-    assert body.get("unavailable") == ["dailyPassengers"], body.get("unavailable")
-    assert len(body["data"]) == 50
-    assert all(s["dailyPassengers"] is None for s in body["data"])
-    assert body["isLive"] is False
-    assert "fetchedAt" not in body
 
 
 # --- caching: nothing incomplete is remembered as complete -------------------
@@ -308,55 +271,6 @@ def test_unavailable_demographics_retries_the_census_on_the_next_request(client,
     chiyoda = next(r for r in body["data"] if r["region"] == "千代田区")
     assert chiyoda["population"] == CHIYODA_POPULATION
     assert chiyoda["growthRate"] == pytest.approx(CHIYODA_GROWTH)
-
-
-def test_partial_transport_is_not_cached_and_retries_odpt(client, monkeypatch):
-    """ODPT down: both answers are partial and ODPT is asked each time; when it
-    recovers the answer is complete, carries fetchedAt, and is cached."""
-    calls = {"n": 0}
-
-    async def ridership():
-        calls["n"] += 1
-        if calls["n"] <= 2:
-            raise RuntimeError("odpt:PassengerSurvey error: 503")
-        return {odpt.normalize_station_name("東京"): 500000}, 2024
-
-    monkeypatch.setattr(odpt, "fetch_ridership", ridership)
-
-    first = _get_transport(client).json()
-    second = _get_transport(client).json()
-    assert first.get("status") == "partial" and second.get("status") == "partial"
-    assert calls["n"] == 2, "ODPT must be retried on the second request"
-
-    third = _get_transport(client).json()
-    assert third.get("status") == "ok"
-    assert "unavailable" not in third
-    assert "fetchedAt" in third
-    assert calls["n"] == 3
-
-    fourth = _get_transport(client).json()
-    assert fourth.get("status") == "ok"
-    assert calls["n"] == 3, "a complete answer is served from cache"
-
-
-def test_unavailable_transport_retries_the_station_file_on_the_next_request(client, monkeypatch):
-    """A 503 is never remembered: the file is read again on the next request."""
-    real_path = transport.stations_path()
-    calls = {"n": 0}
-
-    def flaky_path() -> Path:
-        calls["n"] += 1
-        return Path("/nonexistent/tokyo-stations.geojson") if calls["n"] <= 2 else real_path
-
-    monkeypatch.setattr(transport, "stations_path", flaky_path)
-
-    _assert_unavailable(_get_transport(client))
-    _assert_unavailable(_get_transport(client))
-    assert calls["n"] == 2
-
-    body = _get_transport(client).json()
-    assert body.get("status") == "partial"  # the file is back; ODPT (no key) is not
-    assert len(body["data"]) == 50
 
 
 # --- the sample sets are gone from the server ---------------------------------

@@ -80,3 +80,36 @@ export function trendLine(sources: FieldSources | null | undefined): string | nu
 export function tileSourceLine(source: FieldSource): string {
   return `${source.year}年国勢調査 e-Stat ${source.table}`;
 }
+
+// ---- 駅別乗降客数 (real-data plan PR 4) -----------------------------------------
+
+/** The ridership source of the /transport payload, or null when it names none. */
+export function ridershipSource(sources: FieldSources | null | undefined): FieldSource | null {
+  const s = sources?.ridership;
+  return s && Number.isFinite(s.year) ? s : null;
+}
+
+/** 「2024年度」, from the payload; null when it names no year. */
+export function ridershipYearLabel(sources: FieldSources | null | undefined): string | null {
+  const s = ridershipSource(sources);
+  return s ? `${s.year}年度` : null;
+}
+
+/**
+ * The provenance line of the station surfaces:
+ * 「2024年度 国土数値情報 駅別乗降客数データ（S12-25） ／ 区の判定: 行政区域データ（N03-20260101）」.
+ * Null when the payload names no ridership source.
+ */
+export function transportLine(sources: FieldSources | null | undefined): string | null {
+  const r = ridershipSource(sources);
+  if (!r) return null;
+  const w = sources?.wards;
+  return [`${r.year}年度 国土数値情報 駅別乗降客数データ（${r.table}）`, w ? `区の判定: 行政区域データ（${w.table}）` : null]
+    .filter((p): p is string => p !== null)
+    .join(" ／ ");
+}
+
+/** The compact line a key-metric tile shows under its figure: the year and the table. */
+export function transportTileLine(source: FieldSource): string {
+  return `${source.year}年度 国土数値情報 ${source.table}`;
+}

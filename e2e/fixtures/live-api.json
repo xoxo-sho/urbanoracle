@@ -36,28 +36,50 @@
   ],
   "stations": [
     {
-      "id": "ts-0",
+      "id": "s12-t00001-13108",
+      "code": "t00001",
       "name": "豊洲駅",
       "lat": 35.6549,
       "lng": 139.7963,
       "type": "train",
       "dailyPassengers": 0,
       "lines": [
-        "メトロ 有楽町線"
+        "メトロ 8号線有楽町線"
       ],
-      "ward": "江東区"
+      "ward": "江東区",
+      "wardCode": "13108",
+      "operators": [
+        {
+          "name": "東京地下鉄",
+          "lines": [
+            "8号線有楽町線"
+          ],
+          "passengers": 0
+        }
+      ]
     },
     {
-      "id": "ts-1",
+      "id": "s12-t00002-13108",
+      "code": "t00002",
       "name": "東陽町駅",
       "lat": 35.6697,
       "lng": 139.8172,
       "type": "train",
       "dailyPassengers": null,
       "lines": [
-        "メトロ 東西線"
+        "メトロ 5号線東西線"
       ],
-      "ward": "江東区"
+      "ward": "江東区",
+      "wardCode": "13108",
+      "operators": [
+        {
+          "name": "東京地下鉄",
+          "lines": [
+            "5号線東西線"
+          ],
+          "passengers": null
+        }
+      ]
     }
   ],
   "sources": {

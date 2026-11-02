@@ -31,12 +31,7 @@ import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
 import SampleNote, { SampleTag } from "@/components/dashboard/SampleNote";
 import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
-import {
-  BUNDLED_UNVERIFIED_NOTE,
-  CHOROPLETH_NOTE,
-  SAMPLE_NOTICE,
-  SOURCES,
-} from "@/lib/sources";
+import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
@@ -45,12 +40,24 @@ import {
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
+  KSJ_N03_EDITED,
+  KSJ_S12_EDITED,
+  KSJ_SOURCE,
   MENCHO_EDITED,
   MENCHO_REMARKS,
   MENCHO_SOURCE,
+  RIDERSHIP_DEFINITION_NOTE,
+  RIDERSHIP_JR_NOTE,
   WARD_BOUNDARY_CREDIT,
 } from "@/lib/credits";
-import { censusLine, tileSourceLine, trendLine } from "@/lib/census-sources";
+import {
+  censusLine,
+  ridershipSource,
+  tileSourceLine,
+  transportLine,
+  transportTileLine,
+  trendLine,
+} from "@/lib/census-sources";
 import { useGatedData } from "@/lib/use-gated-data";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
@@ -102,8 +109,12 @@ export default function Home() {
   const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
   const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
   const stations = useMemo(() => transport.data ?? [], [transport.data]);
-  // ODPT did not answer: the stations are real, their ridership is 取得失敗.
-  const ridershipUnavailable = transport.unavailable.includes(RIDERSHIP_FIELD);
+  // The 駅別乗降客数 snapshot (real-data plan PR 4): the payload names, per
+  // field, the 国土数値情報 edition and its year; every station note and the
+  // K3 line read it. A payload that names none gets no year claimed for it.
+  const transportSources = transport.sources ?? {};
+  const transportSource = ridershipSource(transportSources);
+  const transportProvenance = transportLine(transportSources);
   // The e-Stat growth table did not answer: population, density and age are
   // live, every growth figure is 取得失敗.
   const growthUnavailable = demographics.unavailable.includes(GROWTH_FIELD);
@@ -166,8 +177,9 @@ export default function Home() {
     .filter((d) => hasValue(d.growthRate))
     .sort((a, b) => byValueDesc(a.growthRate, b.growthRate))[0];
   const highRiskCount = metricsRisks.filter((r) => r.level >= 4).length;
-  // Sum only the stations ODPT actually covers. Treating null as 0 would
-  // report a total that silently excludes JR without saying so.
+  // Sum the stations that carry a figure (each is its operators' sum, so the
+  // tile equals the 事業者別 total). Treating null as 0 would claim a station
+  // the source counts elsewhere carries nobody.
   const passengerValues = metricsStations.map((s) => s.dailyPassengers).filter(hasValue);
   const totalPassengers = passengerValues.reduce((sum, v) => sum + v, 0);
   const passengersKnown = passengerValues.length > 0;
@@ -183,11 +195,9 @@ export default function Home() {
         : NO_DATA;
   const passengersTile = isPending(transport.status)
     ? pendingText(transport.status)
-    : ridershipUnavailable
-      ? FAILED_TEXT
-      : passengersKnown
-        ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></>
-        : NO_DATA;
+    : passengersKnown
+      ? <>{(totalPassengers / 10000).toFixed(0)}<span className="text-sm font-normal">万</span></>
+      : NO_DATA;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ height: "100dvh" }}>
@@ -240,7 +250,7 @@ export default function Home() {
               <MapLegend
                 layers={layers}
                 transportStatus={transport.status}
-                ridershipUnavailable={ridershipUnavailable}
+                transportSources={transportSources}
               />
             </div>
 
@@ -272,6 +282,16 @@ export default function Home() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xl font-bold tabular-nums">{passengersTile}</span>
                 <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
+                {/* K3's own source line (real-data plan PR 4): the year and table the
+                    payload names, and what the figure is — each operator's count summed,
+                    JR東日本's being 乗車人員 doubled — in the dashboard's provenance size. */}
+                {transportSource && !isPending(transport.status) && (
+                  <span data-source={RIDERSHIP_FIELD} title={transportSource.label} className="source-note text-center">
+                    {transportTileLine(transportSource)}
+                    <span className="block">{RIDERSHIP_DEFINITION_NOTE}</span>
+                    <span className="block">{RIDERSHIP_JR_NOTE}</span>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -355,8 +375,7 @@ export default function Home() {
                   trends={sampleTransportTrends}
                   selectedWard={selectedWard}
                   status={transport.status}
-                  unavailable={transport.unavailable}
-                  fetchedAt={transport.fetchedAt}
+                  sources={transportSources}
                 />
               </TabsContent>
 
@@ -454,8 +473,12 @@ export default function Home() {
                 )}
                 <li data-credit="estat-api">{ESTAT_API_CREDIT}</li>
                 {transport.status === "ok" && (
-                  <li>
-                    駅別乗降客数（交通タブ・乗降客指標・地図の駅バブル）: {SOURCES.odpt.label} — 取得日時・注意事項・お問い合わせ先・東京都交通局データのクレジットは交通タブに表示
+                  <li data-source="stations">
+                    駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）: {KSJ_SOURCE}
+                    {transportProvenance ? ` ／ ${transportProvenance}` : ""}
+                    {" ／ "}{KSJ_S12_EDITED}
+                    {" ／ "}{KSJ_N03_EDITED}
+                    <span className="block">{RIDERSHIP_DEFINITION_NOTE} ／ {RIDERSHIP_JR_NOTE}</span>
                   </li>
                 )}
                 <li>地図のハザード重ね（浸水・津波・土砂）: {SOURCES.hazard.label} タイル</li>
@@ -478,7 +501,6 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          <p className="mt-1">駅の位置・路線: {BUNDLED_UNVERIFIED_NOTE}</p>
         </footer>
       </main>
 

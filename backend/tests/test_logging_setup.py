@@ -7,7 +7,8 @@ import main  # noqa: F401  importing main applies the production logging configu
 from core.logging_setup import MASK, SecretQueryParamFilter, mask_secrets
 
 ESTAT_URL = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=0123456789abcdef0123456789abcdef01234567&statsDataId=0003448299"
-ODPT_URL = "https://api.odpt.org/api/v4/odpt:Station?acl%3AconsumerKey=AbCdEf0123456789"
+# A consumer-key style parameter: no current upstream sends one, the masker still covers it.
+CONSUMER_KEY_URL = "https://api.example.invalid/v4/stations?acl%3AconsumerKey=AbCdEf0123456789"
 
 
 def test_httpx_and_httpcore_loggers_are_at_warning_after_main_is_imported():
@@ -19,7 +20,7 @@ def test_mask_secrets_replaces_appid_and_consumer_key_values_and_keeps_other_par
     assert mask_secrets(ESTAT_URL) == (
         f"https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId={MASK}&statsDataId=0003448299"
     )
-    assert mask_secrets(ODPT_URL) == f"https://api.odpt.org/api/v4/odpt:Station?acl%3AconsumerKey={MASK}"
+    assert mask_secrets(CONSUMER_KEY_URL) == f"https://api.example.invalid/v4/stations?acl%3AconsumerKey={MASK}"
     assert mask_secrets("acl:consumerKey=AbCdEf0123456789 tail") == f"acl:consumerKey={MASK} tail"
 
 
@@ -28,7 +29,7 @@ def test_filter_masks_message_arguments_and_traceback_text():
         raise RuntimeError(f"upstream failed for {ESTAT_URL}")
     except RuntimeError:
         exc_info = sys.exc_info()
-    record = logging.LogRecord("x", logging.WARNING, __file__, 1, "GET %s", (ODPT_URL,), exc_info)
+    record = logging.LogRecord("x", logging.WARNING, __file__, 1, "GET %s", (CONSUMER_KEY_URL,), exc_info)
 
     assert SecretQueryParamFilter().filter(record) is True
 

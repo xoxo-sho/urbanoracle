@@ -17,7 +17,7 @@
 - **7種のチャート** — BarChart, AreaChart, ScatterChart, PieChart, RadarChart, Treemap, 横バー
 - **23区全データ** — 人口・密度・成長率・年齢構成・地価・災害リスク・用途地域
 - **ライト/ダークテーマ** — OS設定検知 + 手動切替。地図タイルも連動
-- **API連携** — e-Stat（国勢調査）、ODPT（駅別乗降客数）。取得失敗時はサンプルデータにフォールバック
+- **実データ** — e-Stat（国勢調査、ライブ）、国土数値情報 S12 駅別乗降客数（委託スナップショット）。取得失敗時はサンプルではなく「取得失敗」を表示
 
 ## Tech Stack
 
@@ -96,7 +96,7 @@ src/                  # Next.js — built to a static export, no server runtime
 backend/              # FastAPI — the API surface and the static-file server
 ├── main.py           # App entrypoint
 ├── routers/          # /api/v1 routes (data, auth)
-├── services/         # Upstream clients (e-Stat, ODPT)
+├── services/         # The e-Stat client and the committed snapshots (人口推移, 駅別乗降客数)
 ├── core/             # Token verification, activation policy, SPA serving
 ├── db/               # SQLAlchemy models + session
 ├── middleware/       # Cross-cutting request handling
@@ -120,7 +120,7 @@ skip the deploy; see [`docs/development-guide.md`](docs/development-guide.md)
 | Data | Source | License |
 |------|--------|---------|
 | 人口統計 | e-Stat API (国勢調査) | e-Stat 利用規約 (政府標準利用規約 第2.0版準拠) + API 利用規約 第7条のクレジット表示 |
-| 駅別乗降客数 | 公共交通オープンデータセンター (ODPT) | 公共交通オープンデータ基本ライセンス / CC BY 4.0 (東京都交通局) |
+| 駅別乗降客数・駅の位置・区の判定 | 国土数値情報 S12 駅別乗降客数データ（2024年度版）・N03 行政区域データ（2026年） | オープンデータ（CC BY 4.0）、加工の形でクレジット |
 | 区境界 | dataofjapan/land (TopoJSON, 出典：地球地図日本) | 配布元に準ずる |
 | 災害リスク | ハザードマップポータルサイト | 公共データ利用規約 (PDL1.0) |
 | 地図タイル | 地理院タイル 淡色地図 (国土地理院) | 国土地理院コンテンツ利用規約 (PDL1.0) |

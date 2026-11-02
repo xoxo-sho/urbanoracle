@@ -1,10 +1,5 @@
 import type { Lang } from "@/i18n/lang";
-import {
-  BUNDLED_UNVERIFIED_NOTE,
-  CHOROPLETH_NOTE,
-  SAMPLE_NOTICE,
-  SOURCES,
-} from "@/lib/sources";
+import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 import { BOUNDARY_SOURCE } from "@/lib/credits";
 
 /**
@@ -26,7 +21,7 @@ import { BOUNDARY_SOURCE } from "@/lib/credits";
  *   総務省統計局              Statistics Bureau, Ministry of Internal Affairs and Communications  (stat.go.jp/english)
  *   国勢調査                  Population Census  (stat.go.jp/english)
  *   e-Stat                    e-Stat  (e-stat.go.jp/en: "e-Stat Portal Site of Official Statistics of Japan")
- *   公共交通オープンデータセンター  Public Transportation Open Data Center  (odpt.org/en)
+ *   国土数値情報                National Land Numerical Information  (nlftp.mlit.go.jp/ksj)
  *   ハザードマップポータルサイト    Hazard Map Portal Site  (mlit.go.jp/river/bousai/bousai-portal/en/)
  *   不動産情報ライブラリ        Real Estate Information Library  (literal — the site publishes no English name)
  *
@@ -80,7 +75,7 @@ const ja = {
   thYear: "年次",
   groupLive: "実データ",
   srcEstat: SOURCES.estat.label,
-  srcOdpt: SOURCES.odpt.label,
+  srcKsj: SOURCES.ksj.label,
   srcHazard: SOURCES.hazard.label,
   srcBoundaries: BOUNDARY_SOURCE,
   srcTiles: "地理院タイル（国土地理院）",
@@ -92,7 +87,8 @@ const ja = {
   srcMencho: "全国都道府県市区町村別面積調（国土地理院）",
   liveMencho: "区の面積（人口密度の分母）",
   liveMenchoYear: "2025年10月1日時点",
-  liveOdpt: "駅別乗降客数（交通タブ・地図の駅バブル）",
+  liveStations: "駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）",
+  liveStationsYear: "2024年度 駅別乗降客数データ（S12-25）・行政区域データ（N03-20260101）",
   liveHazard: "浸水・津波・土砂災害の想定区域（地図の重ね表示）",
   liveBoundaries: "行政区界（区境界ポリゴン）",
   liveTiles: "地図タイル（淡色地図）",
@@ -104,8 +100,6 @@ const ja = {
   sampleRadar: "区別総合比較（レーダー）",
   sampleRadarScale: "0–100",
   sampleChoropleth: `地図の塗り分け: ${CHOROPLETH_NOTE}`,
-  stationNoteLabel: "駅の位置・路線: ",
-  stationNote: BUNDLED_UNVERIFIED_NOTE,
 
   provRequiredTitle: "データ提供元が求める表示",
 
@@ -158,7 +152,7 @@ const en = {
   thYear: "Year",
   groupLive: "Real data",
   srcEstat: "e-Stat Population Census (Statistics Bureau, Ministry of Internal Affairs and Communications)",
-  srcOdpt: "Public Transportation Open Data Center (ODPT)",
+  srcKsj: "National Land Numerical Information (Ministry of Land, Infrastructure, Transport and Tourism)",
   srcHazard: "Hazard Map Portal Site (Ministry of Land, Infrastructure, Transport and Tourism)",
   srcBoundaries: "dataofjapan/land (source: Global Map Japan)",
   srcTiles: "GSI Tiles (Geospatial Information Authority of Japan)",
@@ -170,7 +164,8 @@ const en = {
   srcMencho: "Area survey of prefectures and municipalities (Geospatial Information Authority of Japan)",
   liveMencho: "Ward area (denominator of population density)",
   liveMenchoYear: "As of 2025/10/1",
-  liveOdpt: "Ridership by station (Transport tab, station bubbles on the map)",
+  liveStations: "Ridership and station locations by station (Transport tab, ridership metric, station bubbles on the map)",
+  liveStationsYear: "FY2024 ridership by station (S12-25), administrative area data (N03-20260101)",
   liveHazard: "Assumed flood, tsunami and landslide hazard areas (map overlay)",
   liveBoundaries: "Administrative boundaries (ward boundary polygons)",
   liveTiles: "Map tiles (pale map)",
@@ -182,8 +177,6 @@ const en = {
   sampleRadar: "Overall comparison by ward (radar)",
   sampleRadarScale: "0–100",
   sampleChoropleth: "Map shading: fixed reference values — not real data",
-  stationNoteLabel: "Station locations and lines: ",
-  stationNote: "bundled data (source unverified)",
 
   provRequiredTitle: "Notices the data providers require (the prescribed Japanese text, each followed by a translation)",
 

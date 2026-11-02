@@ -6,22 +6,24 @@ import LangToggle from "@/components/landing/LangToggle";
 import { useLang } from "@/i18n/lang-context";
 import type { LpKey } from "@/i18n/lp";
 import {
-  CONTACT_EMAIL,
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
-  ODPT_NOTICE,
-  ODPT_NOTICE_EN,
-  TOEI_CC_BY_CREDIT,
-  TOEI_CC_BY_CREDIT_EN,
+  KSJ_N03_EDITED,
+  KSJ_N03_EDITED_EN,
+  KSJ_S12_EDITED,
+  KSJ_S12_EDITED_EN,
+  KSJ_SOURCE,
+  KSJ_SOURCE_EN,
 } from "@/lib/credits";
 
 // The prescribed Japanese sentence, and on the English page its translation
 // (marked as one) right after it. They live in lib/credits.ts, not in the
 // LP dictionary: the Japanese is the same in both languages by rule.
-const REQUIRED_NOTICES: { ja: string; en: string; contact?: boolean }[] = [
+const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: ESTAT_API_CREDIT, en: ESTAT_API_CREDIT_EN },
-  { ja: ODPT_NOTICE, en: ODPT_NOTICE_EN, contact: true },
-  { ja: TOEI_CC_BY_CREDIT, en: TOEI_CC_BY_CREDIT_EN },
+  { ja: KSJ_SOURCE, en: KSJ_SOURCE_EN },
+  { ja: KSJ_S12_EDITED, en: KSJ_S12_EDITED_EN },
+  { ja: KSJ_N03_EDITED, en: KSJ_N03_EDITED_EN },
 ];
 
 /**
@@ -44,7 +46,7 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
     label: "upLabel",
     title: "upTitle",
     body: "upBody",
-    sources: ["srcEstat", "srcOdpt"],
+    sources: ["srcEstat", "srcKsj"],
   },
   {
     side: "down",
@@ -61,7 +63,7 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "liveEstat", "liveEstatYear"],
   ["srcEstat", "livePopTrend", "livePopTrendYear"],
   ["srcMencho", "liveMencho", "liveMenchoYear"],
-  ["srcOdpt", "liveOdpt", "none"],
+  ["srcKsj", "liveStations", "liveStationsYear"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
   ["srcTiles", "liveTiles", "none"],
@@ -207,10 +209,6 @@ export default function LandingContent() {
               </tbody>
             </table>
           </div>
-          <p className="source-note mt-3">
-            {t.stationNoteLabel}
-            {t.stationNote}
-          </p>
           {/* The providers' own wording, verbatim in both languages; the English
               page adds a translation after each sentence (RECON 2026-10-data-terms §7.1). */}
           <div className="mt-6 space-y-3 text-[11px] leading-relaxed text-muted-foreground" data-credit="required">
@@ -218,14 +216,6 @@ export default function LandingContent() {
             {REQUIRED_NOTICES.map((notice) => (
               <p key={notice.ja} lang="ja">
                 {notice.ja}
-                {notice.contact && (
-                  <>
-                    <br />
-                    <a href={`mailto:${CONTACT_EMAIL}`} className="underline">
-                      {CONTACT_EMAIL}
-                    </a>
-                  </>
-                )}
                 {lang === "en" && (
                   <span className="block" lang="en">
                     {notice.en}

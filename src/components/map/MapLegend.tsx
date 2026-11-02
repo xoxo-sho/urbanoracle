@@ -1,9 +1,10 @@
 "use client";
 
-import type { DataLayer } from "@/types";
+import type { DataLayer, FieldSources } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { CHOROPLETH_NOTE, SOURCES } from "@/lib/sources";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
+import { ridershipYearLabel } from "@/lib/census-sources";
 
 interface MapLegendProps {
   layers: DataLayer[];
@@ -13,7 +14,8 @@ interface MapLegendProps {
    */
   transportStatus: DataStatus;
   /** The ridership field was not delivered (status partial): no bubble can be sized. */
-  ridershipUnavailable?: boolean;
+  /** The /transport payload's `sources`: the 国土数値情報 edition and year the bubbles show. */
+  transportSources?: FieldSources;
 }
 
 // The ward fill under these layers is coloured from WARD_META in
@@ -59,17 +61,11 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
 };
 
 /**
- * Under the 乗降客数 ramp: the ODPT citation when the ridership arrived, else
- * the state the bubbles are in. A partial answer (ODPT down) is 取得失敗, not
- * sample — the stations are real, their ridership was not fetched.
+ * Under the 乗降客数 ramp: the 国土数値情報 citation with the payload's year when
+ * the answer arrived, else the state the bubbles are in (real-data plan PR 4).
  */
-function TransportNote({
-  status,
-  ridershipUnavailable,
-}: {
-  status: DataStatus;
-  ridershipUnavailable: boolean;
-}) {
+function TransportNote({ status, sources }: { status: DataStatus; sources?: FieldSources }) {
+  const year = ridershipYearLabel(sources);
   if (status === "loading") {
     return (
       <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
@@ -77,7 +73,7 @@ function TransportNote({
       </p>
     );
   }
-  if (status !== "ok" || ridershipUnavailable) {
+  if (status !== "ok") {
     return (
       <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
         乗降客数: {FAILED_TEXT}
@@ -86,12 +82,13 @@ function TransportNote({
   }
   return (
     <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
-      出典: {SOURCES.odpt.label}
+      出典: {SOURCES.ksj.label}
+      {year ? ` ${year}` : ""}
     </p>
   );
 }
 
-export default function MapLegend({ layers, transportStatus, ridershipUnavailable = false }: MapLegendProps) {
+export default function MapLegend({ layers, transportStatus, transportSources }: MapLegendProps) {
   const activeLayers = layers.filter((l) => l.enabled && LEGEND_CONFIG[l.id]);
   if (activeLayers.length === 0) return null;
 
@@ -123,7 +120,7 @@ export default function MapLegend({ layers, transportStatus, ridershipUnavailabl
               </p>
             )}
             {layer.id === "transportation" && (
-              <TransportNote status={transportStatus} ridershipUnavailable={ridershipUnavailable} />
+              <TransportNote status={transportStatus} sources={transportSources} />
             )}
           </div>
         );

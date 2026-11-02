@@ -19,11 +19,42 @@ const GSI_TILE_LIST = "https://maps.gsi.go.jp/development/ichiran.html";
 const PROCESSED = "地理院タイル（淡色地図）を加工して作成";
 const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 
-// The two live endpoints answer with real-shaped fixtures (the sample sets
-// they used to fall back to left in real-data plan PR 1); /disaster-risks
-// still serves the curated sample set from backend/data/sample_fallback.json.
+// /demographics answers with a real-shaped fixture (the sample set it used
+// to fall back to left in real-data plan PR 1); /disaster-risks still serves
+// the curated sample set from backend/data/sample_fallback.json; /transport
+// answers from the committed 国土数値情報 station snapshot itself (PR 4).
 const sample = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "sample_fallback.json"), "utf8"));
 const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
+interface SnapshotStation {
+  code: string;
+  name: string;
+  ward: string;
+  wardCode: string;
+  lat: number;
+  lng: number;
+  dailyPassengers: number | null;
+  operators: { name: string; lines: string[]; passengers: number | null }[];
+  note?: string;
+}
+const stationsSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "stations.json"), "utf8")) as {
+  sources: Record<string, unknown>;
+  stations: SnapshotStation[];
+};
+const OPERATOR_PREFIX: Record<string, string> = { 東日本旅客鉄道: "JR", 東京地下鉄: "メトロ", 東京都: "都営" };
+const stationRows = stationsSnapshot.stations.map((s) => ({
+  id: `s12-${s.code}-${s.wardCode}`,
+  code: s.code,
+  name: s.name.endsWith("駅") ? s.name : `${s.name}駅`,
+  lat: s.lat,
+  lng: s.lng,
+  type: "train",
+  dailyPassengers: s.dailyPassengers,
+  lines: s.operators.flatMap((o) => o.lines.map((line) => `${OPERATOR_PREFIX[o.name] ?? o.name} ${line}`)),
+  ward: s.ward,
+  wardCode: s.wardCode,
+  operators: s.operators,
+  ...(s.note ? { note: s.note } : {}),
+}));
 // The 人口推移 snapshot route (real-data plan PR 3) answers from the committed snapshot itself.
 interface SnapshotPoint {
   year: number;
@@ -41,7 +72,7 @@ const trendRows = trends.points.flatMap((p) => [
 ]);
 const API: Record<string, unknown> = {
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
-  "/api/v1/transport": { status: "ok", data: live.stations, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
+  "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },
   "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
   "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },

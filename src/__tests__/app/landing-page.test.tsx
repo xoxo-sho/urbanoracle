@@ -18,9 +18,9 @@ import LandingPage from "@/app/page";
 const SAMPLE = SOURCES.sample.label;
 
 // Live-fetched on the current code path: e-Stat (/api/v1/demographics),
-// ODPT (/api/v1/transport), GSI hazard tiles, the 地理院タイル basemap,
+// the 国土数値情報 station snapshot (/api/v1/transport), GSI hazard tiles, the 地理院タイル basemap,
 // dataofjapan boundaries. Nothing fetches these two.
-const NOT_LIVE_SOURCES = [SOURCES.ksj.label, SOURCES.disastershield.label];
+const NOT_LIVE_SOURCES = [SOURCES.disastershield.label];
 
 const FALSE_PROMISE = "表示するすべての数値に、出典・単位・年次を明示します";
 

@@ -91,7 +91,6 @@ def _sokuho_growth(area: str) -> float:
 def client(db_session, monkeypatch):
     monkeypatch.delenv("URBANORACLE_ALLOWLIST_DOMAINS", raising=False)
     monkeypatch.delenv("URBANORACLE_FREEMAIL_DOMAINS", raising=False)
-    monkeypatch.delenv("ODPT_API_KEY", raising=False)
     monkeypatch.setattr(
         authz, "decode_auth_token", lambda tok: ACTIVE_CLAIMS if tok == "active-token" else None
     )

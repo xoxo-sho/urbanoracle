@@ -163,6 +163,22 @@ for host in $RETIRED_HOSTS; do
 done
 
 # --------------------------------------------------------------------------
+# 4b. Retired data sources
+# --------------------------------------------------------------------------
+# Real-data plan PR 4 (Architect decision 3, 2026-11-02): ridership comes from
+# the committed 国土数値情報 S12 snapshot and the ODPT client left the code
+# path. Its name surviving in a bundle means a credit, a notice or a source
+# label still claims a source nothing fetches.
+RETIRED_SOURCES="${RETIRED_SOURCES:-ODPT odpt 公共交通オープンデータ}"
+for source in $RETIRED_SOURCES; do
+  if grep -rqF "$source" "$DIR" 2>/dev/null; then
+    fail "retired data source '${source}' still named in the bundle"
+  else
+    pass "no reference to retired data source: ${source}"
+  fi
+done
+
+# --------------------------------------------------------------------------
 # 5. The landing page
 # --------------------------------------------------------------------------
 LP_INDEX="$DIR/index.html"

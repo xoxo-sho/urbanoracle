@@ -11,7 +11,13 @@ import {
   sampleWardProfiles,
   sampleZoning,
 } from "@/data/sample";
-import { DEMOGRAPHICS_FIXTURE, POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
+import {
+  DEMOGRAPHICS_FIXTURE,
+  POPULATION_TRENDS_FIXTURE,
+  POPULATION_TRENDS_SOURCES,
+  RIDERSHIP_YEAR,
+  TRANSPORT_SOURCES,
+} from "@/__tests__/fixtures/live-data";
 import HeroSpread from "@/components/landing/HeroSpread";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import WardTable from "@/components/dashboard/WardTable";
@@ -203,7 +209,7 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
     expect(text).not.toContain(FAILED_TEXT);
   });
 
-  it("TransportPanel (unavailable) — 乗降客数推移 keeps its label; ranking and treemap say 取得失敗 and cite no ODPT", () => {
+  it("TransportPanel (unavailable) — 乗降客数推移 keeps its label; stations and 事業者別 say 取得失敗, name the source that failed and cite nothing", () => {
     const { container } = render(
       <TransportPanel
         stations={[]}
@@ -215,8 +221,11 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
     const text = container.textContent ?? "";
     expect(occurrences(text, SAMPLE_LABEL)).toBe(1);
     expect(text).toContain(FAILED_TEXT);
-    expect(text).not.toContain(`出典: ${SOURCES.odpt.label}`);
-    for (const real of REAL_SOURCE_STRINGS) expect(text).not.toContain(real);
+    // The failed request names 国土数値情報 (a statement about the request); no 出典 citation.
+    expect(text).toContain(SOURCES.ksj.label);
+    expect(text).not.toContain("出典:");
+    expect(text).not.toContain("出典：");
+    for (const real of REAL_SOURCE_STRINGS.filter((r) => r !== "国土数値情報")) expect(text).not.toContain(real);
   });
 
   describe("MapLegend — station bubbles consume transport status (ruling 4)", () => {
@@ -234,18 +243,10 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
-    it("partial with ridership unavailable (ODPT down) → 取得失敗, not ODPT", () => {
-      const { container } = render(
-        <MapLegend layers={transport} transportStatus="partial" ridershipUnavailable />
-      );
-      expect(container.textContent).toContain(FAILED_TEXT);
-      expect(container.textContent).not.toContain(SOURCES.odpt.label);
-      expect(container.textContent).not.toContain(SAMPLE_LABEL);
-    });
-
-    it("ok → cites ODPT, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="ok" />);
-      expect(container.textContent).toContain(SOURCES.odpt.label);
+    it("ok → cites 国土数値情報 with the payload's year, no sample label", () => {
+      const { container } = render(<MapLegend layers={transport} transportStatus="ok" transportSources={TRANSPORT_SOURCES} />);
+      expect(container.textContent).toContain(SOURCES.ksj.label);
+      expect(container.textContent).toContain(`${RIDERSHIP_YEAR}年度`);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
       expect(container.textContent).not.toContain(FAILED_TEXT);
     });

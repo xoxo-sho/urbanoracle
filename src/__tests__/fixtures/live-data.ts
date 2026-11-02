@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { DemographicsData, FieldSources, TransportStation } from "@/types";
 import expected from "../../../backend/tests/fixtures/census_2025/expected.json";
 
@@ -35,9 +37,111 @@ export const DEMOGRAPHICS_SOURCES: FieldSources = {
 };
 
 export const STATIONS_FIXTURE: TransportStation[] = [
-  { id: "ts-0", name: "豊洲駅", lat: 35.6549, lng: 139.7963, type: "train", dailyPassengers: 0, lines: ["メトロ 有楽町線"], ward: "江東区" },
-  { id: "ts-1", name: "東陽町駅", lat: 35.6697, lng: 139.8172, type: "train", dailyPassengers: null, lines: ["メトロ 東西線"], ward: "江東区" },
+  {
+    id: "s12-t00001-13108",
+    code: "t00001",
+    name: "豊洲駅",
+    lat: 35.6549,
+    lng: 139.7963,
+    type: "train",
+    dailyPassengers: 0,
+    lines: ["メトロ 8号線有楽町線"],
+    ward: "江東区",
+    wardCode: "13108",
+    operators: [{ name: "東京地下鉄", lines: ["8号線有楽町線"], passengers: 0 }],
+  },
+  {
+    id: "s12-t00002-13108",
+    code: "t00002",
+    name: "東陽町駅",
+    lat: 35.6697,
+    lng: 139.8172,
+    type: "train",
+    dailyPassengers: null,
+    lines: ["メトロ 5号線東西線"],
+    ward: "江東区",
+    wardCode: "13108",
+    operators: [{ name: "東京地下鉄", lines: ["5号線東西線"], passengers: null }],
+  },
 ];
+
+// ---- 駅別乗降客数 (real-data plan PR 4) ----------------------------------------
+//
+// What the server says about the transport payload: the year and the 国土数値情報
+// ids come from the committed meta of the source excerpts, so the two sides of
+// the contract cannot drift apart.
+
+import ksjMeta from "../../../backend/tests/fixtures/stations/ksj.meta.json";
+
+export const RIDERSHIP_YEAR = Number(ksjMeta.S12.latest_column.replace("乗降客数", ""));
+export const TRANSPORT_SOURCES: FieldSources = {
+  ridership: {
+    year: RIDERSHIP_YEAR,
+    table: ksjMeta.S12.id,
+    label: `国土数値情報 駅別乗降客数データ ${ksjMeta.S12.edition} ${ksjMeta.S12.latest_column}（1日平均、人/日）`,
+  },
+  stations: {
+    year: RIDERSHIP_YEAR,
+    table: ksjMeta.S12.id,
+    label: `国土数値情報 駅別乗降客数データ ${ksjMeta.S12.edition} 駅名・運営会社・路線名・位置（線形の中点）`,
+  },
+  wards: {
+    year: Number(ksjMeta.N03.id.slice(4, 8)),
+    table: ksjMeta.N03.id,
+    label: `国土数値情報 行政区域データ ${ksjMeta.N03.edition} 東京都（区の判定：中点の包含）`,
+  },
+};
+
+/** The committed snapshot the route serves (backend/data/stations.json), as the builder writes it. */
+export interface StationsSnapshot {
+  year: number;
+  sources: FieldSources;
+  credit: { source: string; edited_s12: string; edited_n03: string };
+  notes: { definition: string; jr_east: string };
+  wards: { code: string; name: string; stations: number; passengers: number }[];
+  stations: {
+    code: string;
+    name: string;
+    ward: string;
+    wardCode: string;
+    lat: number;
+    lng: number;
+    dailyPassengers: number | null;
+    operators: { name: string; lines: string[]; passengers: number | null }[];
+    note?: string;
+  }[];
+}
+
+export function loadStationsSnapshot(): StationsSnapshot {
+  const file = path.join(process.cwd(), "backend", "data", "stations.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no stations snapshot at ${file} — etl/stations.py build has not been run`);
+  }
+  return JSON.parse(text) as StationsSnapshot;
+}
+
+const OPERATOR_PREFIX: Record<string, string> = { 東日本旅客鉄道: "JR", 東京地下鉄: "メトロ", 東京都: "都営" };
+
+/** The client records the route makes of the snapshot's stations (backend/services/transport.py rows). */
+export function stationsSnapshotRows(snapshot: StationsSnapshot): TransportStation[] {
+  return snapshot.stations.map((s) => ({
+    id: `s12-${s.code}-${s.wardCode}`,
+    code: s.code,
+    name: s.name.endsWith("駅") ? s.name : `${s.name}駅`,
+    lat: s.lat,
+    lng: s.lng,
+    type: "train" as const,
+    dailyPassengers: s.dailyPassengers,
+    lines: s.operators.flatMap((o) => o.lines.map((line) => `${OPERATOR_PREFIX[o.name] ?? o.name} ${line}`)),
+    ward: s.ward,
+    wardCode: s.wardCode,
+    operators: s.operators.map((o) => ({ name: o.name, lines: o.lines, passengers: o.passengers })),
+    ...(s.note ? { note: s.note } : {}),
+  }));
+}
 
 // ---- 人口推移 (real-data plan PR 3) -------------------------------------------
 //
@@ -46,8 +150,6 @@ export const STATIONS_FIXTURE: TransportStation[] = [
 // 第6表 excerpt for 2000–2020 and PR 2's raw 0004065881 response for 2025 —
 // so no figure in a frontend test is typed by hand.
 
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import type { PopulationTrend } from "@/types";
 import trendMeta from "../../../backend/tests/fixtures/population_trends/estat_000001085987.meta.json";
 import populationTable from "../../../backend/tests/fixtures/census_2025/estat_0004065881_wards.json";

@@ -1,5 +1,5 @@
-"""The data endpoints: three ported from the Next route handlers, plus the
-人口推移 snapshot route (real-data plan PR 3).
+"""The data endpoints: the live census call, the curated disaster set, and the
+two committed snapshots — 人口推移 (real-data plan PR 3) and 駅別乗降客数 (PR 4).
 
 Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
 ``status`` says whether the request got everything it asked for; ``isLive``
@@ -7,13 +7,12 @@ says whether the figures came from the upstream source (the /disaster-risks
 payload is still the curated sample set and reports False). A partial answer
 adds ``unavailable``: the record fields the upstream did not deliver, so the
 client renders those cells as 取得失敗 and keeps データなし for a cell the
-upstream genuinely has no figure for. A live /transport answer also carries
-``fetchedAt``, when the ODPT data was obtained (ODPT developer guideline 2.2.1
-asks for that 取得日時 on screen). A /demographics answer carries ``sources``:
-per census field, the year and the e-Stat table the figure came from, so the
-screen can say which vintage every figure is (real-data plan PR 2). The
-/population-trends answer carries the same shape keyed by year: the table
-each census point came from.
+upstream genuinely has no figure for. A /demographics answer carries
+``sources``: per census field, the year and the e-Stat table the figure came
+from, so the screen can say which vintage every figure is (real-data plan
+PR 2). The /population-trends answer carries the same shape keyed by year;
+the /transport answer carries it per field (ridership, stations, wards): the
+国土数値情報 edition each came from.
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
@@ -30,7 +29,6 @@ a non-finite float reaching the client as an invalid-JSON ``NaN`` literal.
 """
 
 import logging
-from datetime import datetime, timezone
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -38,7 +36,7 @@ from fastapi.responses import JSONResponse
 from core import cache
 from core.boundary import json_safe
 from core.config import settings
-from services import demographics, disaster_risks, odpt, population_trends, transport
+from services import demographics, disaster_risks, population_trends, transport
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +51,11 @@ def _envelope(
     is_live: bool,
     status: str = "ok",
     unavailable: list[str] | None = None,
-    fetched_at: str | None = None,
     sources: dict[str, dict] | None = None,
 ) -> JSONResponse:
     body: dict = {"status": status, "data": data, "isLive": is_live}
     if unavailable:
         body["unavailable"] = list(unavailable)
-    if fetched_at is not None:
-        body["fetchedAt"] = fetched_at
     if sources is not None:
         body["sources"] = sources
     return JSONResponse(json_safe(body))
@@ -158,39 +153,18 @@ async def get_disaster_risks() -> JSONResponse:
 
 @router.get("/transport")
 async def get_transport() -> JSONResponse:
-    """Stations come from the committed GeoJSON; ridership comes from ODPT.
+    """The committed 駅別乗降客数 snapshot (real-data plan PR 4): every station of
+    the 23 wards from 国土数値情報 S12 (2024年度版), its ward decided on the N03
+    polygons, with the per-operator figures the 事業者別 panel sums.
 
-    The answer is complete (and cached) only when BOTH succeeded. If ODPT
-    fails the station list is still correct but no ridership figure exists,
-    so the answer is ``partial`` and names ``dailyPassengers`` as the field
-    the upstream did not deliver — the client shows 取得失敗 there, not the
-    データなし it shows for a station ODPT genuinely does not cover. If the
-    station file itself cannot be read there is nothing honest to show: 503.
+    No upstream and no cache: the file was validated when the app started
+    (main.py), so this route has no partial or failed answer of its own.
+    ``isLive`` is True: the figures are the source's own, not a sample.
+    ``sources`` names, per field, the 国土数値情報 edition and its year.
     """
-    cached = cache.get("transport")
-    if cached is not None:
-        return _envelope(cached["data"], is_live=True, fetched_at=cached["fetchedAt"])
-
-    try:
-        ridership, _year = await odpt.fetch_ridership()
-        fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    except Exception:
-        logger.warning(
-            "ODPT ridership unavailable — answering partial, ridership 取得失敗",
-            exc_info=True,
-        )
-        ridership = None
-
-    try:
-        data = transport.load_stations(ridership)
-    except Exception:
-        logger.warning("station GeoJSON unreadable — answering 503, not sample", exc_info=True)
-        return _unavailable()
-
-    if ridership is None:
-        return _envelope(
-            data, is_live=False, status="partial", unavailable=[transport.RIDERSHIP_FIELD]
-        )
-
-    cache.set("transport", {"data": data, "fetchedAt": fetched_at})
-    return _envelope(data, is_live=True, fetched_at=fetched_at)
+    snapshot = transport.get(settings.STATIONS_PATH)
+    return _envelope(
+        transport.rows(snapshot),
+        is_live=True,
+        sources=transport.sources(snapshot),
+    )

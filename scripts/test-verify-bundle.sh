@@ -171,6 +171,15 @@ build_fixture "$WORK/f12"
 sedi "s#${ORIGIN}#https://urbanoracle-seven.vercel.app#g" "$WORK/f12/index.html"
 expect_fail "the retired Vercel host is referenced in the bundle" "$WORK/f12"
 
+# --- retired data sources -------------------------------------------------
+build_fixture "$WORK/f30"
+printf 'const SOURCE_LABEL="公共交通オープンデータセンター（ODPT）";\n' >> "$WORK/f30/_next/static/chunks/config.js"
+expect_fail "the retired ridership source is still named in a chunk" "$WORK/f30"
+
+build_fixture "$WORK/f31"
+sedi 's#<h1>#<p>出典: 公共交通オープンデータセンター</p><h1>#' "$WORK/f31/index.html"
+expect_fail "the retired ridership source is still named on the landing page" "$WORK/f31"
+
 # --- landing page ---------------------------------------------------------
 build_fixture "$WORK/f13"
 sedi 's#<h1>[^<]*</h1>#<div id="root"></div>#' "$WORK/f13/index.html"
