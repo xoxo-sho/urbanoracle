@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SOURCES } from "@/lib/sources";
 import { FAILED_TEXT } from "@/components/dashboard/DataState";
-import { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE } from "@/__tests__/fixtures/live-data";
+import { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE, TRANSPORT_SOURCES } from "@/__tests__/fixtures/live-data";
 
 /**
  * Dashboard page truth (truth fix, Stage 1a/1b/1c; real-data plan PR 1).
@@ -44,6 +44,7 @@ vi.mock("@/lib/use-gated-data", () => ({
     unavailable: [],
     isLive: false,
     fetchedAt: null,
+    sources: {},
     ...(gate.state[endpoint] ?? {}),
   }),
 }));
@@ -53,10 +54,11 @@ import Home from "@/app/app/page";
 const SAMPLE = SOURCES.sample.label;
 const REAL_SOURCE_STRINGS = ["不動産情報ライブラリ", "e-Stat", "国勢調査", "国土数値情報", "ハザードマップポータル"];
 
-// Live-fetched on the current code path (backend/routers/data.py + the
-// client-side tiles in MapView): e-Stat, ODPT, GSI hazard tiles, the
-// 地理院タイル basemap, dataofjapan boundaries. Nothing fetches these two.
-const NOT_LIVE_SOURCES = [SOURCES.ksj.label, SOURCES.disastershield.label];
+// Live on the current code path (backend/routers/data.py + the client-side
+// tiles in MapView): e-Stat, the committed 国土数値情報 station snapshot (real-data
+// plan PR 4), GSI hazard tiles, the 地理院タイル basemap, dataofjapan boundaries.
+// Nothing fetches this one.
+const NOT_LIVE_SOURCES = [SOURCES.disastershield.label];
 
 const OLD_BLANKET_FOOTER = "出典: 不動産情報ライブラリ（国土交通省, 2024年） ／ e-Stat";
 
@@ -67,7 +69,7 @@ const REMOVED_SOURCE = "不動産情報ライブラリ";
 
 const LIVE = {
   "/api/v1/demographics": { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true },
-  "/api/v1/transport": { status: "ok", data: STATIONS_FIXTURE, isLive: true, fetchedAt: "2026-10-17T05:30:00+00:00" },
+  "/api/v1/transport": { status: "ok", data: STATIONS_FIXTURE, isLive: true, sources: TRANSPORT_SOURCES },
 } satisfies Record<string, Partial>;
 
 function keyMetric(container: HTMLElement, caption: string): HTMLElement {
@@ -159,11 +161,11 @@ describe("map legend for station bubbles consumes transport status (ruling 4, PR
     expect(legendText(container)).not.toContain(SAMPLE);
   });
 
-  it("transport ok → the 乗降客数 legend cites ODPT and carries no sample label", () => {
+  it("transport ok → the 乗降客数 legend cites 国土数値情報 and carries no sample label", () => {
     gate.state = LIVE;
     const { container } = render(<Home />);
     fireEvent.click(screen.getByRole("tab", { name: "交通" }));
-    expect(legendText(container)).toContain(SOURCES.odpt.label);
+    expect(legendText(container)).toContain(SOURCES.ksj.label);
     expect(legendText(container)).not.toContain(SAMPLE);
   });
 });

@@ -3,10 +3,12 @@ import { LP_COPY } from "../src/i18n/lp";
 import {
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
-  ODPT_NOTICE,
-  ODPT_NOTICE_EN,
-  TOEI_CC_BY_CREDIT,
-  TOEI_CC_BY_CREDIT_EN,
+  KSJ_N03_EDITED,
+  KSJ_N03_EDITED_EN,
+  KSJ_S12_EDITED,
+  KSJ_S12_EDITED_EN,
+  KSJ_SOURCE,
+  KSJ_SOURCE_EN,
 } from "../src/lib/credits";
 
 /**
@@ -73,8 +75,9 @@ async function storedLang(page: Page): Promise<string | null> {
 const PRESCRIBED = '[data-credit="required"] p[lang="ja"]';
 const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [ESTAT_API_CREDIT, ESTAT_API_CREDIT_EN],
-  [ODPT_NOTICE, ODPT_NOTICE_EN],
-  [TOEI_CC_BY_CREDIT, TOEI_CC_BY_CREDIT_EN],
+  [KSJ_SOURCE, KSJ_SOURCE_EN],
+  [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
+  [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
 ];
 
 /**

@@ -10,7 +10,9 @@ import {
   DEMOGRAPHICS_FIXTURE,
   POPULATION_TRENDS_FIXTURE,
   POPULATION_TRENDS_SOURCES,
+  RIDERSHIP_YEAR,
   STATIONS_FIXTURE,
+  TRANSPORT_SOURCES,
 } from "@/__tests__/fixtures/live-data";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import TransportPanel from "@/components/dashboard/TransportPanel";
@@ -91,7 +93,7 @@ describe("useGatedData — isLive follows the envelope", () => {
 
 describe("consumers render by status", () => {
   const SAMPLE = SOURCES.sample.label;
-  const ODPT_CITATION = `出典: ${SOURCES.odpt.label}`;
+  const KSJ_CITATION = `出典: ${SOURCES.ksj.label}`;
 
   it("DemographicsChart: unavailable → 取得失敗 on the census blocks, no e-Stat citation there; the trend keeps its own citation and no sample label", () => {
     const { container } = render(
@@ -166,7 +168,7 @@ describe("consumers render by status", () => {
     expect(container.textContent).not.toContain("2025年速報");
   });
 
-  it("TransportPanel: unavailable → 取得失敗, no ODPT citation, no 国土数値情報, trends still sample", () => {
+  it("TransportPanel: unavailable → 取得失敗 naming 国土数値情報 as the source that failed, no citation, trends still sample", () => {
     const { container } = render(
       <TransportPanel
         stations={[]}
@@ -177,49 +179,31 @@ describe("consumers render by status", () => {
     );
     const text = container.textContent ?? "";
     expect(text).toContain(FAILED_TEXT);
-    expect(text).not.toContain(ODPT_CITATION);
-    expect(text).not.toContain("国土数値情報");
+    expect(text).toContain(SOURCES.ksj.label);
+    expect(text).not.toContain(KSJ_CITATION);
     expect(text).toContain(SAMPLE);
   });
 
-  it("TransportPanel: ok → ODPT on the station section, trends still sample", () => {
+  it("TransportPanel: ok → 国土数値情報 and the payload's year on the station section, trends still sample", () => {
     const { container } = render(
       <TransportPanel
         stations={STATIONS_FIXTURE}
         trends={sampleTransportTrends}
         selectedWard={null}
         status="ok"
+        sources={TRANSPORT_SOURCES}
       />
     );
     const text = container.textContent ?? "";
-    expect(text).toContain(ODPT_CITATION);
+    expect(text).toContain(KSJ_CITATION);
+    expect(text).toContain(`${RIDERSHIP_YEAR}年度`);
     expect(text).toContain(SAMPLE);
-    // Ruling 2: the station GeoJSON's provenance is unknown, so the live
-    // path may not claim 国土数値情報 for positions/lines either.
-    expect(text).not.toContain("国土数値情報");
-    expect(text).toContain("同梱データ（出典未確認）");
-    // A station ODPT genuinely has no figure for stays データなし.
+    // Real-data plan PR 4: positions and lines come from S12 itself, so the
+    // old "bundled, provenance unverified" note is gone.
+    expect(text).not.toContain("同梱データ（出典未確認）");
+    // A station the source counts on another row stays データなし.
     expect(text).toContain("東陽町駅");
     expect(text).toContain(NO_DATA);
-  });
-
-  it("TransportPanel: partial (ODPT down) → stations named, every ridership 取得失敗, no ODPT citation", () => {
-    const { container } = render(
-      <TransportPanel
-        stations={STATIONS_FIXTURE.map((s) => ({ ...s, dailyPassengers: null }))}
-        trends={sampleTransportTrends}
-        selectedWard={null}
-        status="partial"
-        unavailable={["dailyPassengers"]}
-      />
-    );
-    const text = container.textContent ?? "";
-    expect(text).toContain("豊洲駅");
-    expect(text).toContain("東陽町駅");
-    expect(text).toContain(FAILED_TEXT);
-    expect(text).not.toContain(NO_DATA);
-    expect(text).not.toContain(ODPT_CITATION);
-    expect(text).toContain(SAMPLE);
   });
 
   it("WardTable: ok → e-Stat for the census columns, 地価 column still sample", () => {

@@ -43,3 +43,6 @@ next-env.d.ts
 
 # etl: raw downloads stay out of the repo (etl/README.md)
 /etl/_downloads/
+
+# Python bytecode caches (etl/ scripts run from the repo root)
+__pycache__/
