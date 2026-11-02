@@ -1,18 +1,26 @@
 "use client";
 
-import type { DemographicsData, FieldSources, LandPriceSummary } from "@/types";
+import type { DemographicsData, FieldSources, LandPriceWard } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
-import { censusLine, type CensusField } from "@/lib/census-sources";
+import { censusLine, landPriceLine, type CensusField } from "@/lib/census-sources";
 import { NO_DATA, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
+import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
+import { LAND_PRICE_MEAN_NOTE } from "@/lib/credits";
 import { SOURCES } from "@/lib/sources";
-import SampleNote from "@/components/dashboard/SampleNote";
-import { FAILED_TEXT, StateNotice, isPending } from "@/components/dashboard/DataState";
+import SourceNote from "@/components/dashboard/SourceNote";
+import { FAILED_TEXT, StateNotice, isPending, pendingText } from "@/components/dashboard/DataState";
 
 interface WardTableProps {
   demographics: DemographicsData[];
-  landPrices: LandPriceSummary[];
+  /** The /land-prices payload (real-data plan PR 5): the 地価 column's figures for the chosen use. */
+  landPrices: LandPriceWard[];
+  landUse: LandUse;
+  /** State of the /land-prices answer: its cells say 読み込み中 / 取得失敗 while pending. */
+  landPriceStatus: DataStatus;
+  /** The /land-prices payload's `sources`: the 地価公示 edition and year the column shows. */
+  landPriceSources?: FieldSources;
   onSelectWard: (ward: string) => void;
-  /** State of the /demographics answer that fills the census columns; the 地価 column is still sample. */
+  /** State of the /demographics answer that fills the census columns (the rows). */
   status: DataStatus;
   /** Record fields the server could not fill (status partial): growthRate when the e-Stat growth table is down. */
   unavailable?: readonly string[];
@@ -44,11 +52,17 @@ function miniBar(value: number | null, max: number, color: string): string {
 export default function WardTable({
   demographics,
   landPrices,
+  landUse,
+  landPriceStatus,
+  landPriceSources = {},
   onSelectWard,
   status,
   unavailable = [],
   sources = {},
 }: WardTableProps) {
+  const use = LAND_USE_LABEL[landUse];
+  const landPending = isPending(landPriceStatus);
+  const landProvenance = landPriceLine(landPriceSources);
   // The growth table did not answer: the 増減 column is 取得失敗 in every row,
   // not the データなし a suppressed cell gets, and its source is not claimed.
   const growthFailed = unavailable.includes(GROWTH_FIELD);
@@ -57,7 +71,7 @@ export default function WardTable({
   const sorted = [...demographics].sort((a, b) => byValueDesc(a.population, b.population)).slice(0, 12);
   const populations = sorted.map((d) => d.population).filter(hasValue);
   const maxPop = populations.length ? Math.max(...populations) : 0;
-  const prices = new Map(landPrices.map((p) => [p.region, p]));
+  const prices = new Map(landPrices.map((p) => [p.region, p[landUse]]));
 
   return (
     <div className="chart-section overflow-x-auto">
@@ -78,7 +92,9 @@ export default function WardTable({
                 <th className="text-right py-1.5 px-2 font-medium">密度</th>
                 <th className="text-right py-1.5 px-2 font-medium">増減</th>
                 <th className="text-right py-1.5 px-2 font-medium">高齢率</th>
-                <th className="text-right py-1.5 px-2 font-medium">地価</th>
+                <th className="text-right py-1.5 px-2 font-medium" data-price-header>
+                  平均価格（{use}）
+                </th>
                 <th className="py-1.5 pl-2 font-medium w-20">規模</th>
               </tr>
             </thead>
@@ -113,8 +129,25 @@ export default function WardTable({
                         {formatPct(d.ageGroups.elderly)}
                       </span>
                     </td>
-                    <td className="text-right py-1.5 px-2 tabular-nums">
-                      {price ? `${(price.avgPrice / 10000).toFixed(0)}万` : NO_DATA}
+                    <td
+                      className="text-right py-1.5 px-2 tabular-nums"
+                      data-price
+                      data-ward={d.region}
+                      data-mean={price?.meanPrice ?? ""}
+                      data-n={price?.n ?? ""}
+                    >
+                      {landPending ? (
+                        <span style={landPriceStatus === "unavailable" ? { color: "var(--down-text)" } : undefined}>
+                          {pendingText(landPriceStatus)}
+                        </span>
+                      ) : price ? (
+                        <>
+                          {manPrice(price.meanPrice)}
+                          <span className="ml-1 text-[9px] text-muted-foreground">n={price.n}</span>
+                        </>
+                      ) : (
+                        NO_DATA
+                      )}
                     </td>
                     <td className="py-1.5 pl-2">
                       <div className="h-1.5 rounded-full" style={{ background: miniBar(d.population, maxPop, "var(--up-ui)") }} />
@@ -124,12 +157,17 @@ export default function WardTable({
               })}
             </tbody>
           </table>
-          <SampleNote
-            note={
-              `地価列。${growthFailed ? "人口・密度・高齢率" : "人口・密度・増減・高齢率"}は ${SOURCES.estat.label}` +
-              (vintage ? `（${vintage}）` : "")
-            }
+          <SourceNote
+            source="estat"
+            unit="人口 人・密度 人/km²・増減 %・高齢率 %"
+            year={vintage ?? undefined}
+            note={`${growthFailed ? "人口・密度・高齢率" : "人口・密度・増減・高齢率"}の列: ${SOURCES.estat.label}`}
           />
+          <p className="source-note" data-source="land-prices">
+            {landPending
+              ? `平均価格（${use}）の列: ${pendingText(landPriceStatus)}${landPriceStatus === "unavailable" ? ` — ${SOURCES.ksj.label}` : ""}`
+              : `平均価格（${use}）の列: 出典: ${SOURCES.ksj.label}${landProvenance ? ` ／ ${landProvenance}` : ""} ／ ${LAND_PRICE_MEAN_NOTE}（n は地点数）`}
+          </p>
         </>
       )}
     </div>

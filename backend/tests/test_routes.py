@@ -22,6 +22,8 @@ DATA_ROUTES = [
     "/api/v1/transport",
     # The committed 人口推移 snapshot (real-data plan PR 3): gated like the rest.
     "/api/v1/population-trends",
+    # The committed 地価公示 snapshot (real-data plan PR 5): gated like the rest.
+    "/api/v1/land-prices",
 ]
 
 ACTIVE_CLAIMS = {
@@ -130,15 +132,36 @@ def test_transport_is_live_and_complete_from_the_committed_snapshot(client):
     assert body["sources"]["ridership"]["table"].startswith("S12")
 
 
-def test_land_prices_route_is_not_served(client):
-    resp = client.get("/api/v1/land-prices", headers={"Authorization": "Bearer active-token"})
-    assert resp.status_code == 404
+def test_land_prices_is_the_committed_snapshot_not_reinfolib(client):
+    """Flipped in real-data plan PR 5: the path that once served REINFOLIB
+    取引価格 (removed, RECON 2026-10-data-terms UO-3) now serves the committed
+    国土数値情報 地価公示 snapshot — validated at startup, no upstream, so no
+    partial answer and no 取得日時."""
+    body = client.get("/api/v1/land-prices", headers={"Authorization": "Bearer active-token"}).json()
+    assert body["isLive"] is True
+    assert body["status"] == "ok"
+    assert "unavailable" not in body and "fetchedAt" not in body
+    assert body["sources"]["price"]["table"].startswith("L01")
 
 
 def test_no_service_module_fetches_reinfolib():
+    """The land-prices service reads a file; nothing in the backend names or
+    calls REINFOLIB (the guard PR 1 wrote as "the module does not exist" became
+    "the module performs no fetch" when PR 5 reused the path)."""
     import importlib.util
+    from pathlib import Path
 
-    assert importlib.util.find_spec("services.land_prices") is None
+    assert importlib.util.find_spec("services.land_prices") is not None
+    backend = Path(__file__).resolve().parents[1]
+    hits = []
+    for folder in ("services", "core"):
+        for path in sorted((backend / folder).glob("*.py")):
+            text = path.read_text(encoding="utf-8")
+            if "reinfolib" in text.lower():
+                hits.append(str(path.relative_to(backend)))
+            if path.name == "land_prices.py" and "httpx" in text:
+                hits.append(f"{path.relative_to(backend)}: imports httpx")
+    assert hits == [], hits
 
 
 def test_no_api_key_is_503_unavailable_not_sample(client):

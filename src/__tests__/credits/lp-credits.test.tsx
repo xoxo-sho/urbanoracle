@@ -14,6 +14,7 @@ const ESTAT_API_CREDIT =
 const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）";
 const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_L01_EDITED = "「国土数値情報（地価公示データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const RETIRED = "OD" + "PT";
 const RETIRED_JA = "公共交通オープン" + "データ";
 const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
@@ -26,6 +27,8 @@ const KSJ_S12_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (station ridership data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 const KSJ_N03_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (administrative area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+const KSJ_L01_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (published land price data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 
 function sourcesSection(container: HTMLElement): HTMLElement {
   const table = container.querySelector("table");
@@ -46,6 +49,7 @@ describe("landing page データ出典 — Japanese", () => {
     expect(text).toContain(KSJ_SOURCE);
     expect(text).toContain(KSJ_S12_EDITED);
     expect(text).toContain(KSJ_N03_EDITED);
+    expect(text).toContain(KSJ_L01_EDITED);
     expect(text).not.toMatch(/をもとに.*作成/);
     expect(container.textContent).not.toContain(RETIRED);
     expect(container.textContent).not.toContain(RETIRED_JA);
@@ -76,6 +80,7 @@ describe("landing page データ出典 — English", () => {
       [KSJ_SOURCE, KSJ_SOURCE_EN],
       [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
       [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
+      [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
     ]) {
       expect(text).toContain(ja);
       expect(text).toContain(en);

@@ -39,7 +39,9 @@ export type SourceKey = keyof typeof SOURCES;
 export const SAMPLE_NOTICE = `${SOURCES.sample.label}— 実データではありません`;
 
 /**
- * The map's ward fill is coloured from WARD_META (ward-boundaries.ts), a
- * hardcoded table that is neither the live feed nor the sample set.
+ * The map's 人口 and 災害 ward fills are coloured from WARD_META
+ * (ward-boundaries.ts), a hardcoded table that is neither the live feed nor
+ * the sample set. The 地価 fill left that table in real-data plan PR 5: it is
+ * the 地価公示 snapshot's, and its legend cites it.
  */
 export const CHOROPLETH_NOTE = "固定の参考値 — 実データではありません";

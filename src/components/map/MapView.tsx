@@ -3,13 +3,17 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { DataLayer, TransportStation } from "@/types";
+import type { DataLayer, LandPriceWard, TransportStation } from "@/types";
+import type { DataStatus } from "@/lib/use-gated-data";
 import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
 import { mapPalette } from "@/lib/palette";
 import type { WardFeatureCollection } from "@/data/ward-boundaries";
 import { basemapStyle } from "@/components/map/basemap";
 import { WARD_BOUNDARY_CREDIT } from "@/lib/credits";
 import { SOURCES } from "@/lib/sources";
+import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
+import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
+import { NO_DATA } from "@/lib/format";
 
 interface MapViewProps {
   selectedWard: string | null;
@@ -18,6 +22,16 @@ interface MapViewProps {
   stations: TransportStation[];
   /** Ridership on the station bubbles is the 国土数値情報 snapshot's only when the answer arrived. */
   transportIsLive?: boolean;
+  /**
+   * The 地価 choropleth (real-data plan PR 5): the /land-prices payload, the
+   * use the page's switch chose, the three ramp stops derived from that use's
+   * figures (the legend prints the same array), and the answer's state for
+   * the hover tooltip.
+   */
+  landPrices?: LandPriceWard[];
+  landUse?: LandUse;
+  landPriceStops?: number[] | null;
+  landPriceStatus?: DataStatus;
 }
 
 function isDarkMode(): boolean {
@@ -39,7 +53,17 @@ function isLayerEnabled(layers: DataLayer[], id: string): boolean {
   return layers.find((l) => l.id === id)?.enabled ?? false;
 }
 
-export default function MapView({ selectedWard, onSelectWard, layers, stations, transportIsLive = false }: MapViewProps) {
+export default function MapView({
+  selectedWard,
+  onSelectWard,
+  layers,
+  stations,
+  transportIsLive = false,
+  landPrices = [],
+  landUse = "residential",
+  landPriceStops = null,
+  landPriceStatus = "loading",
+}: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const popup = useRef<maplibregl.Popup | null>(null);
@@ -63,8 +87,35 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
 
     if (!wardGeoJSON.current) return;
 
+    // The 地価 figure of each ward for the chosen use, merged into the feature
+    // at layer time: the fill reads `landPrice`, the hover tooltip
+    // `landPriceText`. A ward the payload does not cover carries no
+    // `landPrice` and keeps the empty fill.
+    const figures = new Map(landPrices.map((w) => [w.region, w[landUse]]));
+    const landPriceText = (name: string): string => {
+      const f = figures.get(name);
+      if (f) return `${manPrice(f.meanPrice)}/m²（${LAND_USE_LABEL[landUse]} n=${f.n}）`;
+      if (landPriceStatus === "loading") return LOADING_TEXT;
+      if (landPriceStatus === "unavailable") return FAILED_TEXT;
+      return NO_DATA;
+    };
+    const wards: WardFeatureCollection = {
+      ...wardGeoJSON.current,
+      features: wardGeoJSON.current.features.map((f) => {
+        const figure = figures.get(f.properties.name);
+        return {
+          ...f,
+          properties: {
+            ...f.properties,
+            ...(figure ? { landPrice: figure.meanPrice } : {}),
+            landPriceText: landPriceText(f.properties.name),
+          },
+        };
+      }),
+    };
+
     // Add ward polygons source from real GeoJSON
-    m.addSource("wards", { type: "geojson", data: wardGeoJSON.current, promoteId: "name", attribution: WARD_BOUNDARY_CREDIT });
+    m.addSource("wards", { type: "geojson", data: wards, promoteId: "name", attribution: WARD_BOUNDARY_CREDIT });
 
     // Determine which property to color by
     const landEnabled = isLayerEnabled(layers, "land-price");
@@ -73,12 +124,20 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
 
     let fillColor: maplibregl.ExpressionSpecification | string;
     if (landEnabled) {
-      fillColor = ["interpolate", ["linear"], ["get", "avgLandPrice"],
-        300000, c.upFill,
-        1000000, c.upUi,
-        3000000, c.upStrong,
-        5300000, c.upText,
-      ] as maplibregl.ExpressionSpecification;
+      // Stops from the data for the chosen use (the legend prints the same
+      // three); no fill until the 地価 payload is on screen.
+      const stops = landPriceStatus === "ok" && landPriceStops && landPriceStops.length === 3 ? landPriceStops : null;
+      fillColor = stops
+        ? (["case",
+            ["has", "landPrice"],
+            ["interpolate", ["linear"], ["get", "landPrice"],
+              stops[0], c.upFill,
+              stops[1], c.upStrong,
+              stops[2], c.upText,
+            ],
+            c.emptyFill,
+          ] as maplibregl.ExpressionSpecification)
+        : c.emptyFill;
     } else if (demoEnabled) {
       fillColor = ["interpolate", ["linear"], ["get", "density"],
         5000, c.neutral3,
@@ -228,7 +287,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
         paint: { "raster-opacity": 0.45 },
       });
     }
-  }, [layers, selectedWard, stations, transportIsLive]);
+  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus]);
 
   // Initialize map
   useEffect(() => {
@@ -289,7 +348,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
       const props = feature.properties;
       if (props && popup.current) {
         const density = props.density ? Number(props.density).toLocaleString() : "—";
-        const price = props.avgLandPrice ? `${(Number(props.avgLandPrice) / 10000).toFixed(0)}万` : "—";
+        const price = typeof props.landPriceText === "string" && props.landPriceText ? props.landPriceText : NO_DATA;
         const pop = props.population ? `${(Number(props.population) / 10000).toFixed(1)}万` : "—";
 
         // dxa-ui: the tooltip font is the CSS token directly — this is DOM (a
@@ -304,7 +363,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
               <div style="font-size:11px;color:var(--muted-foreground);display:grid;grid-template-columns:auto 1fr;gap:2px 8px;">
                 <span>人口</span><span style="text-align:right;color:var(--foreground);">${pop}人</span>
                 <span>密度</span><span style="text-align:right;color:var(--foreground);">${density}/km²</span>
-                <span>地価</span><span style="text-align:right;color:var(--foreground);">${price}/m²</span>
+                <span>地価</span><span style="text-align:right;color:var(--foreground);">${price}</span>
               </div>
             </div>
           `)
@@ -403,7 +462,7 @@ export default function MapView({ selectedWard, onSelectWard, layers, stations, 
     } else {
       m.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, duration: 800 });
     }
-  }, [selectedWard, layers, stations, setupLayers]);
+  }, [selectedWard, layers, stations, landPrices, landUse, landPriceStops, landPriceStatus, setupLayers]);
 
   return <div ref={mapContainer} className="absolute inset-0 rounded-sm" style={{ width: "100%", height: "100%" }} />;
 }

@@ -45,6 +45,8 @@ import LandingPage from "@/app/page";
 import {
   DEMOGRAPHICS_FIXTURE,
   DEMOGRAPHICS_SOURCES,
+  LAND_PRICES_FIXTURE,
+  LAND_PRICES_SOURCES,
   POPULATION_TRENDS_FIXTURE,
   POPULATION_TRENDS_SOURCES,
   POPULATION_TRENDS_TOTALS,
@@ -84,6 +86,8 @@ const UNAVAILABLE: Route = json(503, { status: "unavailable" });
 const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
 const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
 const DISASTER: Route = json(200, { data: [], isLive: false });
+// The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
+const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
 
 /** The same payload with the 2025 point moved to another year and table: what the page must then say. */
 function trendsSaying(year: number, table: string): Route {
@@ -113,9 +117,10 @@ async function renderSettled(routes: { trends?: Route; demographics?: Route } = 
     "/api/v1/transport": TRANSPORT,
     "/api/v1/disaster-risks": DISASTER,
     [TRENDS_ROUTE]: routes.trends ?? TRENDS,
+    "/api/v1/land-prices": LAND_PRICES,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(4));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -5,9 +5,10 @@ import { SOURCES } from "@/lib/sources";
 import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
-import { sampleLandPriceSummary, sampleTransportTrends } from "@/data/sample";
+import { sampleTransportTrends } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
+  LAND_PRICES_FIXTURE,
   POPULATION_TRENDS_FIXTURE,
   POPULATION_TRENDS_SOURCES,
   RIDERSHIP_YEAR,
@@ -157,7 +158,9 @@ describe("consumers render by status", () => {
     const { container } = render(
       <WardTable
         demographics={DEMOGRAPHICS_FIXTURE.map((d) => ({ ...d, growthRate: null }))}
-        landPrices={sampleLandPriceSummary}
+        landPrices={LAND_PRICES_FIXTURE}
+        landUse="residential"
+        landPriceStatus="ok"
         onSelectWard={vi.fn()}
         status="partial"
         unavailable={["growthRate"]}
@@ -210,21 +213,26 @@ describe("consumers render by status", () => {
     const { container } = render(
       <WardTable
         demographics={DEMOGRAPHICS_FIXTURE}
-        landPrices={sampleLandPriceSummary}
+        landPrices={LAND_PRICES_FIXTURE}
+        landUse="residential"
+        landPriceStatus="ok"
         onSelectWard={vi.fn()}
         status="ok"
       />
     );
     expect(container.querySelectorAll("tbody tr")).toHaveLength(3);
     expect(container.textContent).toContain(SOURCES.estat.label);
-    expect(container.textContent).toContain(SAMPLE);
+    // Since real-data plan PR 5 the 地価 column is the 地価公示 snapshot: no sample label on the table.
+    expect(container.textContent).not.toContain(SAMPLE);
   });
 
   it("WardTable: unavailable → 取得失敗 and no rows", () => {
     const { container } = render(
       <WardTable
         demographics={[]}
-        landPrices={sampleLandPriceSummary}
+        landPrices={LAND_PRICES_FIXTURE}
+        landUse="residential"
+        landPriceStatus="ok"
         onSelectWard={vi.fn()}
         status="unavailable"
       />

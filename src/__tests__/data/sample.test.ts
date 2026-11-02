@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  sampleLandPrices,
   sampleLandPriceSummary,
   sampleDisasterRisks,
   sampleWardProfiles,
@@ -11,21 +10,12 @@ import {
  * The sets that remain are checked here. sampleDemographics and
  * sampleTransportStations, and their three integrity tests, left with
  * real-data plan PR 1: the two live endpoints no longer fall back to them,
- * so there is no bundled copy to keep complete.
+ * so there is no bundled copy to keep complete. sampleLandPrices left with
+ * PR 5 (the 地価 surfaces read the 地価公示 snapshot); sampleLandPriceSummary
+ * stays only for the LP hero until PR 7 switches it with the downside.
  */
 describe("Sample data integrity", () => {
-  it("has valid land price points", () => {
-    expect(sampleLandPrices.length).toBeGreaterThan(0);
-    for (const p of sampleLandPrices) {
-      expect(p.lat).toBeGreaterThan(35);
-      expect(p.lat).toBeLessThan(36);
-      expect(p.lng).toBeGreaterThan(139);
-      expect(p.lng).toBeLessThan(140);
-      expect(p.price).toBeGreaterThan(0);
-    }
-  });
-
-  it("has land price summaries with valid change rates", () => {
+  it("has land price summaries with valid change rates (the LP hero's set, until PR 7)", () => {
     for (const p of sampleLandPriceSummary) {
       expect(p.avgPrice).toBeGreaterThan(0);
       expect(p.maxPrice).toBeGreaterThanOrEqual(p.avgPrice);

@@ -1,6 +1,7 @@
 import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
+  KSJ_L01_EDITED,
   KSJ_N03_EDITED,
   KSJ_S12_EDITED,
   KSJ_SOURCE,
@@ -33,6 +34,19 @@ export function KsjCredits() {
       <p>{KSJ_SOURCE}</p>
       <p>{KSJ_S12_EDITED}</p>
       <p>{KSJ_N03_EDITED}</p>
+    </div>
+  );
+}
+
+/**
+ * 国土数値情報: the 出典 line and the 加工 statement for the 地価公示 snapshot
+ * (地価公示データ L01, real-data plan PR 5), in the form with no editor name.
+ */
+export function KsjLandPriceCredits() {
+  return (
+    <div className="credit-block" data-credit="ksj-l01">
+      <p>{KSJ_SOURCE}</p>
+      <p>{KSJ_L01_EDITED}</p>
     </div>
   );
 }

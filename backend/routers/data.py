@@ -1,5 +1,6 @@
 """The data endpoints: the live census call, the curated disaster set, and the
-two committed snapshots — 人口推移 (real-data plan PR 3) and 駅別乗降客数 (PR 4).
+three committed snapshots — 人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4)
+and 地価公示 (PR 5).
 
 Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
 ``status`` says whether the request got everything it asked for; ``isLive``
@@ -12,7 +13,8 @@ upstream genuinely has no figure for. A /demographics answer carries
 from, so the screen can say which vintage every figure is (real-data plan
 PR 2). The /population-trends answer carries the same shape keyed by year;
 the /transport answer carries it per field (ridership, stations, wards): the
-国土数値情報 edition each came from.
+国土数値情報 edition each came from; the /land-prices answer per field (price,
+change): the 地価公示 edition.
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
@@ -21,8 +23,10 @@ remembered as complete: each upstream is cached on its own and only when it
 answered, so a partial answer reuses the healthy part and retries the failed
 upstream on the next request, and a 503 retries everything.
 
-The REINFOLIB (/land-prices) endpoint was removed: its data was fetched but
-nothing on screen ever drew it (RECON 2026-10-data-terms §7.1 UO-3).
+The REINFOLIB endpoint that once sat at /land-prices was removed: its data
+was fetched but nothing on screen ever drew it (RECON 2026-10-data-terms §7.1
+UO-3). The path now serves the committed 地価公示 snapshot (PR 5) and no
+network call is made for it.
 
 Every response goes through ``json_safe`` — the last line of defense against
 a non-finite float reaching the client as an invalid-JSON ``NaN`` literal.
@@ -36,7 +40,7 @@ from fastapi.responses import JSONResponse
 from core import cache
 from core.boundary import json_safe
 from core.config import settings
-from services import demographics, disaster_risks, population_trends, transport
+from services import demographics, disaster_risks, land_prices, population_trends, transport
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +144,26 @@ async def get_population_trends() -> JSONResponse:
         population_trends.rows(snapshot),
         is_live=True,
         sources=population_trends.sources(snapshot),
+    )
+
+
+@router.get("/land-prices")
+async def get_land_prices() -> JSONResponse:
+    """The committed 地価公示 snapshot (real-data plan PR 5): per ward, the 住宅地
+    and 商業地 mean price over every point and the mean 対前年変動率 over the
+    継続 points of 国土数値情報 地価公示データ L01-26 (2026年1月1日時点), each
+    figure with its point count, and the 工業地 point count.
+
+    No upstream and no cache: the file was validated when the app started
+    (main.py), so this route has no partial or failed answer of its own.
+    ``isLive`` is True: the figures are the source's own, not a sample.
+    ``sources`` names, per field (price, change), the edition and its year.
+    """
+    snapshot = land_prices.get(settings.LAND_PRICES_PATH)
+    return _envelope(
+        land_prices.rows(snapshot),
+        is_live=True,
+        sources=land_prices.sources(snapshot),
     )
 
 

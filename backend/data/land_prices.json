@@ -1,0 +1,659 @@
+{
+ "region": "東京23区",
+ "year": 2026,
+ "referenceDate": "2026-01-01",
+ "reference": "2026年（令和8年）版 地価公示（2026年1月1日時点）",
+ "sources": {
+  "price": {
+   "year": 2026,
+   "table": "L01-26",
+   "label": "国土数値情報 地価公示データ 2026年（令和8年）版 地価公示価格（2026年1月1日時点、円/m²）"
+  },
+  "change": {
+   "year": 2026,
+   "table": "L01-26",
+   "label": "国土数値情報 地価公示データ 2026年（令和8年）版 対前年変動率（2025年1月1日→2026年1月1日、%）"
+  }
+ },
+ "inputs": {
+  "ksj_L01-26_tokyo23.csv": {
+   "path": "backend/tests/fixtures/land_prices/ksj_L01-26_tokyo23.csv",
+   "sha256": "34e55cf609439714760b8cf54dda9bbe766f7e76ae04008dd23bf976303b1e4b",
+   "cut_from": {
+    "id": "L01-26",
+    "title": "国土数値情報 地価公示データ（東京都）",
+    "edition": "2026年（令和8年）版",
+    "year": 2026,
+    "reference_date": "2026-01-01",
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L01-2026.html",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/L01/L01-26/L01-26_13_GML.zip",
+    "file": "L01-26_13_GML.zip",
+    "bytes": 2241471,
+    "sha256": "4f3e251683a6affe7181236b60fda2a7eee1d5e83daffc9db82435a1542a7795",
+    "published": "2026-03（更新履歴「2026年3月：2026年（令和8年）版に更新しました。」）",
+    "licence": "オープンデータ（CC_BY_4.0）（2019年（平成31年）以降）",
+    "rows_total": 2560,
+    "rows_kept": 1567,
+    "cut": "rows whose L01_001 is 13101–13123, as CSV: code (L01_001), use (L01_002), seq (L01_003), year (L01_007), price (L01_008 = L01_105 令和8年公示価格, 円/m²), change (L01_009 対前年変動率, %), status (L01_010 選定状況), previous_price (L01_104 令和7年公示価格), common (L01_060), lon, lat",
+    "codes": {
+     "use": {
+      "000": "住宅地",
+      "003": "宅地見込地",
+      "005": "商業地",
+      "009": "工業地",
+      "013": "林地"
+     },
+     "status": {
+      "1": "継続",
+      "2": "基準地番号変更",
+      "4": "新設・選定替えで当該年追加",
+      "5": "隔年調査（休止）地点"
+     }
+    }
+   }
+  }
+ },
+ "licence": {
+  "name": "国土数値情報 利用規約（PDL1.0準拠）— 地価公示データ 2019年（平成31年）以降は「オープンデータ（CC_BY_4.0）」",
+  "url": "https://nlftp.mlit.go.jp/ksj/other/agreement.html"
+ },
+ "credit": {
+  "source": "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）",
+  "edited_l01": "「国土数値情報（地価公示データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "pages": {
+   "L01": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L01-2026.html"
+  }
+ },
+ "notes": {
+  "price": "平均価格は各用途の全地点の地価公示価格の単純平均",
+  "change": "変動率は継続地点（前年と比較できる地点）の対前年変動率の単純平均",
+  "uses": "住宅地と商業地のみ区別に集計（用途区分 000 住宅地、005 商業地）；工業地は地点数のみ",
+  "definition_source": "東京都財務局の区市町村別用途別平均価格表・対前年変動率表と同じ定義（全地点の単純平均・継続地点の単純平均）"
+ },
+ "uses": {
+  "residential": {
+   "code": "000",
+   "label": "住宅地"
+  },
+  "commercial": {
+   "code": "005",
+   "label": "商業地"
+  }
+ },
+ "total": {
+  "n": 1567,
+  "residential": {
+   "n": 871,
+   "meanPrice": 856406,
+   "minPrice": 210000,
+   "maxPrice": 7110000,
+   "nContinuing": 846,
+   "meanChange": 8.9975
+  },
+  "commercial": {
+   "n": 674,
+   "meanPrice": 4015061,
+   "minPrice": 272000,
+   "maxPrice": 67100000,
+   "nContinuing": 662,
+   "meanChange": 13.8397
+  },
+  "industrial": {
+   "n": 22
+  }
+ },
+ "wards": [
+  {
+   "code": "13101",
+   "name": "千代田区",
+   "n": 59,
+   "residential": {
+    "n": 7,
+    "meanPrice": 3631429,
+    "minPrice": 2180000,
+    "maxPrice": 5300000,
+    "nContinuing": 7,
+    "meanChange": 10.6714
+   },
+   "commercial": {
+    "n": 52,
+    "meanPrice": 7356538,
+    "minPrice": 1270000,
+    "maxPrice": 37600000,
+    "nContinuing": 51,
+    "meanChange": 13.0549
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13102",
+   "name": "中央区",
+   "n": 63,
+   "residential": {
+    "n": 9,
+    "meanPrice": 1930000,
+    "minPrice": 1310000,
+    "maxPrice": 2850000,
+    "nContinuing": 7,
+    "meanChange": 13.8429
+   },
+   "commercial": {
+    "n": 54,
+    "meanPrice": 11385370,
+    "minPrice": 1310000,
+    "maxPrice": 67100000,
+    "nContinuing": 53,
+    "meanChange": 13.4604
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13103",
+   "name": "港区",
+   "n": 81,
+   "residential": {
+    "n": 30,
+    "meanPrice": 3013667,
+    "minPrice": 1520000,
+    "maxPrice": 7110000,
+    "nContinuing": 30,
+    "meanChange": 16.6367
+   },
+   "commercial": {
+    "n": 51,
+    "meanPrice": 6991765,
+    "minPrice": 2340000,
+    "maxPrice": 15200000,
+    "nContinuing": 49,
+    "meanChange": 13.9816
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13104",
+   "name": "新宿区",
+   "n": 77,
+   "residential": {
+    "n": 28,
+    "meanPrice": 1131571,
+    "minPrice": 750000,
+    "maxPrice": 1960000,
+    "nContinuing": 26,
+    "meanChange": 11.2077
+   },
+   "commercial": {
+    "n": 49,
+    "meanPrice": 6159388,
+    "minPrice": 1280000,
+    "maxPrice": 42000000,
+    "nContinuing": 49,
+    "meanChange": 13.7755
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13105",
+   "name": "文京区",
+   "n": 50,
+   "residential": {
+    "n": 23,
+    "meanPrice": 1448087,
+    "minPrice": 920000,
+    "maxPrice": 3180000,
+    "nContinuing": 22,
+    "meanChange": 13.8364
+   },
+   "commercial": {
+    "n": 27,
+    "meanPrice": 2276296,
+    "minPrice": 1210000,
+    "maxPrice": 5250000,
+    "nContinuing": 27,
+    "meanChange": 17.8222
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13106",
+   "name": "台東区",
+   "n": 53,
+   "residential": {
+    "n": 6,
+    "meanPrice": 1320833,
+    "minPrice": 825000,
+    "maxPrice": 2640000,
+    "nContinuing": 6,
+    "meanChange": 14.15
+   },
+   "commercial": {
+    "n": 47,
+    "meanPrice": 2512872,
+    "minPrice": 627000,
+    "maxPrice": 13600000,
+    "nContinuing": 46,
+    "meanChange": 19.0761
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13107",
+   "name": "墨田区",
+   "n": 24,
+   "residential": {
+    "n": 11,
+    "meanPrice": 613273,
+    "minPrice": 407000,
+    "maxPrice": 915000,
+    "nContinuing": 11,
+    "meanChange": 13.2
+   },
+   "commercial": {
+    "n": 13,
+    "meanPrice": 1203923,
+    "minPrice": 501000,
+    "maxPrice": 3230000,
+    "nContinuing": 13,
+    "meanChange": 14.9923
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13108",
+   "name": "江東区",
+   "n": 47,
+   "residential": {
+    "n": 26,
+    "meanPrice": 661538,
+    "minPrice": 449000,
+    "maxPrice": 1160000,
+    "nContinuing": 25,
+    "meanChange": 11.932
+   },
+   "commercial": {
+    "n": 17,
+    "meanPrice": 1310294,
+    "minPrice": 621000,
+    "maxPrice": 3000000,
+    "nContinuing": 17,
+    "meanChange": 15.5588
+   },
+   "industrial": {
+    "n": 4
+   }
+  },
+  {
+   "code": "13109",
+   "name": "品川区",
+   "n": 59,
+   "residential": {
+    "n": 30,
+    "meanPrice": 1244067,
+    "minPrice": 833000,
+    "maxPrice": 3300000,
+    "nContinuing": 29,
+    "meanChange": 13.8966
+   },
+   "commercial": {
+    "n": 28,
+    "meanPrice": 2470357,
+    "minPrice": 1010000,
+    "maxPrice": 7930000,
+    "nContinuing": 28,
+    "meanChange": 16.3143
+   },
+   "industrial": {
+    "n": 1
+   }
+  },
+  {
+   "code": "13110",
+   "name": "目黒区",
+   "n": 49,
+   "residential": {
+    "n": 32,
+    "meanPrice": 1404531,
+    "minPrice": 932000,
+    "maxPrice": 3660000,
+    "nContinuing": 32,
+    "meanChange": 13.6719
+   },
+   "commercial": {
+    "n": 17,
+    "meanPrice": 2664706,
+    "minPrice": 1150000,
+    "maxPrice": 7150000,
+    "nContinuing": 16,
+    "meanChange": 13.7063
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13111",
+   "name": "大田区",
+   "n": 96,
+   "residential": {
+    "n": 55,
+    "meanPrice": 647582,
+    "minPrice": 502000,
+    "maxPrice": 1260000,
+    "nContinuing": 54,
+    "meanChange": 7.8981
+   },
+   "commercial": {
+    "n": 36,
+    "meanPrice": 1201694,
+    "minPrice": 579000,
+    "maxPrice": 5650000,
+    "nContinuing": 34,
+    "meanChange": 9.6676
+   },
+   "industrial": {
+    "n": 5
+   }
+  },
+  {
+   "code": "13112",
+   "name": "世田谷区",
+   "n": 141,
+   "residential": {
+    "n": 109,
+    "meanPrice": 779853,
+    "minPrice": 303000,
+    "maxPrice": 1600000,
+    "nContinuing": 106,
+    "meanChange": 7.0425
+   },
+   "commercial": {
+    "n": 32,
+    "meanPrice": 1334844,
+    "minPrice": 762000,
+    "maxPrice": 3750000,
+    "nContinuing": 32,
+    "meanChange": 9.3531
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13113",
+   "name": "渋谷区",
+   "n": 58,
+   "residential": {
+    "n": 25,
+    "meanPrice": 1874080,
+    "minPrice": 952000,
+    "maxPrice": 3900000,
+    "nContinuing": 25,
+    "meanChange": 10.988
+   },
+   "commercial": {
+    "n": 33,
+    "meanPrice": 9297576,
+    "minPrice": 1500000,
+    "maxPrice": 35300000,
+    "nContinuing": 32,
+    "meanChange": 13.7562
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13114",
+   "name": "中野区",
+   "n": 51,
+   "residential": {
+    "n": 27,
+    "meanPrice": 782704,
+    "minPrice": 492000,
+    "maxPrice": 1500000,
+    "nContinuing": 26,
+    "meanChange": 8.9577
+   },
+   "commercial": {
+    "n": 24,
+    "meanPrice": 2034917,
+    "minPrice": 667000,
+    "maxPrice": 8270000,
+    "nContinuing": 24,
+    "meanChange": 17.525
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13115",
+   "name": "杉並区",
+   "n": 86,
+   "residential": {
+    "n": 62,
+    "meanPrice": 703177,
+    "minPrice": 497000,
+    "maxPrice": 1090000,
+    "nContinuing": 60,
+    "meanChange": 8.165
+   },
+   "commercial": {
+    "n": 24,
+    "meanPrice": 1516500,
+    "minPrice": 846000,
+    "maxPrice": 4980000,
+    "nContinuing": 24,
+    "meanChange": 17.4708
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13116",
+   "name": "豊島区",
+   "n": 54,
+   "residential": {
+    "n": 23,
+    "meanPrice": 912130,
+    "minPrice": 710000,
+    "maxPrice": 1410000,
+    "nContinuing": 22,
+    "meanChange": 12.8818
+   },
+   "commercial": {
+    "n": 31,
+    "meanPrice": 3167129,
+    "minPrice": 784000,
+    "maxPrice": 18800000,
+    "nContinuing": 31,
+    "meanChange": 15.2452
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13117",
+   "name": "北区",
+   "n": 54,
+   "residential": {
+    "n": 31,
+    "meanPrice": 742000,
+    "minPrice": 460000,
+    "maxPrice": 2050000,
+    "nContinuing": 30,
+    "meanChange": 11.6333
+   },
+   "commercial": {
+    "n": 23,
+    "meanPrice": 1505826,
+    "minPrice": 592000,
+    "maxPrice": 5700000,
+    "nContinuing": 21,
+    "meanChange": 16.1667
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13118",
+   "name": "荒川区",
+   "n": 28,
+   "residential": {
+    "n": 16,
+    "meanPrice": 718688,
+    "minPrice": 514000,
+    "maxPrice": 1610000,
+    "nContinuing": 15,
+    "meanChange": 11.7867
+   },
+   "commercial": {
+    "n": 12,
+    "meanPrice": 1339833,
+    "minPrice": 706000,
+    "maxPrice": 3110000,
+    "nContinuing": 12,
+    "meanChange": 16.2333
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13119",
+   "name": "板橋区",
+   "n": 69,
+   "residential": {
+    "n": 47,
+    "meanPrice": 553553,
+    "minPrice": 364000,
+    "maxPrice": 854000,
+    "nContinuing": 46,
+    "meanChange": 8.5109
+   },
+   "commercial": {
+    "n": 19,
+    "meanPrice": 998789,
+    "minPrice": 514000,
+    "maxPrice": 2140000,
+    "nContinuing": 19,
+    "meanChange": 12.5684
+   },
+   "industrial": {
+    "n": 3
+   }
+  },
+  {
+   "code": "13120",
+   "name": "練馬区",
+   "n": 108,
+   "residential": {
+    "n": 90,
+    "meanPrice": 480544,
+    "minPrice": 244000,
+    "maxPrice": 740000,
+    "nContinuing": 88,
+    "meanChange": 6.2307
+   },
+   "commercial": {
+    "n": 18,
+    "meanPrice": 1002000,
+    "minPrice": 619000,
+    "maxPrice": 1920000,
+    "nContinuing": 18,
+    "meanChange": 8.8889
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13121",
+   "name": "足立区",
+   "n": 108,
+   "residential": {
+    "n": 71,
+    "meanPrice": 410761,
+    "minPrice": 230000,
+    "maxPrice": 1330000,
+    "nContinuing": 69,
+    "meanChange": 6.3493
+   },
+   "commercial": {
+    "n": 32,
+    "meanPrice": 847281,
+    "minPrice": 272000,
+    "maxPrice": 6250000,
+    "nContinuing": 31,
+    "meanChange": 8.5161
+   },
+   "industrial": {
+    "n": 5
+   }
+  },
+  {
+   "code": "13122",
+   "name": "葛飾区",
+   "n": 63,
+   "residential": {
+    "n": 44,
+    "meanPrice": 387545,
+    "minPrice": 210000,
+    "maxPrice": 599000,
+    "nContinuing": 43,
+    "meanChange": 5.5744
+   },
+   "commercial": {
+    "n": 19,
+    "meanPrice": 720105,
+    "minPrice": 352000,
+    "maxPrice": 1980000,
+    "nContinuing": 19,
+    "meanChange": 11.1474
+   },
+   "industrial": {
+    "n": 0
+   }
+  },
+  {
+   "code": "13123",
+   "name": "江戸川区",
+   "n": 89,
+   "residential": {
+    "n": 69,
+    "meanPrice": 441116,
+    "minPrice": 295000,
+    "maxPrice": 635000,
+    "nContinuing": 67,
+    "meanChange": 5.6597
+   },
+   "commercial": {
+    "n": 16,
+    "meanPrice": 857438,
+    "minPrice": 362000,
+    "maxPrice": 2180000,
+    "nContinuing": 16,
+    "meanChange": 8.675
+   },
+   "industrial": {
+    "n": 4
+   }
+  }
+ ]
+}
