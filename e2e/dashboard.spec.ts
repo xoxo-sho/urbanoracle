@@ -61,6 +61,21 @@ test.describe("Dashboard", () => {
     await expect(page.locator('footer [data-provenance="sample"]')).toBeVisible();
     await expect(page.locator('footer [data-provenance="live"]')).toBeVisible();
     await expect(page.getByText("国土数値情報")).toHaveCount(0);
+    // Real-data plan PR 6: 用途地域 reads the committed A55-24 snapshot and is
+    // no longer in the sample list; with no API behind the dev server it is
+    // listed in neither group.
+    await expect(page.locator('footer [data-provenance="sample"]')).not.toContainText("用途地域");
+  });
+
+  test("用途地域 tab without a backend says 取得失敗, never SAMPLE (real-data plan PR 6)", async ({ page }) => {
+    // Flipped in PR 6: the tab showed the sample composition with a SAMPLE
+    // label; it now reads /api/v1/zoning and, like every live surface, says
+    // 取得失敗 when the endpoint has not answered.
+    await page.locator("[data-slot='tabs-trigger']").nth(4).click();
+    const panel = page.getByRole("tabpanel");
+    await expect(panel).toContainText("取得失敗", { timeout: 10000 });
+    await expect(panel.locator('[data-provenance="sample"]')).toHaveCount(0);
+    await expect(panel).not.toContainText("SAMPLE");
   });
 });
 

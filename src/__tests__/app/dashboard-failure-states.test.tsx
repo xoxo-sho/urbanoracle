@@ -11,9 +11,9 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
  *
  * The page is rendered with the real hook; only fetch is replaced, per
  * endpoint, so each state is produced the way production produces it. The
- * surfaces outside PR 1 (地価 bar/scatter, 人口推移, 災害, 乗降客数推移, 用途地域,
- * radar) keep their sample label until their own PR, so every assertion is
- * scoped to a touched surface.
+ * surfaces outside PR 1 (災害, 乗降客数推移, radar) keep their sample label until
+ * their own PR — 地価 left with PR 5, 人口推移 with PR 3, 用途地域 with PR 6 —
+ * so every assertion is scoped to a touched surface.
  *
  * Stage 2 architect decisions: a full failure is HTTP 503 `{status:"unavailable"}`
  * (CHANGE 1); the 23 ward names are reference facts, so S0 lists all 23 in
@@ -62,6 +62,9 @@ import {
   POPULATION_TRENDS_SOURCES,
   STATIONS_FIXTURE,
   TRANSPORT_SOURCES,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
+  ZONING_TOTAL,
 } from "@/__tests__/fixtures/live-data";
 
 const LOADING = "読み込み中";
@@ -131,6 +134,8 @@ const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive
 // The 地価公示 snapshot route (PR 5): answers so the page settles; its own
 // states are guarded in land-prices.test.tsx.
 const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+// The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
+const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -150,9 +155,10 @@ async function renderSettled(routes: { demographics: Route; transport: Route }) 
     "/api/v1/disaster-risks": DISASTER,
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
+    "/api/v1/zoning": ZONING,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
   // Let each response → json → setState chain drain.
   for (let i = 0; i < 2; i++) {
     await act(async () => {

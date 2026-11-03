@@ -91,7 +91,25 @@ const landPriceRows = landPrices.wards.map((w) => ({
   commercial: w.commercial,
   industrial: w.industrial,
 }));
+// The 用途地域 snapshot route (real-data plan PR 6) answers from the committed snapshot itself.
+interface SnapshotZoningComposition {
+  code: string;
+  name: string;
+  asOf: Record<string, unknown>;
+  [key: string]: unknown;
+}
+const zoning = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "zoning.json"), "utf8")) as {
+  sources: Record<string, unknown>;
+  total: SnapshotZoningComposition;
+  wards: SnapshotZoningComposition[];
+};
+const zoningRecord = ({ name, asOf, ...rest }: SnapshotZoningComposition) => {
+  const { cells: _cells, ...asOfRest } = asOf as { cells?: unknown };
+  void _cells;
+  return { ...rest, region: name, asOf: asOfRest };
+};
 const API: Record<string, unknown> = {
+  "/api/v1/zoning": { status: "ok", data: zoning.wards.map(zoningRecord), isLive: true, sources: zoning.sources, total: zoningRecord(zoning.total) },
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
   "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
   "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },

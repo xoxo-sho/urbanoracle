@@ -312,3 +312,170 @@ export const LAND_PRICES_FIXTURE: LandPriceWard[] = [
     industrial: { n: 0 },
   },
 ];
+
+// ---- 用途地域 (real-data plan PR 6) ------------------------------------------------
+//
+// What /api/v1/zoning serves: the committed snapshot built by etl/zoning.py
+// from the A55-24 excerpts (backend/tests/fixtures/zoning/), one composition
+// per ward — the share of the ward's designated area by 用途地域 type, the
+// designated share of the ward, per type the area-weighted 容積率 / 建蔽率 with
+// their range, and the 時点 from the A55 data list — plus the 23区 composition
+// as `total`. The year and the 国土数値情報 ids come from the committed meta,
+// so the two sides of the contract cannot drift apart.
+
+import type { ZoningComposition, ZoningType } from "@/types";
+import a55Meta from "../../../backend/tests/fixtures/zoning/ksj.meta.json";
+
+export const ZONING_YEAR = a55Meta.A55.year;
+export const ZONING_TABLE = a55Meta.A55.id;
+export const ZONING_SOURCES: FieldSources = {
+  zoning: {
+    year: ZONING_YEAR,
+    table: ZONING_TABLE,
+    label: `国土数値情報 都市計画決定情報データ ${a55Meta.A55.edition} 用途地域（東京都、各区の用途地域レイヤ）`,
+  },
+  wards: {
+    year: Number(a55Meta.N03.id.slice(4, 8)),
+    table: a55Meta.N03.id,
+    label: `国土数値情報 行政区域データ ${a55Meta.N03.edition} 東京都（区の面積と指定区域の切り抜き）`,
+  },
+  asOf: {
+    year: ZONING_YEAR,
+    table: a55Meta.datalist.file,
+    label: "国土数値情報 都市計画決定情報 公表自治体及び掲載データ一覧（A55_R6_datalist.xlsx）データ時点年",
+  },
+};
+
+/** One composition as the builder writes it (backend/data/zoning.json). */
+export interface ZoningSnapshotComposition {
+  code: string;
+  name: string;
+  wardM2: number;
+  designatedM2: number;
+  designatedShare: number;
+  outsideM2: number;
+  polygons: number;
+  asOf: {
+    date: string | null;
+    basis?: string;
+    label: string;
+    text: string;
+    note?: string;
+    cells?: Record<string, string | null>;
+    from?: string;
+    to?: string;
+    missing?: string[];
+  };
+  types: ZoningType[];
+}
+
+/** The committed snapshot the route serves, as the builder writes it. */
+export interface ZoningSnapshot {
+  year: number;
+  edition: string;
+  sources: FieldSources;
+  credit: { source: string; edited_a55: string; edited_n03: string };
+  notices: string[];
+  notes: Record<string, string>;
+  types: { code: number; name: string }[];
+  total: ZoningSnapshotComposition;
+  wards: ZoningSnapshotComposition[];
+}
+
+export function loadZoningSnapshot(): ZoningSnapshot {
+  const file = path.join(process.cwd(), "backend", "data", "zoning.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no zoning snapshot at ${file} — etl/zoning.py build has not been run`);
+  }
+  return JSON.parse(text) as ZoningSnapshot;
+}
+
+/** The client record the route makes of one composition (backend/services/zoning.py rows / total). */
+function zoningRecord(c: ZoningSnapshotComposition): ZoningComposition {
+  const { cells: _cells, ...asOf } = c.asOf;
+  void _cells;
+  return {
+    region: c.name,
+    code: c.code,
+    wardM2: c.wardM2,
+    designatedM2: c.designatedM2,
+    designatedShare: c.designatedShare,
+    outsideM2: c.outsideM2,
+    polygons: c.polygons,
+    asOf,
+    types: c.types,
+  };
+}
+
+export function zoningSnapshotRows(snapshot: ZoningSnapshot): ZoningComposition[] {
+  return snapshot.wards.map(zoningRecord);
+}
+
+export function zoningSnapshotTotal(snapshot: ZoningSnapshot): ZoningComposition {
+  return zoningRecord(snapshot.total);
+}
+
+// A small real-shaped answer for the tests that only need the page to settle
+// (dashboard-page, app-credits, the failure states): two wards and a 23区
+// composition. Scaffolding, not figures — the figures are guarded in
+// zoning.test.tsx against the committed snapshot. 江東区 is the ward the data
+// list does not date; its 時点 line is the 記載なし sentence.
+const FAR = (mean: number, min: number, max: number) => ({ mean, min, max });
+export const ZONING_FIXTURE: ZoningComposition[] = [
+  {
+    region: "江東区",
+    code: "13108",
+    wardM2: 44_000_000,
+    designatedM2: 36_520_000,
+    designatedShare: 83,
+    outsideM2: 0,
+    polygons: 3,
+    asOf: { date: null, basis: "none", label: "国土数値情報の掲載データ一覧に記載なし", text: "時点：国土数値情報の掲載データ一覧に記載なし" },
+    types: [
+      { code: 5, name: "第１種住居地域", m2: 21_912_000, share: 60, n: 1, far: FAR(200, 200, 200), bcr: FAR(60, 60, 60) },
+      { code: 11, name: "準工業地域", m2: 10_956_000, share: 30, n: 1, far: FAR(300, 200, 400), bcr: FAR(60, 60, 60) },
+      { code: 13, name: "工業専用地域", m2: 3_652_000, share: 10, n: 1, far: FAR(200, 200, 200), bcr: FAR(60, 60, 60) },
+    ],
+  },
+  {
+    region: "足立区",
+    code: "13121",
+    wardM2: 53_000_000,
+    designatedM2: 48_230_000,
+    designatedShare: 91,
+    outsideM2: 0,
+    polygons: 2,
+    asOf: { date: "2023-04-28", basis: "asof_cell", label: "2023年4月28日", text: "時点：2023年4月28日" },
+    types: [
+      { code: 1, name: "第１種低層住居専用地域", m2: 24_115_000, share: 50, n: 1, far: FAR(100, 100, 100), bcr: FAR(50, 50, 50) },
+      { code: 10, name: "商業地域", m2: 24_115_000, share: 50, n: 1, far: FAR(500, 400, 600), bcr: FAR(80, 80, 80) },
+    ],
+  },
+];
+export const ZONING_TOTAL: ZoningComposition = {
+  region: "東京23区",
+  code: "13100",
+  wardM2: 97_000_000,
+  designatedM2: 84_750_000,
+  designatedShare: 87.37,
+  outsideM2: 0,
+  polygons: 5,
+  asOf: {
+    date: null,
+    from: "2023-04-28",
+    to: "2023-04-28",
+    missing: ["13108"],
+    label: "2023年4月28日〜2023年4月28日（1区は掲載データ一覧に記載なし）",
+    text: "時点：2023年4月28日〜2023年4月28日（1区は掲載データ一覧に記載なし）",
+  },
+  types: [
+    { code: 1, name: "第１種低層住居専用地域", m2: 24_115_000, share: 28.4543, n: 1, far: FAR(100, 100, 100), bcr: FAR(50, 50, 50) },
+    { code: 5, name: "第１種住居地域", m2: 21_912_000, share: 25.8549, n: 1, far: FAR(200, 200, 200), bcr: FAR(60, 60, 60) },
+    { code: 10, name: "商業地域", m2: 24_115_000, share: 28.4543, n: 1, far: FAR(500, 400, 600), bcr: FAR(80, 80, 80) },
+    { code: 11, name: "準工業地域", m2: 10_956_000, share: 12.9274, n: 1, far: FAR(300, 200, 400), bcr: FAR(60, 60, 60) },
+    { code: 13, name: "工業専用地域", m2: 3_652_000, share: 4.3091, n: 1, far: FAR(200, 200, 200), bcr: FAR(60, 60, 60) },
+  ],
+};

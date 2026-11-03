@@ -27,12 +27,22 @@ vi.mock("@/components/auth/SignOutButton", () => ({ default: () => null }));
 // /disaster-risks with nothing (the page keeps its sample set for that one
 // until real-data plan PR 7).
 vi.mock("@/lib/use-gated-data", async () => {
-  const { DEMOGRAPHICS_FIXTURE, DEMOGRAPHICS_SOURCES, LAND_PRICES_FIXTURE, LAND_PRICES_SOURCES, STATIONS_FIXTURE, TRANSPORT_SOURCES } =
-    await import("@/__tests__/fixtures/live-data");
-  const answers: Record<string, { data: unknown; sources: Record<string, unknown> }> = {
+  const {
+    DEMOGRAPHICS_FIXTURE,
+    DEMOGRAPHICS_SOURCES,
+    LAND_PRICES_FIXTURE,
+    LAND_PRICES_SOURCES,
+    STATIONS_FIXTURE,
+    TRANSPORT_SOURCES,
+    ZONING_FIXTURE,
+    ZONING_SOURCES,
+    ZONING_TOTAL,
+  } = await import("@/__tests__/fixtures/live-data");
+  const answers: Record<string, { data: unknown; sources: Record<string, unknown>; total?: unknown }> = {
     "/api/v1/demographics": { data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES },
     "/api/v1/transport": { data: STATIONS_FIXTURE, sources: TRANSPORT_SOURCES },
     "/api/v1/land-prices": { data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES },
+    "/api/v1/zoning": { data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL },
   };
   return {
     useGatedData: (endpoint: string) => {
@@ -45,6 +55,7 @@ vi.mock("@/lib/use-gated-data", async () => {
         isLive: live,
         fetchedAt: null,
         sources: answers[endpoint]?.sources ?? {},
+        total: answers[endpoint]?.total ?? null,
       };
     },
   };
@@ -60,6 +71,10 @@ const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロード
 const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_L01_EDITED = "「国土数値情報（地価公示データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_A55_EDITED = "「国土数値情報（都市計画決定情報データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+// The A55 page's 【重要：データ利用時の注意事項】 (real-data plan PR 6), word for word.
+const A55_NOTICE_ASOF = "本データは、最新の情報ではないことがあります。本データの時点については、公表自治体及び掲載データ一覧を参考にしてください。";
+const A55_NOTICE_COUNT = 6;
 const RETIRED = "OD" + "PT";
 const WARD_CREDIT = "区境界: dataofjapan/land（出典：地球地図日本）";
 // 国土地理院コンテンツ利用規約 1)ア / 1)イ: the ward areas under the density come from the 面積調.
@@ -165,6 +180,38 @@ describe("/app 地価 tab — the 国土数値情報 credit next to the 地価�
   });
 });
 
+describe("/app 用途地域 tab — the 国土数値情報 credits and 注意事項 next to the A55-24 figures (real-data plan PR 6)", () => {
+  it("shows the 出典 line and both 加工 statements, in the form with no editor name, and the six 注意事項", () => {
+    render(<Home />);
+    fireEvent.click(screen.getByRole("tab", { name: "用途地域" }));
+    const panel = screen.getByRole("tabpanel");
+    const credit = within(panel).getByText(KSJ_A55_EDITED).closest('[data-credit="ksj-a55"]');
+    expect(credit).not.toBeNull();
+    const text = credit!.textContent ?? "";
+    expect(text).toContain(KSJ_SOURCE);
+    expect(text).toContain(KSJ_A55_EDITED);
+    expect(text).toContain(KSJ_N03_EDITED);
+    expect(text).not.toMatch(/をもとに.*作成/);
+    const notices = panel.querySelectorAll('[data-notices="a55"] li');
+    expect(notices).toHaveLength(A55_NOTICE_COUNT);
+    expect(panel.textContent).toContain(A55_NOTICE_ASOF);
+    expect(panel.querySelector('[data-provenance="sample"]')).toBeNull();
+  });
+});
+
+describe("/app データ出典 — the 用途地域 snapshot", () => {
+  it("carries the 加工 statement for 都市計画決定情報データ and the 注意事項 under 実データ; the sample group no longer lists 用途地域", () => {
+    const { container } = render(<Home />);
+    const live = container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
+    expect(live).toContain(KSJ_A55_EDITED);
+    expect(live).toContain("用途地域");
+    expect(live).toContain(A55_NOTICE_ASOF);
+    expect(container.querySelectorAll('footer [data-notices="a55"] li')).toHaveLength(A55_NOTICE_COUNT);
+    const sample = container.querySelector('footer [data-provenance="sample"]')?.textContent ?? "";
+    expect(sample).not.toContain("用途地域");
+  });
+});
+
 describe("/app データ出典 — the 地価公示 snapshot", () => {
   it("carries the 加工 statement for 地価公示データ under 実データ", () => {
     const { container } = render(<Home />);
@@ -192,6 +239,7 @@ describe("/app data requests", () => {
   it("requests /api/v1/land-prices (the committed 地価公示 snapshot, real-data plan PR 5) and /api/v1/demographics", () => {
     render(<Home />);
     expect(gate.requested).toContain("/api/v1/land-prices");
+    expect(gate.requested).toContain("/api/v1/zoning");
     expect(gate.requested).toContain("/api/v1/demographics");
   });
 });

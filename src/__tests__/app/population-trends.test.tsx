@@ -51,6 +51,9 @@ import {
   POPULATION_TRENDS_SOURCES,
   POPULATION_TRENDS_TOTALS,
   POPULATION_TRENDS_YEARS,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
+  ZONING_TOTAL,
 } from "@/__tests__/fixtures/live-data";
 
 const TRENDS_ROUTE = "/api/v1/population-trends";
@@ -88,6 +91,8 @@ const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true, fetch
 const DISASTER: Route = json(200, { data: [], isLive: false });
 // The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
 const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+// The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
+const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 /** The same payload with the 2025 point moved to another year and table: what the page must then say. */
 function trendsSaying(year: number, table: string): Route {
@@ -118,9 +123,10 @@ async function renderSettled(routes: { trends?: Route; demographics?: Route } = 
     "/api/v1/disaster-risks": DISASTER,
     [TRENDS_ROUTE]: routes.trends ?? TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
+    "/api/v1/zoning": ZONING,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SOURCES } from "@/lib/sources";
 import { FAILED_TEXT } from "@/components/dashboard/DataState";
-import { DEMOGRAPHICS_FIXTURE, STATIONS_FIXTURE, TRANSPORT_SOURCES } from "@/__tests__/fixtures/live-data";
+import {
+  DEMOGRAPHICS_FIXTURE,
+  STATIONS_FIXTURE,
+  TRANSPORT_SOURCES,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
+  ZONING_TOTAL,
+} from "@/__tests__/fixtures/live-data";
 
 /**
  * Dashboard page truth (truth fix, Stage 1a/1b/1c; real-data plan PR 1).
@@ -26,6 +33,7 @@ type Partial = {
   isLive?: boolean;
   fetchedAt?: string | null;
   sources?: Record<string, { year: number; table: string; label: string }>;
+  total?: unknown;
 };
 const gate = vi.hoisted(() => ({ state: {} as Record<string, Partial> }));
 
@@ -46,6 +54,7 @@ vi.mock("@/lib/use-gated-data", () => ({
     isLive: false,
     fetchedAt: null,
     sources: {},
+    total: null,
     ...(gate.state[endpoint] ?? {}),
   }),
 }));
@@ -71,6 +80,7 @@ const REMOVED_SOURCE = "不動産情報ライブラリ";
 const LIVE = {
   "/api/v1/demographics": { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true },
   "/api/v1/transport": { status: "ok", data: STATIONS_FIXTURE, isLive: true, sources: TRANSPORT_SOURCES },
+  "/api/v1/zoning": { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL },
 } satisfies Record<string, Partial>;
 
 function keyMetric(container: HTMLElement, caption: string): HTMLElement {
@@ -84,14 +94,31 @@ beforeEach(() => {
   gate.state = {};
 });
 
-describe("用途地域 tab — hardcoded sampleZoning", () => {
-  it("shows the sample label and no 国土数値情報", () => {
+describe("用途地域 tab — the committed A55-24 snapshot (real-data plan PR 6), no sample path", () => {
+  // Flipped in PR 6: the tab read `sampleZoning` and said SAMPLE; now it reads
+  // /api/v1/zoning and, like every PR 1 surface, says 取得失敗 when the
+  // endpoint has not answered — naming the source that failed, citing nothing.
+  it("endpoint unavailable → 取得失敗 naming 国土数値情報, no sample label, no 出典", () => {
+    render(<Home />);
+    fireEvent.click(screen.getByRole("tab", { name: "用途地域" }));
+    const text = screen.getByRole("tabpanel").textContent ?? "";
+    expect(text).toContain(FAILED_TEXT);
+    expect(text).not.toContain(SAMPLE);
+    expect(text).toContain(SOURCES.ksj.label);
+    expect(text).not.toContain("出典：");
+    for (const real of REAL_SOURCE_STRINGS.filter((r) => r !== "国土数値情報")) expect(text).not.toContain(real);
+  });
+
+  it("endpoint ok → the composition with the 国土数値情報 credit, no sample label", () => {
+    gate.state = LIVE;
     render(<Home />);
     fireEvent.click(screen.getByRole("tab", { name: "用途地域" }));
     const panel = screen.getByRole("tabpanel");
     const text = panel.textContent ?? "";
-    expect(text).toContain(SAMPLE);
-    for (const real of REAL_SOURCE_STRINGS) expect(text).not.toContain(real);
+    expect(text).not.toContain(SAMPLE);
+    expect(text).toContain("国土数値情報");
+    expect(text).toContain("東京23区");
+    expect(panel.querySelector('[data-provenance="sample"]')).toBeNull();
   });
 });
 

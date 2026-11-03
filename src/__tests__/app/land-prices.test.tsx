@@ -70,6 +70,9 @@ import {
   DEMOGRAPHICS_SOURCES,
   POPULATION_TRENDS_FIXTURE,
   POPULATION_TRENDS_SOURCES,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
+  ZONING_TOTAL,
   landPricesSnapshotRows,
   loadLandPricesSnapshot,
 } from "@/__tests__/fixtures/live-data";
@@ -134,6 +137,8 @@ const DEMOGRAPHICS_22: Route = json(200, {
 const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true });
 const DISASTER: Route = json(200, { data: [], isLive: false });
 const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+// The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
+const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 /** The same payload with the sources moved to another year, table and label: what the page must then say. */
 function landSaying(year: number, table: string, label: string): Route {
@@ -159,9 +164,10 @@ async function renderSettled(routes: { land?: Route; demographics?: Route } = {}
     "/api/v1/disaster-risks": DISASTER,
     "/api/v1/population-trends": TRENDS,
     [LAND_ROUTE]: routes.land ?? LAND,
+    "/api/v1/zoning": ZONING,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

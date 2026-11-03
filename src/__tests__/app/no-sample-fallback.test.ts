@@ -105,3 +105,28 @@ describe("PR 5: the 地価 surfaces read the 地価公示 snapshot; the sample f
     expect(read("src/components/landing/LandingContent.tsx")).not.toMatch(/\bsampleLandPrice\b/);
   });
 });
+
+describe("PR 6: the 用途地域 surfaces read the A55-24 snapshot; sampleZoning is gone", () => {
+  // RED on main (506b880). The 用途地域 tab and the 災害 tab's mini-bar read
+  // /api/v1/zoning; the sample set, its type, its import and the LP's sample
+  // row for it all leave.
+  it("sample.ts no longer exports sampleZoning, and the ZoningArea type is gone", () => {
+    expect(read("src/data/sample.ts")).not.toMatch(/export const sampleZoning\b/);
+    expect(read("src/types/index.ts")).not.toContain("ZoningArea");
+  });
+
+  it("page.tsx and DisasterRiskPanel read no sample zoning", () => {
+    expect(read("src/app/app/page.tsx")).not.toContain("sampleZoning");
+    expect(read("src/components/dashboard/DisasterRiskPanel.tsx")).not.toContain("ZoningArea");
+  });
+
+  it("the LP dictionary and provenance table have no sample row for 用途地域", () => {
+    expect(read("src/i18n/lp.ts")).not.toMatch(/\bsampleZoning\b/);
+    expect(read("src/components/landing/LandingContent.tsx")).not.toMatch(/\bsampleZoning\b/);
+  });
+
+  it("the backend sample copy and its generator carry no zoning", () => {
+    expect(read("backend/data/sample_fallback.json")).not.toContain("sampleZoning");
+    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("sampleZoning");
+  });
+});

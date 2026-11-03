@@ -8,7 +8,6 @@ import {
   sampleDisasterRisks,
   sampleTransportTrends,
   sampleWardProfiles,
-  sampleZoning,
 } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
@@ -20,6 +19,8 @@ import {
   POPULATION_TRENDS_SOURCES,
   RIDERSHIP_YEAR,
   TRANSPORT_SOURCES,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
 } from "@/__tests__/fixtures/live-data";
 import HeroSpread from "@/components/landing/HeroSpread";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
@@ -89,11 +90,33 @@ describe("sample surfaces carry the sample label and no real-source attribution"
   });
 
 
-  it("DisasterRiskPanel — pie + zoning bar + risk list", () => {
+  it("DisasterRiskPanel — pie + risk list are sample; the 用途地域 bar (real-data plan PR 6) is not: unavailable → 取得失敗 naming 国土数値情報, no 出典", () => {
     const { container } = render(
-      <DisasterRiskPanel risks={sampleDisasterRisks} zoning={sampleZoning} selectedWard={null} />
+      <DisasterRiskPanel risks={sampleDisasterRisks} zoning={null} zoningStatus="unavailable" selectedWard={null} />
     );
-    expectSampleLabelled(container, 3);
+    const text = container.textContent ?? "";
+    expect(occurrences(text, SAMPLE_LABEL)).toBeGreaterThanOrEqual(2);
+    const d2 = container.querySelector('[data-surface="disaster-zoning"]');
+    expect(d2).not.toBeNull();
+    expect(d2!.querySelector('[data-provenance="sample"]')).toBeNull();
+    expect(d2!.textContent).toContain(FAILED_TEXT);
+    expect(d2!.textContent).toContain(SOURCES.ksj.label);
+    expect(text).not.toContain("出典:");
+    expect(text).not.toContain("出典：");
+    for (const real of REAL_SOURCE_STRINGS.filter((r) => r !== "国土数値情報")) expect(text).not.toContain(real);
+  });
+
+  it("DisasterRiskPanel (zoning ok) — the 用途地域 bar cites 国土数値情報 with the edition and carries no sample label; the pie still does", () => {
+    const { container } = render(
+      <DisasterRiskPanel risks={sampleDisasterRisks} zoning={ZONING_FIXTURE[0]} zoningStatus="ok" zoningSources={ZONING_SOURCES} selectedWard="江東区" />
+    );
+    const d2 = container.querySelector('[data-surface="disaster-zoning"]');
+    expect(d2).not.toBeNull();
+    expect(d2!.querySelector('[data-provenance="sample"]')).toBeNull();
+    expect(d2!.textContent).toContain(SOURCES.ksj.label);
+    expect(d2!.textContent).toContain(`${ZONING_SOURCES.zoning.year}年度`);
+    expect(d2!.textContent).not.toContain(SAMPLE_LABEL);
+    expect(occurrences(container.textContent ?? "", SAMPLE_LABEL)).toBeGreaterThanOrEqual(2);
   });
 
   it("WardRadar — profiles are sample", () => {

@@ -24,6 +24,8 @@ DATA_ROUTES = [
     "/api/v1/population-trends",
     # The committed 地価公示 snapshot (real-data plan PR 5): gated like the rest.
     "/api/v1/land-prices",
+    # The committed 用途地域 snapshot (real-data plan PR 6): gated like the rest.
+    "/api/v1/zoning",
 ]
 
 ACTIVE_CLAIMS = {
@@ -142,6 +144,19 @@ def test_land_prices_is_the_committed_snapshot_not_reinfolib(client):
     assert body["status"] == "ok"
     assert "unavailable" not in body and "fetchedAt" not in body
     assert body["sources"]["price"]["table"].startswith("L01")
+
+
+def test_zoning_is_the_committed_snapshot(client):
+    """Real-data plan PR 6: the 用途地域 composition per ward is the committed
+    国土数値情報 A55-24 snapshot, validated at startup — no upstream, so no
+    partial answer and no 取得日時; the 23区 composition rides as ``total``."""
+    body = client.get("/api/v1/zoning", headers={"Authorization": "Bearer active-token"}).json()
+    assert body["isLive"] is True
+    assert body["status"] == "ok"
+    assert "unavailable" not in body and "fetchedAt" not in body
+    assert body["sources"]["zoning"]["table"].startswith("A55")
+    assert body["total"]["region"] == "東京23区"
+    assert len(body["data"]) == 23
 
 
 def test_no_service_module_fetches_reinfolib():

@@ -15,6 +15,16 @@ const KSJ_SOURCE = "出典：国土交通省国土数値情報ダウンロード
 const KSJ_S12_EDITED = "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_N03_EDITED = "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_L01_EDITED = "「国土数値情報（地価公示データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_A55_EDITED = "「国土数値情報（都市計画決定情報データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+// The A55 page's 【重要：データ利用時の注意事項】 (real-data plan PR 6), word for word.
+const A55_NOTICES = [
+  "本データは、建築確認申請や不動産重要事項説明等の手続に用いることを保証するものではなく、参考情報としての利用を想定しています。",
+  "本データに含まれる地区・地域の範囲は、概ねの位置を示すものであり、実際の都市計画の決定範囲等と異なる場合があります。",
+  "本データは、当該自治体の都市計画等の情報全てではないことがあります。",
+  "本データは、最新の情報ではないことがあります。本データの時点については、公表自治体及び掲載データ一覧を参考にしてください。",
+  "最新の正確な都市計画決定情報が必要な場合は、該当する地方公共団体の担当課までお問い合わせください。",
+  "本データを用いて行う一切の行為（コンテンツを編集・加工等した情報を利用することを含む）及び本データの利用によって発生した直接または間接の損失、損害等について、国土交通省並びに原典資料提供元の地方公共団体は一切の責任を負いません。",
+];
 const RETIRED = "OD" + "PT";
 const RETIRED_JA = "公共交通オープン" + "データ";
 const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
@@ -29,6 +39,10 @@ const KSJ_N03_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (administrative area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 const KSJ_L01_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (published land price data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+const KSJ_A55_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (city planning decision data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+const A55_NOTICE_ASOF_EN =
+  "Translation: This data may not be the latest information. For the date each dataset reflects, refer to the list of publishing municipalities and published data.";
 
 function sourcesSection(container: HTMLElement): HTMLElement {
   const table = container.querySelector("table");
@@ -50,6 +64,8 @@ describe("landing page データ出典 — Japanese", () => {
     expect(text).toContain(KSJ_S12_EDITED);
     expect(text).toContain(KSJ_N03_EDITED);
     expect(text).toContain(KSJ_L01_EDITED);
+    expect(text).toContain(KSJ_A55_EDITED);
+    for (const notice of A55_NOTICES) expect(text).toContain(notice);
     expect(text).not.toMatch(/をもとに.*作成/);
     expect(container.textContent).not.toContain(RETIRED);
     expect(container.textContent).not.toContain(RETIRED_JA);
@@ -81,6 +97,8 @@ describe("landing page データ出典 — English", () => {
       [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
       [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
       [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
+      [KSJ_A55_EDITED, KSJ_A55_EDITED_EN],
+      [A55_NOTICES[3], A55_NOTICE_ASOF_EN],
     ]) {
       expect(text).toContain(ja);
       expect(text).toContain(en);

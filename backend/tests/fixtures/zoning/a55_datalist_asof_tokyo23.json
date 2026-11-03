@@ -1,0 +1,305 @@
+{
+ "source": {
+  "title": "国土数値情報 都市計画決定情報 公表自治体及び掲載データ一覧（A55 2024年度版）",
+  "url": "https://nlftp.mlit.go.jp/ksj/gml/codelist/A55_R6_datalist.xlsx",
+  "file": "A55_R6_datalist.xlsx",
+  "bytes": 267640,
+  "sha256": "e27222a72127a6e45b393d2ae1963d2827e8915276ec235013ad892cc337c21a",
+  "sheet": "公表自治体及び掲載データ一覧",
+  "columns": {
+   "code": "団体コード",
+   "layer": "用途地域",
+   "created": "データ作成年",
+   "asOf": "データ時点年",
+   "notes": "留意事項"
+  },
+  "legend": "【記号説明】 　「〇」：データあり。「×」：データなし。「－」都市計画決定なし。",
+  "rule": "the ward's own row decides (A55 page 注意事項 4: 本データの時点については、公表自治体及び掲載データ一覧を参考にしてください); a date cell is the date; a cell that itemises by item number takes ③ (用途地域); 「都に準ずる」 takes the 東京都 row (130001); anything else is no date (Architect decision 2026-11-03, way 1)"
+ },
+ "tokyo": {
+  "rowCode": "130001",
+  "created": "2024-04-26",
+  "asOf": "2024-04-26",
+  "date": "2024-04-26"
+ },
+ "wards": [
+  {
+   "code": "13101",
+   "name": "千代田区",
+   "rowCode": "131016",
+   "cells": {
+    "created": "2024-04-01",
+    "asOf": "2024-03-26",
+    "notes": null
+   },
+   "date": "2024-03-26",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13102",
+   "name": "中央区",
+   "rowCode": "131024",
+   "cells": {
+    "created": "①、②、③、⑤、⑥：R5.12.18 ④：R6.7.331",
+    "asOf": "①、②、③、⑤、⑥：R5.12.18 ④：R6.7.331",
+    "notes": null
+   },
+   "date": "2023-12-18",
+   "basis": "asof_itemised",
+   "note": "③（用途地域）の日付"
+  },
+  {
+   "code": "13103",
+   "name": "港区",
+   "rowCode": "131032",
+   "cells": {
+    "created": "2021-03-01",
+    "asOf": "2021-07-01",
+    "notes": null
+   },
+   "date": "2021-07-01",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13104",
+   "name": "新宿区",
+   "rowCode": "131041",
+   "cells": {
+    "created": "2023-04-28",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13105",
+   "name": "文京区",
+   "rowCode": "131059",
+   "cells": {
+    "created": "2023-04-28",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13106",
+   "name": "台東区",
+   "rowCode": "131067",
+   "cells": {
+    "created": "2023-07-01",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13107",
+   "name": "墨田区",
+   "rowCode": "131075",
+   "cells": {
+    "created": "2024-03-01",
+    "asOf": "2024-09-01",
+    "notes": null
+   },
+   "date": "2024-09-01",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13108",
+   "name": "江東区",
+   "rowCode": "131083",
+   "cells": {
+    "created": "㉝道路2024年度、㊱公園2023年度",
+    "asOf": "㉝道路2024年度、㊱公園2023年度",
+    "notes": null
+   },
+   "date": null,
+   "basis": "none"
+  },
+  {
+   "code": "13109",
+   "name": "品川区",
+   "rowCode": "131091",
+   "cells": {
+    "created": "2024-03-01",
+    "asOf": "2024-03-06",
+    "notes": null
+   },
+   "date": "2024-03-06",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13110",
+   "name": "目黒区",
+   "rowCode": "131105",
+   "cells": {
+    "created": "－",
+    "asOf": "－",
+    "notes": null
+   },
+   "date": null,
+   "basis": "none"
+  },
+  {
+   "code": "13111",
+   "name": "大田区",
+   "rowCode": "131113",
+   "cells": {
+    "created": "2024-03-31",
+    "asOf": "2024-10-01",
+    "notes": null
+   },
+   "date": "2024-10-01",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13112",
+   "name": "世田谷区",
+   "rowCode": "131121",
+   "cells": {
+    "created": "2024-09-09",
+    "asOf": "2024-08-31",
+    "notes": null
+   },
+   "date": "2024-08-31",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13113",
+   "name": "渋谷区",
+   "rowCode": "131130",
+   "cells": {
+    "created": "笹塚駅南口（用途地域、地区計画、高度利用地区、高度地区、防火地域及び準防火地域、特別用途地区） 2023/12/14\n 補助第20号線の変更 2024/5/29\n 公園通り西地区第一種市街地再開発事業の決定 2024/5/29\n 高度利用地区（公園通り西地区）の変更 2024/5/29\n 特殊街路歩行者自転車道第1号線の変更 2024/5/29\n 第3・3・129号玉川上水旧水路緑道公園の変更 2024/5/29",
+    "asOf": "－",
+    "notes": null
+   },
+   "date": null,
+   "basis": "none"
+  },
+  {
+   "code": "13114",
+   "name": "中野区",
+   "rowCode": "131148",
+   "cells": {
+    "created": "2023-12-01",
+    "asOf": "2023-12-01",
+    "notes": null
+   },
+   "date": "2023-12-01",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13115",
+   "name": "杉並区",
+   "rowCode": "131156",
+   "cells": {
+    "created": "2023-04-28",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13116",
+   "name": "豊島区",
+   "rowCode": "131164",
+   "cells": {
+    "created": "2024-03-29",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13117",
+   "name": "北区",
+   "rowCode": "131172",
+   "cells": {
+    "created": "2023-04-28",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13118",
+   "name": "荒川区",
+   "rowCode": "131181",
+   "cells": {
+    "created": "2024-03-31",
+    "asOf": "2024-03-31",
+    "notes": null
+   },
+   "date": "2024-03-31",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13119",
+   "name": "板橋区",
+   "rowCode": "131199",
+   "cells": {
+    "created": "－",
+    "asOf": "－",
+    "notes": null
+   },
+   "date": null,
+   "basis": "none"
+  },
+  {
+   "code": "13120",
+   "name": "練馬区",
+   "rowCode": "131202",
+   "cells": {
+    "created": "2024-09-10",
+    "asOf": "2024-09-10",
+    "notes": null
+   },
+   "date": "2024-09-10",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13121",
+   "name": "足立区",
+   "rowCode": "131211",
+   "cells": {
+    "created": "2023-04-28",
+    "asOf": "2023-04-28",
+    "notes": null
+   },
+   "date": "2023-04-28",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13122",
+   "name": "葛飾区",
+   "rowCode": "131229",
+   "cells": {
+    "created": "2023-12-21",
+    "asOf": "2023-12-21",
+    "notes": null
+   },
+   "date": "2023-12-21",
+   "basis": "asof_cell"
+  },
+  {
+   "code": "13123",
+   "name": "江戸川区",
+   "rowCode": "131237",
+   "cells": {
+    "created": "都に準ずる",
+    "asOf": "都に準ずる",
+    "notes": null
+   },
+   "date": "2024-04-26",
+   "basis": "tokyo_row",
+   "note": "都に準ずる"
+  }
+ ]
+}
