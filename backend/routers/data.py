@@ -1,6 +1,6 @@
 """The data endpoints: the live census call, the curated disaster set, and the
-three committed snapshots — 人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4)
-and 地価公示 (PR 5).
+four committed snapshots — 人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4),
+地価公示 (PR 5) and 用途地域 (PR 6).
 
 Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
 ``status`` says whether the request got everything it asked for; ``isLive``
@@ -14,7 +14,9 @@ from, so the screen can say which vintage every figure is (real-data plan
 PR 2). The /population-trends answer carries the same shape keyed by year;
 the /transport answer carries it per field (ridership, stations, wards): the
 国土数値情報 edition each came from; the /land-prices answer per field (price,
-change): the 地価公示 edition.
+change): the 地価公示 edition; the /zoning answer per field (zoning, wards,
+asOf): the 都市計画決定情報 edition, the ward polygons and the data list the
+時点 is read from — and, beside ``data``, the 23区 composition as ``total``.
 
 A failure is HTTP 503 with the body ``{"status": "unavailable"}`` and nothing
 else — never sample values (RECON 2026-10-uo-real-data §7, PR 1). A 200 would
@@ -40,7 +42,7 @@ from fastapi.responses import JSONResponse
 from core import cache
 from core.boundary import json_safe
 from core.config import settings
-from services import demographics, disaster_risks, land_prices, population_trends, transport
+from services import demographics, disaster_risks, land_prices, population_trends, transport, zoning
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +58,15 @@ def _envelope(
     status: str = "ok",
     unavailable: list[str] | None = None,
     sources: dict[str, dict] | None = None,
+    total: dict | None = None,
 ) -> JSONResponse:
     body: dict = {"status": status, "data": data, "isLive": is_live}
     if unavailable:
         body["unavailable"] = list(unavailable)
     if sources is not None:
         body["sources"] = sources
+    if total is not None:
+        body["total"] = total
     return JSONResponse(json_safe(body))
 
 
@@ -164,6 +169,28 @@ async def get_land_prices() -> JSONResponse:
         land_prices.rows(snapshot),
         is_live=True,
         sources=land_prices.sources(snapshot),
+    )
+
+
+@router.get("/zoning")
+async def get_zoning() -> JSONResponse:
+    """The committed 用途地域 snapshot (real-data plan PR 6): per ward, the share
+    of the ward's designated area by 用途地域 type, the designated share of the
+    ward, per type the area-weighted 容積率 / 建蔽率 with their range, and the
+    時点 from the A55 data list — from 国土数値情報 都市計画決定情報データ A55-24
+    clipped to the N03-20260101 ward polygons; the 23区 composition as ``total``.
+
+    No upstream and no cache: the file was validated when the app started
+    (main.py), so this route has no partial or failed answer of its own.
+    ``isLive`` is True: the figures are the source's own, not a sample.
+    ``sources`` names, per field (zoning, wards, asOf), the edition and table.
+    """
+    snapshot = zoning.get(settings.ZONING_PATH)
+    return _envelope(
+        zoning.rows(snapshot),
+        is_live=True,
+        sources=zoning.sources(snapshot),
+        total=zoning.total(snapshot),
     )
 
 

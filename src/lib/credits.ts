@@ -64,6 +64,41 @@ export const KSJ_N03_EDITED_EN =
 export const KSJ_L01_EDITED = `「国土数値情報（地価公示データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
 export const KSJ_L01_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (published land price data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+/**
+ * 国土数値情報 利用規約 1)イ for the 用途地域 snapshot (real-data plan PR 6:
+ * 都市計画決定情報データ A55, clipped to 行政区域データ N03), the same 加工 form
+ * with no editor name (Architect decision 12). Recorded in the snapshot's
+ * `credit.edited_a55` / `credit.edited_n03` (backend/data/zoning.json).
+ */
+export const KSJ_A55_EDITED = `「国土数値情報（都市計画決定情報データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_A55_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (city planning decision data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+/**
+ * The A55 page's 【重要：データ利用時の注意事項】 (https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A55-2024.html,
+ * read 2026-11-03), word for word — the page says they must be read before the
+ * data is used, and RECON §9 row 6 requires them beside the figures. All six
+ * are shown: each applies to a dashboard that derives area shares from the
+ * extents (1, 2, 3, 6) and prints the data list's 時点 (4, 5). The same six
+ * sentences are recorded in the snapshot's `notices`.
+ */
+export const A55_NOTICES_LABEL = "国土数値情報（都市計画決定情報データ）利用時の注意事項";
+export const A55_NOTICES_LABEL_EN = "Translation: Notes on using the National Land Numerical Information (city planning decision data)";
+export const A55_NOTICES = [
+  "本データは、建築確認申請や不動産重要事項説明等の手続に用いることを保証するものではなく、参考情報としての利用を想定しています。",
+  "本データに含まれる地区・地域の範囲は、概ねの位置を示すものであり、実際の都市計画の決定範囲等と異なる場合があります。",
+  "本データは、当該自治体の都市計画等の情報全てではないことがあります。",
+  "本データは、最新の情報ではないことがあります。本データの時点については、公表自治体及び掲載データ一覧を参考にしてください。",
+  "最新の正確な都市計画決定情報が必要な場合は、該当する地方公共団体の担当課までお問い合わせください。",
+  "本データを用いて行う一切の行為（コンテンツを編集・加工等した情報を利用することを含む）及び本データの利用によって発生した直接または間接の損失、損害等について、国土交通省並びに原典資料提供元の地方公共団体は一切の責任を負いません。",
+] as const;
+export const A55_NOTICES_EN = [
+  "Translation: This data is not guaranteed for use in procedures such as building confirmation applications or explanations of important matters in real-estate transactions; it is intended for use as reference information.",
+  "Translation: The extents of the districts and zones in this data show approximate locations and may differ from the areas actually decided in the city plans.",
+  "Translation: This data may not cover all of the city planning information of the municipality concerned.",
+  "Translation: This data may not be the latest information. For the date each dataset reflects, refer to the list of publishing municipalities and published data.",
+  "Translation: If you need the latest and accurate city planning decision information, contact the department in charge at the relevant local government.",
+  "Translation: Neither the Ministry of Land, Infrastructure, Transport and Tourism nor the local governments that provided the source materials accept any responsibility for any act performed using this data (including the use of information made by editing or processing the content) or for any direct or indirect loss or damage arising from the use of this data.",
+] as const;
 
 /**
  * What a 乗降客数 figure is (real-data plan PR 4): the snapshot sums each
@@ -85,6 +120,21 @@ export const RIDERSHIP_JR_NOTE = "JR東日本の値は乗車人員を2倍した�
 export const LAND_PRICE_MEAN_NOTE = "平均価格は各用途の全地点の地価公示価格の単純平均";
 export const LAND_PRICE_CHANGE_NOTE = "変動率は継続地点（前年と比較できる地点）の対前年変動率の単純平均";
 export const LAND_PRICE_USES_NOTE = "住宅地と商業地のみ区別に集計（用途区分 000 住宅地、005 商業地）；工業地は地点数のみ";
+
+/**
+ * What a 用途地域 figure is (real-data plan PR 6, Architect decisions 2026-11-03):
+ * the shares are of the ward's designated area, clipped to the N03 ward
+ * polygon; the designated share is that area over the polygon's; 容積率 /
+ * 建蔽率 are area-weighted means with their range; the 時点 is the data list's.
+ * The four sentences come from the snapshot's `notes`.
+ */
+export const ZONING_SHARE_NOTE =
+  "各用途地域の面積割合は、区の用途地域指定区域（A55 の用途地域ポリゴンを行政区域データ N03 の区ポリゴンで切り抜いた面積の合計）に対する割合。区ごとに合計 100%";
+export const ZONING_DESIGNATED_NOTE =
+  "指定区域の割合 = 用途地域ポリゴン ∩ 区ポリゴン（N03-20260101）の面積 ÷ 区ポリゴンの面積。河川・海面など用途地域の指定がない部分が残りで、100% を超えない";
+export const ZONING_FAR_NOTE = "容積率・建蔽率は用途地域ごとの面積加重平均（切り抜いた面積で加重）と、ポリゴンに記録された指定値の範囲（最小〜最大）";
+export const ZONING_ASOF_NOTE =
+  "時点は国土数値情報 公表自治体及び掲載データ一覧（A55_R6_datalist.xlsx）のデータ時点年の列から区ごとに読む。記載のない区は「掲載データ一覧に記載なし」";
 
 /** dataofjapan/land README: name the upstream, 地球地図日本. */
 export const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";

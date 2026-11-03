@@ -4,7 +4,6 @@ import type {
   LandPriceSummary,
   TransportTrend,
   WardProfile,
-  ZoningArea,
 } from "@/types";
 
 export const dataLayers: DataLayer[] = [
@@ -82,17 +81,6 @@ export const sampleTransportTrends: TransportTrend[] = [
   { year: 2022, passengers: 445_600, station: "池袋" },
   { year: 2023, passengers: 502_100, station: "池袋" },
   { year: 2024, passengers: 538_400, station: "池袋" },
-];
-
-export const sampleZoning: ZoningArea[] = [
-  { id: "z-1", type: "commercial", label: "商業地域", color: "var(--ink-1)", maxFloorAreaRatio: 800, maxBuildingCoverage: 80, areaPct: 12 },
-  { id: "z-2", type: "neighborhood-commercial", label: "近隣商業地域", color: "var(--ink-2)", maxFloorAreaRatio: 400, maxBuildingCoverage: 80, areaPct: 8 },
-  { id: "z-3", type: "residential-1-low", label: "一低住専", color: "var(--ink-3)", maxFloorAreaRatio: 150, maxBuildingCoverage: 50, areaPct: 18 },
-  { id: "z-4", type: "residential-1-mid", label: "一中住専", color: "var(--ink-4)", maxFloorAreaRatio: 300, maxBuildingCoverage: 60, areaPct: 15 },
-  { id: "z-5", type: "residential-1", label: "一種住居", color: "var(--ink-5)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 22 },
-  { id: "z-6", type: "quasi-residential", label: "準住居", color: "var(--ink-6)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 5 },
-  { id: "z-7", type: "quasi-industrial", label: "準工業", color: "var(--ink-7)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
-  { id: "z-8", type: "industrial", label: "工業", color: "var(--ink-8)", maxFloorAreaRatio: 400, maxBuildingCoverage: 60, areaPct: 10 },
 ];
 
 export const sampleWardProfiles: WardProfile[] = [

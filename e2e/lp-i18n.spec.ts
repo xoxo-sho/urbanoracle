@@ -3,6 +3,10 @@ import { LP_COPY } from "../src/i18n/lp";
 import {
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
+  A55_NOTICES,
+  A55_NOTICES_EN,
+  A55_NOTICES_LABEL,
+  A55_NOTICES_LABEL_EN,
   KSJ_A55_EDITED,
   KSJ_A55_EDITED_EN,
   KSJ_L01_EDITED,
@@ -76,7 +80,10 @@ async function storedLang(page: Page): Promise<string | null> {
 // The data providers' prescribed sentences: Japanese verbatim on BOTH pages
 // (Language decision, RECON 2026-10-data-terms §7.1), each followed on the
 // English page by its marked translation in a child span[lang="en"].
-const PRESCRIBED = '[data-credit="required"] p[lang="ja"]';
+// Real-data plan PR 6 adds the A55 page's six 注意事項 in their own block
+// ([data-notices="a55"]: a labelling <p> and six <li>), treated like the
+// prescribed sentences: Japanese verbatim, each followed by its translation.
+const PRESCRIBED = '[data-credit="required"] p[lang="ja"], [data-notices="a55"] li[lang="ja"]';
 const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [ESTAT_API_CREDIT, ESTAT_API_CREDIT_EN],
   [KSJ_SOURCE, KSJ_SOURCE_EN],
@@ -84,6 +91,8 @@ const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
   [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
   [KSJ_A55_EDITED, KSJ_A55_EDITED_EN],
+  [A55_NOTICES_LABEL, A55_NOTICES_LABEL_EN],
+  ...A55_NOTICES.map((ja, i): [string, string] => [ja, A55_NOTICES_EN[i]]),
 ];
 
 /**

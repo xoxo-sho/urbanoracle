@@ -139,3 +139,25 @@ export function landPriceLine(sources: FieldSources | null | undefined): string 
   if (!s) return null;
   return `${s.year}年地価公示 ／ ${s.label}（${s.table}）`;
 }
+
+// ---- 用途地域 (real-data plan PR 6) ---------------------------------------------
+
+/** The zoning source of the /zoning payload, or null when it names none. */
+export function zoningSource(sources: FieldSources | null | undefined): FieldSource | null {
+  const s = sources?.zoning;
+  return s && Number.isFinite(s.year) ? s : null;
+}
+
+/**
+ * The provenance line of the 用途地域 surfaces:
+ * 「2024年度 国土数値情報 都市計画決定情報データ 2024年度（令和6年度）版 用途地域（…）（A55-24） ／ 区の面積・切り抜き: 行政区域データ（N03-20260101）」.
+ * Null when the payload names no zoning source.
+ */
+export function zoningLine(sources: FieldSources | null | undefined): string | null {
+  const z = zoningSource(sources);
+  if (!z) return null;
+  const w = sources?.wards;
+  return [`${z.year}年度 ${z.label}（${z.table}）`, w ? `区の面積・切り抜き: 行政区域データ（${w.table}）` : null]
+    .filter((p): p is string => p !== null)
+    .join(" ／ ");
+}

@@ -77,14 +77,60 @@ export interface TransportStation {
   note?: string;
 }
 
-export interface ZoningArea {
-  id: string;
-  type: string;
+/** An attribute's area-weighted mean and the min–max of the polygon values (%). */
+export interface ZoningRange {
+  mean: number;
+  min: number;
+  max: number;
+}
+
+/**
+ * One 用途地域 type present in a composition (real-data plan PR 6): A55's code
+ * (1–13) and name, its clipped area, its share of the designated area, the
+ * polygons it comes from, and the 指定容積率 / 指定建蔽率 figures.
+ */
+export interface ZoningType {
+  code: number;
+  name: string;
+  m2: number;
+  share: number; // % of the designated area
+  n: number;
+  far: ZoningRange; // 容積率
+  bcr: ZoningRange; // 建蔽率
+}
+
+/**
+ * The 時点 of a composition as the A55 data list states it (Architect
+ * decision 2026-11-03, way 1): a ward's date or null when the list does not
+ * date it; `text` is the sentence the screen prints as it stands. The 23区
+ * view carries the range of the dated wards and the codes without a date.
+ */
+export interface ZoningAsOf {
+  date: string | null;
+  basis?: string;
   label: string;
-  color: string;
-  maxFloorAreaRatio: number; // 容積率
-  maxBuildingCoverage: number; // 建蔽率
-  areaPct: number; // 面積割合 (%)
+  text: string;
+  note?: string;
+  from?: string;
+  to?: string;
+  missing?: string[];
+}
+
+/**
+ * One record of /api/v1/zoning (a ward) or its `total` (東京23区): the
+ * designated area and its share of the N03 ward polygon, and the types
+ * present in A55 code order with their shares.
+ */
+export interface ZoningComposition {
+  region: string;
+  code: string;
+  wardM2: number;
+  designatedM2: number;
+  designatedShare: number; // % of the ward polygon, ≤ 100
+  outsideM2: number;
+  polygons: number;
+  asOf: ZoningAsOf;
+  types: ZoningType[];
 }
 
 /**

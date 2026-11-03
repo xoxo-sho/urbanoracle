@@ -33,6 +33,13 @@ vi.mock("next/font/local", () => ({
  */
 
 const EVERYWHERE = ["申請", "審査", "公示地価", "世帯"];
+// Real-data plan PR 6: the A55 page's 注意事項 are shown verbatim on the LP, and
+// the first of them reads 「建築確認申請や不動産重要事項説明等の手続に用いることを
+// 保証するものではなく…」. That 申請 is the provider's sentence about building
+// permits, not the product claiming an application step, so the block that
+// carries the provider's own wording ([data-notices="a55"]) is read out of
+// the scan — and only that block: the exemption is checked to exist.
+const PROVIDER_VERBATIM = '[data-notices="a55"]';
 const OUTSIDE_SAMPLE_GROUP: string[] = [];
 const SAMPLE_GROUP = 'tbody[data-provenance="sample"]';
 const LIVE_GROUP = 'tbody[data-provenance="live"]';
@@ -50,11 +57,14 @@ function readable(root: Element): string {
 describe("landing page copy says only what the code does", () => {
   it("the Japanese render carries none of the retired claims", () => {
     const { container } = render(<LandingPage />);
-    const all = readable(container);
+    expect(container.querySelectorAll(PROVIDER_VERBATIM).length, "the provider-verbatim block the exemption names must exist").toBe(1);
+    const productCopy = container.cloneNode(true) as Element;
+    productCopy.querySelectorAll(PROVIDER_VERBATIM).forEach((el) => el.remove());
+    const all = readable(productCopy);
 
     const sampleGroups = container.querySelectorAll(SAMPLE_GROUP);
     expect(sampleGroups.length, "the sample group the exemption names must exist").toBe(1);
-    const outside = container.cloneNode(true) as Element;
+    const outside = productCopy.cloneNode(true) as Element;
     outside.querySelectorAll(SAMPLE_GROUP).forEach((el) => el.remove());
     const outsideText = readable(outside);
 
