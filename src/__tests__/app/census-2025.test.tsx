@@ -42,7 +42,15 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 import Home from "@/app/app/page";
 import { useGatedData } from "@/lib/use-gated-data";
 import { ESTAT_EDITED } from "@/lib/credits";
-import { LAND_PRICES_FIXTURE, LAND_PRICES_SOURCES, POPULATION_TRENDS_FIXTURE, POPULATION_TRENDS_SOURCES } from "@/__tests__/fixtures/live-data";
+import {
+  LAND_PRICES_FIXTURE,
+  LAND_PRICES_SOURCES,
+  POPULATION_TRENDS_FIXTURE,
+  POPULATION_TRENDS_SOURCES,
+  ZONING_FIXTURE,
+  ZONING_SOURCES,
+  ZONING_TOTAL,
+} from "@/__tests__/fixtures/live-data";
 
 const TABLES = expected.meta.tables as { population: string; growthRate: string; ageGroups: string };
 const AREA_EDITION = expected.meta.area.edition;
@@ -109,6 +117,8 @@ const DISASTER = json(200, { data: [], isLive: false });
 const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
 // The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
 const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+// The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
+const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -128,9 +138,10 @@ async function renderSettled(demographicsRoute: Route) {
     "/api/v1/disaster-risks": DISASTER,
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
+    "/api/v1/zoning": ZONING,
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(5));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

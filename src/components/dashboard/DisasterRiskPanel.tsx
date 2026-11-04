@@ -8,7 +8,13 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import type { DisasterRisk, ZoningArea } from "@/types";
+import type { DisasterRisk, FieldSources, ZoningComposition } from "@/types";
+import type { DataStatus } from "@/lib/use-gated-data";
+import { SOURCES } from "@/lib/sources";
+import { zoningLine } from "@/lib/census-sources";
+import { designatedLine, formatShare, topTypes, typeStyle } from "@/lib/zoning";
+import { StateNotice, isPending } from "@/components/dashboard/DataState";
+import { NO_DATA } from "@/lib/format";
 import { TOOLTIP_STYLE } from "@/lib/chart-theme";
 import { AXIS, NEUTRAL, riskStep } from "@/lib/palette";
 import { AlertTriangle, Droplets, Mountain, Waves } from "lucide-react";
@@ -27,11 +33,19 @@ const riskColors: Record<string, string> = {
 
 interface DisasterRiskPanelProps {
   risks: DisasterRisk[];
-  zoning: ZoningArea[];
+  /** The 用途地域 composition in view (real-data plan PR 6): the selected ward's, or the 23区's; null while pending. */
+  zoning: ZoningComposition | null;
+  /** State of the /zoning answer. */
+  zoningStatus: DataStatus;
+  /** The /zoning payload's `sources`: the 国土数値情報 edition and tables. */
+  zoningSources?: FieldSources;
   selectedWard: string | null;
 }
 
-export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelProps) {
+/** The mini-bar's legend lists this many types by share; the rest are counted. */
+const LEGEND_N = 5;
+
+export default function DisasterRiskPanel({ risks, zoning, zoningStatus, zoningSources = {}, selectedWard }: DisasterRiskPanelProps) {
   // Pie: risk type distribution
   const riskByType = risks.reduce<Record<string, number>>((acc, r) => {
     acc[r.type] = (acc[r.type] ?? 0) + 1;
@@ -41,8 +55,13 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
     name: riskLabels[type] ?? type, value: count, color: riskColors[type] ?? "#666",
   }));
 
-  // Zoning: horizontal stacked bar (unique — not pie or radial)
-  const totalZoning = zoning.reduce((sum, z) => sum + z.areaPct, 0);
+  // 用途地域 (D2, real-data plan PR 6): the same composition and metric as the
+  // 用途地域 tab — shares of the ward's designated area — drawn as a stacked
+  // bar with the largest types in the legend. No sample path: pending states
+  // say so and name the source.
+  const zoningPending = isPending(zoningStatus);
+  const zoningProvenance = zoningLine(zoningSources);
+  const legendTypes = zoning ? topTypes(zoning, LEGEND_N) : [];
 
   return (
     <div className="space-y-4">
@@ -67,35 +86,53 @@ export default function DisasterRiskPanel({ risks, zoning }: DisasterRiskPanelPr
           <SampleNote note="単位: 件" />
         </div>
 
-        {/* Zoning — stacked horizontal bar, not a chart library component */}
-        <div className="chart-section">
+        {/* 用途地域 (D2) — stacked horizontal bar from the A55-24 snapshot, not a chart library component */}
+        <div className="chart-section" data-surface="disaster-zoning">
           <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             用途地域
           </h4>
-          {/* Stacked bar */}
-          <div className="flex h-4 rounded-full overflow-hidden mt-3">
-            {zoning.map((z) => (
-              <div key={z.id} style={{ width: `${(z.areaPct / totalZoning) * 100}%`, background: z.color }}
-                title={`${z.label}: ${z.areaPct}%`}
-              />
-            ))}
-          </div>
-          {/* Legend */}
-          <div className="mt-3 space-y-1">
-            {zoning.slice(0, 5).map((z) => (
-              <div key={z.id} className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full shrink-0" style={{ background: z.color }} />
-                <span className="text-[10px] text-muted-foreground truncate flex-1">
-                  {z.label.replace("第一種", "一種").replace("専用", "")}
-                </span>
-                <span className="text-[10px] tabular-nums text-foreground">{z.areaPct}%</span>
+          {zoningPending ? (
+            <StateNotice status={zoningStatus} source={`用途地域: ${SOURCES.ksj.label}`} />
+          ) : zoning === null ? (
+            <p className="state-note">{NO_DATA}</p>
+          ) : (
+            <>
+              <div className="flex h-4 rounded-full overflow-hidden mt-3" data-zoning-bar>
+                {zoning.types.map((t, i) => (
+                  <div
+                    key={t.code}
+                    data-zoning-segment
+                    data-code={t.code}
+                    data-share={t.share}
+                    style={{ width: `${t.share}%`, ...typeStyle(i) }}
+                    title={`${t.name}: ${formatShare(t.share)}`}
+                  />
+                ))}
               </div>
-            ))}
-            {zoning.length > 5 && (
-              <span className="text-[9px] text-muted-foreground">他 {zoning.length - 5} 区分</span>
-            )}
-          </div>
-          <SampleNote note="単位: 面積 %" />
+              <div className="mt-3 space-y-1">
+                {legendTypes.map((t) => (
+                  <div key={t.code} className="flex items-center gap-2" data-zoning-type data-code={t.code} data-name={t.name} data-share={t.share} data-m2={t.m2}>
+                    <span className="h-2 w-2 rounded-full shrink-0" style={typeStyle(zoning.types.indexOf(t))} />
+                    <span className="text-[10px] text-muted-foreground truncate flex-1">{t.name}</span>
+                    <span className="text-[10px] tabular-nums text-foreground">{formatShare(t.share)}</span>
+                  </div>
+                ))}
+                {zoning.types.length > LEGEND_N && (
+                  <span className="text-[9px] text-muted-foreground">他 {zoning.types.length - LEGEND_N} 区分</span>
+                )}
+              </div>
+              <p className="mt-2 text-[10px] text-foreground" data-designated data-share-of-ward={zoning.designatedShare}>
+                {designatedLine(zoning, selectedWard)}
+              </p>
+              <p className="text-[10px] text-muted-foreground" data-as-of data-as-of-date={zoning.asOf.date ?? ""}>
+                {zoning.asOf.text}
+              </p>
+              <p className="source-note mt-2">
+                {`出典: ${SOURCES.ksj.label}`}
+                {zoningProvenance ? ` ／ ${zoningProvenance}` : ""}
+              </p>
+            </>
+          )}
         </div>
       </div>
 

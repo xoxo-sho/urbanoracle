@@ -1,0 +1,176 @@
+{
+ "fetched": "2026-11-03",
+ "A55": {
+  "id": "A55-24",
+  "title": "国土数値情報 都市計画決定情報データ（東京都）",
+  "edition": "2024年度（令和6年度）版",
+  "year": 2024,
+  "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A55-2024.html",
+  "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A55/A55-24/A55-24_13000_SHP.zip",
+  "file": "A55-24_13000_SHP.zip",
+  "bytes": 51363053,
+  "sha256": "330895e56ab323cf4da8033de1f59b65400dde3feb149141b90eba5cfc090962",
+  "published": "2025-11（更新履歴「2025年11月：2024年度（令和6年度）版に更新しました。」）",
+  "licence": "オープンデータ（CC_BY_4.0）",
+  "layer": "<city>_youto.shp (用途地域) of each ward folder A55-24_131xx_SHP; JGD2011 geographic, UTF-8",
+  "codelist": "A55_R6_AttributeCodelist.pdf",
+  "types": {
+   "1": "第１種低層住居専用地域",
+   "2": "第２種低層住居専用地域",
+   "3": "第１種中高層住居専用地域",
+   "4": "第２種中高層住居専用地域",
+   "5": "第１種住居地域",
+   "6": "第２種住居地域",
+   "7": "準住居地域",
+   "8": "田園住居地域",
+   "9": "近隣商業地域",
+   "10": "商業地域",
+   "11": "準工業地域",
+   "12": "工業地域",
+   "13": "工業専用地域"
+  },
+  "wards": {
+   "13101": {
+    "polygons": 94
+   },
+   "13102": {
+    "polygons": 68
+   },
+   "13103": {
+    "polygons": 317
+   },
+   "13104": {
+    "polygons": 293
+   },
+   "13105": {
+    "polygons": 182
+   },
+   "13106": {
+    "polygons": 108
+   },
+   "13107": {
+    "polygons": 190
+   },
+   "13108": {
+    "polygons": 296
+   },
+   "13109": {
+    "polygons": 303
+   },
+   "13110": {
+    "polygons": 300
+   },
+   "13111": {
+    "polygons": 349
+   },
+   "13112": {
+    "polygons": 587
+   },
+   "13113": {
+    "polygons": 256
+   },
+   "13114": {
+    "polygons": 186
+   },
+   "13115": {
+    "polygons": 490
+   },
+   "13116": {
+    "polygons": 262
+   },
+   "13117": {
+    "polygons": 358
+   },
+   "13118": {
+    "polygons": 159
+   },
+   "13119": {
+    "polygons": 362
+   },
+   "13120": {
+    "polygons": 640
+   },
+   "13121": {
+    "polygons": 744
+   },
+   "13122": {
+    "polygons": 286
+   },
+   "13123": {
+    "polygons": 455
+   }
+  },
+  "rows_kept": 7285,
+  "cut": "one CSV row per 用途地域 polygon of the 23 ward folders: code (Citycode), ward, idx (feature index in the ward's youto layer), youto_code (YoutoCode), youto_name (YoutoName), far (FAR, %), bcr (BCR, %), area_m2 (the polygon's area on 第IX系, coordinates rounded to 9 decimals), in_ward_m2 (area of polygon ∩ the N03 ward polygon; equal to area_m2 when inside = 1), inside (1 when the N03 polygon covers the whole polygon), vertices. The GeoJSON carries the geometry of the 13101 and 13123 layers with the same rounding.",
+  "notices": [
+   "本データは、建築確認申請や不動産重要事項説明等の手続に用いることを保証するものではなく、参考情報としての利用を想定しています。",
+   "本データに含まれる地区・地域の範囲は、概ねの位置を示すものであり、実際の都市計画の決定範囲等と異なる場合があります。",
+   "本データは、当該自治体の都市計画等の情報全てではないことがあります。",
+   "本データは、最新の情報ではないことがあります。本データの時点については、公表自治体及び掲載データ一覧を参考にしてください。",
+   "最新の正確な都市計画決定情報が必要な場合は、該当する地方公共団体の担当課までお問い合わせください。",
+   "本データを用いて行う一切の行為（コンテンツを編集・加工等した情報を利用することを含む）及び本データの利用によって発生した直接または間接の損失、損害等について、国土交通省並びに原典資料提供元の地方公共団体は一切の責任を負いません。"
+  ]
+ },
+ "datalist": {
+  "title": "国土数値情報 都市計画決定情報 公表自治体及び掲載データ一覧（A55 2024年度版）",
+  "url": "https://nlftp.mlit.go.jp/ksj/gml/codelist/A55_R6_datalist.xlsx",
+  "file": "A55_R6_datalist.xlsx",
+  "bytes": 267640,
+  "sha256": "e27222a72127a6e45b393d2ae1963d2827e8915276ec235013ad892cc337c21a",
+  "sheet": "公表自治体及び掲載データ一覧",
+  "columns": {
+   "code": "団体コード",
+   "layer": "用途地域",
+   "created": "データ作成年",
+   "asOf": "データ時点年",
+   "notes": "留意事項"
+  },
+  "legend": "【記号説明】 　「〇」：データあり。「×」：データなし。「－」都市計画決定なし。",
+  "rule": "the ward's own row decides (A55 page 注意事項 4: 本データの時点については、公表自治体及び掲載データ一覧を参考にしてください); a date cell is the date; a cell that itemises by item number takes ③ (用途地域); 「都に準ずる」 takes the 東京都 row (130001); anything else is no date (Architect decision 2026-11-03, way 1)"
+ },
+ "N03": {
+  "id": "N03-20260101",
+  "edition": "2026年（令和8年）1月1日時点",
+  "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+  "url": "https://nlftp.mlit.go.jp/ksj/gml/data/N03/N03-2026/N03-20260101_13_GML.zip",
+  "file": "N03-20260101_13_GML.zip",
+  "bytes": 13153227,
+  "sha256": "94f10b26256566db970dd74b09d614f059c1e8a432f9244ac9c4add76c32ff16",
+  "excerpt": "backend/tests/fixtures/stations/ksj_N03-20260101_tokyo23.geojson",
+  "excerpt_sha256": "8a98881f85ac06ea4f435a38c2285e9f9eaa82a4384b20f4ad265f9847d89297",
+  "ward_area_m2": {
+   "13101": "11351690.804",
+   "13102": "10014857.294",
+   "13103": "20848622.808",
+   "13104": "18220434.936",
+   "13105": "11283916.162",
+   "13106": "10104305.207",
+   "13107": "13769373.808",
+   "13108": "44181902.305",
+   "13109": "22845613.187",
+   "13110": "14671500.158",
+   "13111": "61844402.067",
+   "13112": "58043226.013",
+   "13113": "15107542.426",
+   "13114": "15591305.298",
+   "13115": "34048892.212",
+   "13116": "13009478.151",
+   "13117": "20604803.835",
+   "13118": "10153943.448",
+   "13119": "32216783.118",
+   "13120": "48073042.203",
+   "13121": "53235554.418",
+   "13122": "34872280.957",
+   "13123": "48841265.512"
+  }
+ },
+ "projection": {
+  "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）",
+  "method": "国土地理院 Gauss-Krüger series (etl/zoning.py tm_project), standard library; areas by the shoelace formula",
+  "check": {
+   "against": "pyproj EPSG:6668→EPSG:6677",
+   "points": 5765,
+   "max_abs_diff_m": 3.2294337870553136e-08
+  }
+ }
+}

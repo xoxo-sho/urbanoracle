@@ -12,11 +12,11 @@ import WardRadar from "@/components/dashboard/WardRadar";
 import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
+import ZoningPanel from "@/components/dashboard/ZoningPanel";
 import {
   dataLayers,
   sampleDisasterRisks,
   sampleTransportTrends,
-  sampleZoning,
   sampleWardProfiles,
 } from "@/data/sample";
 import type {
@@ -27,10 +27,11 @@ import type {
   PopulationTrend,
   TransportStation,
   DataCategory,
+  ZoningComposition,
 } from "@/types";
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
-import SampleNote, { SampleTag } from "@/components/dashboard/SampleNote";
+import { SampleTag } from "@/components/dashboard/SampleNote";
 import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
 import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 import {
@@ -41,6 +42,7 @@ import {
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
+  KSJ_A55_EDITED,
   KSJ_L01_EDITED,
   KSJ_N03_EDITED,
   KSJ_S12_EDITED,
@@ -54,6 +56,10 @@ import {
   RIDERSHIP_DEFINITION_NOTE,
   RIDERSHIP_JR_NOTE,
   WARD_BOUNDARY_CREDIT,
+  ZONING_ASOF_NOTE,
+  ZONING_DESIGNATED_NOTE,
+  ZONING_FAR_NOTE,
+  ZONING_SHARE_NOTE,
 } from "@/lib/credits";
 import {
   censusLine,
@@ -63,9 +69,11 @@ import {
   transportLine,
   transportTileLine,
   trendLine,
+  zoningLine,
 } from "@/lib/census-sources";
 import { landPriceStops, type LandUse } from "@/lib/land-price";
 import { useGatedData } from "@/lib/use-gated-data";
+import { A55Notices } from "@/components/dashboard/RequiredCredits";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
 import SignOutButton from "@/components/auth/SignOutButton";
@@ -123,6 +131,18 @@ export default function Home() {
   const landPriceProvenance = landPriceLine(landPriceSources);
   // The choropleth's stops for the chosen use, from the data; the legend prints the same array.
   const landStops = useMemo(() => landPriceStops(landPriceRows, landUse), [landPriceRows, landUse]);
+  // The 用途地域 snapshot (real-data plan PR 6): one composition per ward and the
+  // 23区 composition as `total`; the view follows the selected ward. The payload
+  // names the edition and tables, and each composition's 時点 sentence is the
+  // payload's own (the data list's, or 記載なし).
+  const zoning = useGatedData<ZoningComposition[], ZoningComposition>("/api/v1/zoning");
+  const zoningRows = useMemo(() => zoning.data ?? [], [zoning.data]);
+  const zoningSources = zoning.sources ?? {};
+  const zoningProvenance = zoningLine(zoningSources);
+  const zoningView = useMemo(
+    () => (selectedWard ? (zoningRows.find((r) => r.region === selectedWard) ?? null) : zoning.total),
+    [selectedWard, zoningRows, zoning.total]
+  );
 
   const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
   const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
@@ -394,7 +414,9 @@ export default function Home() {
               <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto">
                 <DisasterRiskPanel
                   risks={selectedWard ? filteredRisks : risks}
-                  zoning={sampleZoning}
+                  zoning={zoningView}
+                  zoningStatus={zoning.status}
+                  zoningSources={zoningSources}
                   selectedWard={selectedWard}
                 />
               </TabsContent>
@@ -410,60 +432,9 @@ export default function Home() {
                 />
               </TabsContent>
 
-              {/* Zoning */}
+              {/* Zoning (real-data plan PR 6): the committed A55-24 snapshot, following the selected ward */}
               <TabsContent value="zoning" className="mt-4 flex-1 overflow-y-auto">
-                <div className="space-y-4">
-                  <div className="chart-section">
-                    <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      用途地域 面積構成
-                    </h4>
-                    <div className="flex h-5 rounded-full overflow-hidden">
-                      {sampleZoning.map((z) => (
-                        <div key={z.id} style={{ width: `${z.areaPct}%`, background: z.color }} title={`${z.label}: ${z.areaPct}%`} />
-                      ))}
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
-                      {sampleZoning.map((z) => (
-                        <div key={z.id} className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: z.color }} />
-                          <span className="text-[11px] text-muted-foreground truncate flex-1">{z.label}</span>
-                          <span className="text-[11px] tabular-nums text-foreground">{z.areaPct}%</span>
-                        </div>
-                      ))}
-                    </div>
-                    <SampleNote note="単位: 面積 %" />
-                  </div>
-                  <div className="chart-section">
-                    <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      容積率・建蔽率
-                    </h4>
-                    <div className="space-y-2">
-                      {sampleZoning.map((z) => (
-                        <div key={z.id} className="flex items-center gap-3">
-                          <span className="w-16 text-[10px] text-muted-foreground truncate">{z.label.replace("第一種", "一種")}</span>
-                          <div className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-                              <div className="h-full rounded-full" style={{ width: `${(z.maxFloorAreaRatio / 800) * 100}%`, background: z.color }} />
-                            </div>
-                            <span className="text-[10px] tabular-nums w-10 text-right">{z.maxFloorAreaRatio}%</span>
-                          </div>
-                          <div className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-                              <div className="h-full rounded-full opacity-60" style={{ width: `${z.maxBuildingCoverage}%`, background: z.color }} />
-                            </div>
-                            <span className="text-[10px] tabular-nums w-10 text-right">{z.maxBuildingCoverage}%</span>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex items-center gap-3 text-[9px] text-muted-foreground mt-1">
-                        <span className="w-16" />
-                        <span className="flex-1 text-center">容積率</span>
-                        <span className="flex-1 text-center">建蔽率</span>
-                      </div>
-                    </div>
-                    <SampleNote note="単位: %" />
-                  </div>
-                </div>
+                <ZoningPanel composition={zoningView} status={zoning.status} sources={zoningSources} selectedWard={selectedWard} />
               </TabsContent>
             </Tabs>
           </div>
@@ -511,6 +482,16 @@ export default function Home() {
                     <span className="block">{LAND_PRICE_MEAN_NOTE} ／ {LAND_PRICE_CHANGE_NOTE} ／ {LAND_PRICE_USES_NOTE}</span>
                   </li>
                 )}
+                {zoning.data !== null && (
+                  <li data-source="zoning">
+                    用途地域 面積構成・容積率・建蔽率（用途地域タブ・災害タブ）: {KSJ_SOURCE}
+                    {zoningProvenance ? ` ／ ${zoningProvenance}` : ""}
+                    {" ／ "}{KSJ_A55_EDITED}
+                    {" ／ "}{KSJ_N03_EDITED}
+                    <span className="block">{ZONING_SHARE_NOTE} ／ {ZONING_DESIGNATED_NOTE} ／ {ZONING_FAR_NOTE} ／ {ZONING_ASOF_NOTE}</span>
+                    <A55Notices className="mt-1" />
+                  </li>
+                )}
                 {transport.status === "ok" && (
                   <li data-source="stations">
                     駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）: {KSJ_SOURCE}
@@ -532,7 +513,6 @@ export default function Home() {
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
                 <li>災害種別・リスク一覧・高リスク指標</li>
-                <li>用途地域</li>
                 <li>乗降客数推移</li>
                 <li>区別総合比較</li>
                 <li>地図の塗り分け（人口・災害）: {CHOROPLETH_NOTE}</li>

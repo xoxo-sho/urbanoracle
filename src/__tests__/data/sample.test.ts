@@ -3,7 +3,6 @@ import {
   sampleLandPriceSummary,
   sampleDisasterRisks,
   sampleWardProfiles,
-  sampleZoning,
 } from "@/data/sample";
 
 /**
@@ -13,6 +12,8 @@ import {
  * so there is no bundled copy to keep complete. sampleLandPrices left with
  * PR 5 (the 地価 surfaces read the 地価公示 snapshot); sampleLandPriceSummary
  * stays only for the LP hero until PR 7 switches it with the downside.
+ * sampleZoning left with PR 6 (the 用途地域 surfaces read the A55-24 snapshot),
+ * and its sum-to-100 check with it.
  */
 describe("Sample data integrity", () => {
   it("has land price summaries with valid change rates (the LP hero's set, until PR 7)", () => {
@@ -39,8 +40,4 @@ describe("Sample data integrity", () => {
     }
   });
 
-  it("has zoning areas that sum to ~100%", () => {
-    const total = sampleZoning.reduce((s, z) => s + z.areaPct, 0);
-    expect(total).toBe(100);
-  });
 });

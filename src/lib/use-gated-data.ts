@@ -22,7 +22,7 @@ import type { FieldSource, FieldSources } from "@/types";
  */
 export type DataStatus = "loading" | "ok" | "partial" | "unavailable";
 
-export interface DataState<T> {
+export interface DataState<T, X = unknown> {
   status: DataStatus;
   /** The payload; null unless status is ok or partial. */
   data: T | null;
@@ -34,24 +34,28 @@ export interface DataState<T> {
   fetchedAt: string | null;
   /** Per record field, the year and table the figures came from, if the server says; {} otherwise. */
   sources: FieldSources;
+  /** An aggregate the server sends beside `data` (the 23区 composition of /zoning); null unless it does. */
+  total: X | null;
 }
 
-const LOADING: DataState<never> = {
+const LOADING: DataState<never, never> = {
   status: "loading",
   data: null,
   unavailable: [],
   isLive: false,
   fetchedAt: null,
   sources: {},
+  total: null,
 };
 
-const UNAVAILABLE: DataState<never> = {
+const UNAVAILABLE: DataState<never, never> = {
   status: "unavailable",
   data: null,
   unavailable: [],
   isLive: false,
   fetchedAt: null,
   sources: {},
+  total: null,
 };
 
 /**
@@ -63,10 +67,10 @@ const UNAVAILABLE: DataState<never> = {
  * reason to throw someone out of the dashboard, and not a reason to show them
  * numbers that did not arrive.
  */
-export function useGatedData<T>(endpoint: string): DataState<T> {
+export function useGatedData<T, X = unknown>(endpoint: string): DataState<T, X> {
   const { getToken, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [state, setState] = useState<DataState<T>>(LOADING);
+  const [state, setState] = useState<DataState<T, X>>(LOADING);
 
   useEffect(() => {
     if (authLoading) return;
@@ -81,7 +85,7 @@ export function useGatedData<T>(endpoint: string): DataState<T> {
         return;
       }
 
-      setState(outcome.kind === "ok" ? fromBody<T>(outcome.data) : UNAVAILABLE);
+      setState(outcome.kind === "ok" ? fromBody<T, X>(outcome.data) : UNAVAILABLE);
     });
 
     return () => {
@@ -93,7 +97,7 @@ export function useGatedData<T>(endpoint: string): DataState<T> {
 }
 
 /** A 2xx body. Without `data` it is unavailable: there is nothing honest to show. */
-function fromBody<T>(raw: unknown): DataState<T> {
+function fromBody<T, X>(raw: unknown): DataState<T, X> {
   if (!raw || typeof raw !== "object") return UNAVAILABLE;
   const body = raw as {
     status?: unknown;
@@ -102,6 +106,7 @@ function fromBody<T>(raw: unknown): DataState<T> {
     isLive?: unknown;
     fetchedAt?: unknown;
     sources?: unknown;
+    total?: unknown;
   };
   if (body.data === undefined || body.data === null) return UNAVAILABLE;
 
@@ -116,6 +121,7 @@ function fromBody<T>(raw: unknown): DataState<T> {
     isLive: Boolean(body.isLive),
     fetchedAt: typeof body.fetchedAt === "string" ? body.fetchedAt : null,
     sources: fieldSources(body.sources),
+    total: body.total && typeof body.total === "object" ? (body.total as X) : null,
   };
 }
 

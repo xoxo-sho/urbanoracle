@@ -6,8 +6,14 @@ import LangToggle from "@/components/landing/LangToggle";
 import { useLang } from "@/i18n/lang-context";
 import type { LpKey } from "@/i18n/lp";
 import {
+  A55_NOTICES,
+  A55_NOTICES_EN,
+  A55_NOTICES_LABEL,
+  A55_NOTICES_LABEL_EN,
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
+  KSJ_A55_EDITED,
+  KSJ_A55_EDITED_EN,
   KSJ_L01_EDITED,
   KSJ_L01_EDITED_EN,
   KSJ_N03_EDITED,
@@ -27,7 +33,12 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: KSJ_S12_EDITED, en: KSJ_S12_EDITED_EN },
   { ja: KSJ_N03_EDITED, en: KSJ_N03_EDITED_EN },
   { ja: KSJ_L01_EDITED, en: KSJ_L01_EDITED_EN },
+  { ja: KSJ_A55_EDITED, en: KSJ_A55_EDITED_EN },
 ];
+
+// The A55 page's six 注意事項 (real-data plan PR 6), all of them, in their own
+// block below the notices: the page says they must be read before the data is
+// used, and the English page follows each with a marked translation.
 
 /**
  * Landing page body (design-spec-v1 §4), in the visitor's language.
@@ -68,6 +79,7 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcKsj", "liveStations", "liveStationsYear"],
   ["srcKsj", "liveLandPrice", "liveLandPriceYear"],
+  ["srcKsj", "liveZoning", "liveZoningYear"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
   ["srcTiles", "liveTiles", "none"],
@@ -77,7 +89,6 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
 const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [
   ["sampleHero", "none"],
   ["sampleDisaster", "none"],
-  ["sampleZoning", "none"],
   ["sampleRidership", "none"],
   ["sampleRadar", "sampleRadarScale"],
   ["sampleChoropleth", "none"],
@@ -226,6 +237,28 @@ export default function LandingContent() {
                 )}
               </p>
             ))}
+            <div data-notices="a55" className="space-y-1">
+              <p className="font-medium" lang="ja">
+                {A55_NOTICES_LABEL}
+                {lang === "en" && (
+                  <span className="block font-normal" lang="en">
+                    {A55_NOTICES_LABEL_EN}
+                  </span>
+                )}
+              </p>
+              <ul className="list-disc pl-4 space-y-1">
+                {A55_NOTICES.map((ja, i) => (
+                  <li key={ja} lang="ja">
+                    {ja}
+                    {lang === "en" && (
+                      <span className="block" lang="en">
+                        {A55_NOTICES_EN[i]}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
       </main>

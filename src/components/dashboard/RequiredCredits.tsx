@@ -1,6 +1,9 @@
 import {
+  A55_NOTICES,
+  A55_NOTICES_LABEL,
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
+  KSJ_A55_EDITED,
   KSJ_L01_EDITED,
   KSJ_N03_EDITED,
   KSJ_S12_EDITED,
@@ -47,6 +50,35 @@ export function KsjLandPriceCredits() {
     <div className="credit-block" data-credit="ksj-l01">
       <p>{KSJ_SOURCE}</p>
       <p>{KSJ_L01_EDITED}</p>
+    </div>
+  );
+}
+
+/**
+ * 国土数値情報: the 出典 line and the 加工 statements for the 用途地域 snapshot
+ * (都市計画決定情報データ A55 clipped to 行政区域データ N03, real-data plan PR 6),
+ * in the form with no editor name.
+ */
+export function KsjZoningCredits() {
+  return (
+    <div className="credit-block" data-credit="ksj-a55">
+      <p>{KSJ_SOURCE}</p>
+      <p>{KSJ_A55_EDITED}</p>
+      <p>{KSJ_N03_EDITED}</p>
+    </div>
+  );
+}
+
+/** The A55 page's six 注意事項, verbatim, wherever the 用途地域 figures are shown. */
+export function A55Notices({ className }: { className?: string }) {
+  return (
+    <div className={className ?? "credit-block"} data-notices="a55">
+      <p className="font-medium">{A55_NOTICES_LABEL}</p>
+      <ul className="list-disc pl-4 space-y-0.5">
+        {A55_NOTICES.map((notice) => (
+          <li key={notice}>{notice}</li>
+        ))}
+      </ul>
     </div>
   );
 }

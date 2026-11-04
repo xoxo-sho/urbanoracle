@@ -2,3 +2,8 @@
 # step (committed excerpt + e-Stat JSON → snapshot) needs nothing beyond
 # the standard library; openpyxl is for `extract`, which reads the raw xlsx.
 openpyxl==3.1.5
+# etl/zoning.py extract: the shapefile reader and the N03 clip. build needs neither.
+pyshp==2.3.1
+shapely==2.1.2
+# optional: cross-checks the script's own 第IX系 projection at extract time.
+pyproj==3.7.1
