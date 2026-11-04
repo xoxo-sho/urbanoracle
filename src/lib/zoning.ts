@@ -8,8 +8,17 @@ import type { ZoningComposition, ZoningType } from "@/types";
  * 用途地域 tab and the 災害 tab's mini-bar reading the same figure the same way.
  */
 
-/** 31.7408 → "31.7%" (one decimal; the share is a percentage of the designated area). */
+/** Below this a present type's share would round to 0.0 % and read as absent. */
+export const TINY_SHARE = 0.05;
+export const TINY_SHARE_TEXT = "0.1%未満";
+
+/**
+ * 31.7408 → "31.7%" (one decimal; the share is a percentage of the designated
+ * area). A present type whose share is below 0.05 % reads 「0.1%未満」 — never
+ * "0.0%", which would claim the type is absent (Architect, 2026-11-04).
+ */
 export function formatShare(pct: number): string {
+  if (pct > 0 && pct < TINY_SHARE) return TINY_SHARE_TEXT;
   return `${pct.toFixed(1)}%`;
 }
 
