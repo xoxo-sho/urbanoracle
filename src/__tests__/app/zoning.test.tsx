@@ -97,6 +97,11 @@ const YEAR = snapshot.year;
 const TABLE = SOURCES.zoning.table;
 const BY_WARD = Object.fromEntries(ROWS.map((r) => [r.region, r]));
 const pct1 = (v: number) => `${v.toFixed(1)}%`;
+// A present type whose share rounds to 0.0 % must not read as absent
+// (Architect, 2026-11-04): below 0.05 % the share reads 「0.1%未満」 wherever
+// shares are listed.
+const TINY = "0.1%未満";
+const shareText = (v: number) => (v > 0 && v < 0.05 ? TINY : pct1(v));
 
 type Route = () => Promise<Response>;
 const json =
@@ -267,7 +272,7 @@ describe("用途地域 tab — Z1 面積構成 from the payload, following the s
       expect(t.share).toBe(expected.share);
       expect(t.m2).toBe(expected.m2);
       expect(t.text).toContain(expected.name);
-      expect(t.text).toContain(pct1(expected.share));
+      expect(t.text).toContain(shareText(expected.share));
     }
     expect(segments(z1).map((s) => s.code)).toEqual(TOTAL.types.map((t) => t.code));
     const d = designated(z1);
@@ -319,6 +324,31 @@ describe("用途地域 tab — Z1 面積構成 from the payload, following the s
       expect(designated(z1).share).toBe(BY_WARD[name].designatedShare);
     });
   }
+
+  it("江戸川区: a present type whose share rounds to 0.0 % reads 「0.1%未満」 on Z1, in the segment titles and on D2 — never 0.0%", async () => {
+    const ward = BY_WARD["江戸川区"];
+    const tiny = ward.types.filter((t) => t.share > 0 && t.share < 0.05);
+    expect(tiny.map((t) => t.name)).toEqual(["第２種低層住居専用地域", "第２種住居地域"]);
+    const { container } = await renderSettled();
+    selectWard(container, "江戸川区");
+    const panel = openTab("用途地域");
+    const z1 = surface(panel, "zoning-composition");
+    for (const t of tiny) {
+      const row = listedTypes(z1).find((x) => x.code === t.code);
+      expect(row, t.name).toBeDefined();
+      expect(row!.text).toContain(TINY);
+      expect(row!.text).not.toContain("0.0%");
+      const segment = z1.querySelector<HTMLElement>(`[data-zoning-segment][data-code="${t.code}"]`);
+      expect(segment?.getAttribute("title"), `${t.name} segment title`).toContain(TINY);
+    }
+    expect(z1.textContent).not.toContain("0.0%");
+    const d2 = surface(openTab("災害"), "disaster-zoning");
+    for (const t of tiny) {
+      const segment = d2.querySelector<HTMLElement>(`[data-zoning-segment][data-code="${t.code}"]`);
+      expect(segment?.getAttribute("title"), `${t.name} D2 segment title`).toContain(TINY);
+    }
+    expect(d2.textContent).not.toContain("0.0%");
+  });
 
   it("only the types present are listed, with A55's names, and 田園住居地域 (code 8, no area) is not", async () => {
     const { container } = await renderSettled();
