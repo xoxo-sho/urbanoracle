@@ -1,7 +1,5 @@
 import type {
   DataLayer,
-  DisasterRisk,
-  LandPriceSummary,
   TransportTrend,
   WardProfile,
 } from "@/types";
@@ -14,43 +12,10 @@ export const dataLayers: DataLayer[] = [
   { id: "zoning", label: "用途地域", description: "用途地域・容積率・建蔽率", color: "var(--ink-5)", enabled: false },
 ];
 
-export const sampleDisasterRisks: DisasterRisk[] = [
-  { id: "dr-1", type: "flood", level: 5, region: "江東区", description: "荒川氾濫時の最大浸水深 5m以上。広範囲で2階以上浸水" },
-  { id: "dr-2", type: "flood", level: 4, region: "足立区", description: "荒川・中川氾濫時の浸水深 3-5m" },
-  { id: "dr-3", type: "flood", level: 4, region: "葛飾区", description: "中川・江戸川氾濫時の浸水深 3-5m" },
-  { id: "dr-4", type: "flood", level: 3, region: "江戸川区", description: "荒川氾濫時の浸水深 1-3m" },
-  { id: "dr-5", type: "earthquake", level: 5, region: "墨田区", description: "建物倒壊危険度ランク5。木造密集地域" },
-  { id: "dr-6", type: "earthquake", level: 4, region: "荒川区", description: "火災危険度ランク4。延焼リスク高" },
-  { id: "dr-7", type: "earthquake", level: 4, region: "台東区", description: "建物倒壊危険度ランク4" },
-  { id: "dr-8", type: "earthquake", level: 3, region: "北区", description: "火災危険度ランク3" },
-  { id: "dr-9", type: "tsunami", level: 2, region: "江戸川区", description: "東京湾内湾の津波リスク（低）" },
-  { id: "dr-10", type: "tsunami", level: 2, region: "品川区", description: "東京湾岸の津波リスク（低）" },
-  { id: "dr-11", type: "landslide", level: 3, region: "世田谷区", description: "国分寺崖線沿いの土砂災害警戒区域" },
-  { id: "dr-12", type: "landslide", level: 2, region: "北区", description: "飛鳥山周辺の急傾斜地" },
-];
-
 // The LP hero's set (src/components/landing/HeroSpread.tsx), its only reader
 // since real-data plan PR 5: the dashboard's 地価 surfaces read the 地価公示
 // snapshot (/api/v1/land-prices). PR 7 switches the hero together with its
 // downside and deletes this.
-export const sampleLandPriceSummary: LandPriceSummary[] = [
-  { region: "千代田区", avgPrice: 5_300_000, maxPrice: 8_200_000, minPrice: 2_100_000, changeRate: 4.2, count: 38 },
-  { region: "中央区", avgPrice: 4_800_000, maxPrice: 7_600_000, minPrice: 1_800_000, changeRate: 3.8, count: 42 },
-  { region: "港区", avgPrice: 3_850_000, maxPrice: 6_500_000, minPrice: 1_500_000, changeRate: 3.1, count: 55 },
-  { region: "新宿区", avgPrice: 4_120_000, maxPrice: 5_900_000, minPrice: 980_000, changeRate: 2.5, count: 31 },
-  { region: "渋谷区", avgPrice: 2_950_000, maxPrice: 5_200_000, minPrice: 850_000, changeRate: 2.8, count: 28 },
-  { region: "豊島区", avgPrice: 1_280_000, maxPrice: 2_400_000, minPrice: 680_000, changeRate: 1.5, count: 22 },
-  { region: "文京区", avgPrice: 1_150_000, maxPrice: 2_100_000, minPrice: 620_000, changeRate: 1.8, count: 20 },
-  { region: "台東区", avgPrice: 1_080_000, maxPrice: 1_950_000, minPrice: 550_000, changeRate: 2.1, count: 18 },
-  { region: "品川区", avgPrice: 980_000, maxPrice: 1_700_000, minPrice: 520_000, changeRate: 1.6, count: 25 },
-  { region: "目黒区", avgPrice: 1_050_000, maxPrice: 1_800_000, minPrice: 620_000, changeRate: 1.2, count: 19 },
-  { region: "江東区", avgPrice: 620_000, maxPrice: 1_100_000, minPrice: 380_000, changeRate: 3.2, count: 30 },
-  { region: "世田谷区", avgPrice: 680_000, maxPrice: 1_200_000, minPrice: 420_000, changeRate: 0.8, count: 35 },
-  { region: "大田区", avgPrice: 520_000, maxPrice: 950_000, minPrice: 320_000, changeRate: 0.5, count: 28 },
-  { region: "足立区", avgPrice: 310_000, maxPrice: 580_000, minPrice: 180_000, changeRate: 0.3, count: 22 },
-  { region: "葛飾区", avgPrice: 290_000, maxPrice: 520_000, minPrice: 170_000, changeRate: 0.2, count: 20 },
-  { region: "江戸川区", avgPrice: 320_000, maxPrice: 560_000, minPrice: 190_000, changeRate: 0.1, count: 24 },
-];
 
 // 5主要駅の年次推移（COVID影響あり）
 export const sampleTransportTrends: TransportTrend[] = [

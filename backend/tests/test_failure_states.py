@@ -29,6 +29,8 @@ snapshot validated at startup, so it has no runtime failure to report here
 (test_stations.py covers it).
 """
 
+import importlib
+import importlib.util
 import json
 from pathlib import Path
 
@@ -280,12 +282,16 @@ def test_the_two_live_sample_sets_leave_the_backend():
     """RECON §9 PR 1 "Deletes": sampleDemographics and sampleTransportStations leave
     sample_fallback.json, and with them the F1 / F3 fallback functions (F5 in part).
     """
-    from services import sample_data
-
-    payload = json.loads(SAMPLE_FALLBACK_JSON.read_text(encoding="utf-8"))
-    assert "sampleDemographics" not in payload, sorted(payload)
-    assert "sampleTransportStations" not in payload, sorted(payload)
-    assert not hasattr(sample_data, "demographics")
-    assert not hasattr(sample_data, "transport_stations")
+    # Real-data plan PR 7 removed the last sample set (the 災害 list) and with it
+    # sample_fallback.json and services/sample_data.py; absent is the strongest
+    # form of "the two live sets left".
+    if SAMPLE_FALLBACK_JSON.exists():
+        payload = json.loads(SAMPLE_FALLBACK_JSON.read_text(encoding="utf-8"))
+        assert "sampleDemographics" not in payload, sorted(payload)
+        assert "sampleTransportStations" not in payload, sorted(payload)
+    if importlib.util.find_spec("services.sample_data") is not None:
+        sample_data = importlib.import_module("services.sample_data")
+        assert not hasattr(sample_data, "demographics")
+        assert not hasattr(sample_data, "transport_stations")
     assert not hasattr(demographics, "fallback")
     assert not hasattr(transport, "fallback")

@@ -484,7 +484,8 @@ describe("credits and 注意事項 — the 加工 form with no editor name, the 
     for (const n of NOTICES) expect(live).toContain(n);
     const sample = footerSample(container);
     expect(sample).not.toContain("用途地域");
-    expect(sample).toContain("地図の塗り分け（人口・災害）");
+    // Real-data plan PR 7: the 災害 fill left WARD_META; only 人口 stays on the fixed table.
+    expect(sample).toContain("地図の塗り分け（人口）");
   });
 
   it("the LP lists 用途地域 as live with the edition, not as sample, and carries the 加工 statement and the 注意事項 among the notices", () => {

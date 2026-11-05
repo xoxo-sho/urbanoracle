@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -21,6 +21,9 @@ if (JSON.parse(readFileSync(resolve(REPO_ROOT, "package.json"), "utf-8")).name !
   throw new Error(`not the UrbanOracle root: ${REPO_ROOT}`);
 }
 const read = (rel: string) => readFileSync(resolve(REPO_ROOT, rel), "utf-8");
+// The backend sample copy and its generator left in real-data plan PR 7: a
+// guard that they carry no X holds a fortiori when they are gone.
+const readIfAny = (rel: string) => (existsSync(resolve(REPO_ROOT, rel)) ? read(rel) : "");
 
 describe("no client-side fallback to sample.ts on the two live surfaces", () => {
   it("page.tsx no longer passes sampleDemographics / sampleTransportStations to the hook (F9)", () => {
@@ -53,8 +56,8 @@ describe("PR 3: 人口推移 is the committed census snapshot, not samplePopulat
   });
 
   it("the backend sample copy and its generator carry no population trend", () => {
-    expect(read("backend/data/sample_fallback.json")).not.toContain("samplePopulationTrends");
-    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("samplePopulationTrends");
+    expect(readIfAny("backend/data/sample_fallback.json")).not.toContain("samplePopulationTrends");
+    expect(readIfAny("scripts/gen-sample-fallback.mjs")).not.toContain("samplePopulationTrends");
   });
 });
 
@@ -83,8 +86,8 @@ describe("PR 5: the 地価 surfaces read the 地価公示 snapshot; the sample f
     expect(read("src/types/index.ts")).not.toContain("LandPricePoint");
   });
 
-  it("HeroSpread is the only reader of sampleLandPriceSummary; no dashboard surface reads it", () => {
-    expect(importers("sampleLandPriceSummary")).toEqual(["src/components/landing/HeroSpread.tsx"]);
+  it("no dashboard surface reads sampleLandPriceSummary (PR 7 then removes the hero's read too)", () => {
+    expect(importers("sampleLandPriceSummary").filter((f) => f !== "src/components/landing/HeroSpread.tsx")).toEqual([]);
     expect(read("src/app/app/page.tsx")).not.toContain("sampleLandPriceSummary");
   });
 
@@ -96,8 +99,8 @@ describe("PR 5: the 地価 surfaces read the 地価公示 snapshot; the sample f
   });
 
   it("the backend sample copy and its generator carry no land price points", () => {
-    expect(read("backend/data/sample_fallback.json")).not.toContain("sampleLandPrices");
-    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("sampleLandPrices");
+    expect(readIfAny("backend/data/sample_fallback.json")).not.toContain("sampleLandPrices");
+    expect(readIfAny("scripts/gen-sample-fallback.mjs")).not.toContain("sampleLandPrices");
   });
 
   it("the LP dictionary and provenance table have no sample row for the dashboard's 地価 surfaces", () => {
@@ -126,7 +129,68 @@ describe("PR 6: the 用途地域 surfaces read the A55-24 snapshot; sampleZoning
   });
 
   it("the backend sample copy and its generator carry no zoning", () => {
-    expect(read("backend/data/sample_fallback.json")).not.toContain("sampleZoning");
-    expect(read("scripts/gen-sample-fallback.mjs")).not.toContain("sampleZoning");
+    expect(readIfAny("backend/data/sample_fallback.json")).not.toContain("sampleZoning");
+    expect(readIfAny("scripts/gen-sample-fallback.mjs")).not.toContain("sampleZoning");
+  });
+});
+
+describe("PR 7: 災害 and the LP hero read measured sources; the sample risk list and the hero's sample fields are gone", () => {
+  // RED on main (deeb49d). The 災害 tab, K2, the 災害 choropleth and the LP
+  // hero read the committed snapshots (東京都 地域危険度 第9回, 国土数値情報
+  // A31a / A33 / A40 / A49, L01 for the hero's upside); the radar's 安全性
+  // axis stays sample until PR 8.
+  function walk(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        if (entry !== "__tests__" && entry !== "node_modules") walk(full, out);
+      } else if (/\.(ts|tsx)$/.test(entry)) out.push(full);
+    }
+    return out;
+  }
+  const readers = (symbol: string) =>
+    walk(resolve(REPO_ROOT, "src"))
+      .filter((file) => new RegExp(`\\b${symbol}\\b`).test(readFileSync(file, "utf8")))
+      .map((file) => relative(REPO_ROOT, file))
+      .sort();
+
+  it("sample.ts no longer exports sampleDisasterRisks or sampleLandPriceSummary, and nothing in src reads them", () => {
+    const sample = read("src/data/sample.ts");
+    expect(sample).not.toMatch(/export const sampleDisasterRisks\b/);
+    expect(sample).not.toMatch(/export const sampleLandPriceSummary\b/);
+    expect(readers("sampleDisasterRisks")).toEqual([]);
+    expect(readers("sampleLandPriceSummary")).toEqual([]);
+  });
+
+  it("WARD_META carries no 災害 field and the map reads none", () => {
+    for (const file of ["src/data/ward-boundaries.ts", "src/components/map/MapView.tsx", "src/components/map/MapLegend.tsx"]) {
+      expect(read(file), file).not.toContain("maxRiskLevel");
+      expect(read(file), file).not.toContain("riskTypes");
+    }
+  });
+
+  it("the Lv.1–5 type and its colour ramp are gone", () => {
+    expect(read("src/types/index.ts")).not.toMatch(/level:\s*1\s*\|\s*2/);
+    expect(read("src/lib/palette.ts")).not.toContain("RISK_RAMP");
+    expect(readers("riskStep")).toEqual([]);
+  });
+
+  it("the LP dictionary and provenance table have no sample row for the hero or 災害; the radar row stays sample", () => {
+    for (const file of ["src/i18n/lp.ts", "src/components/landing/LandingContent.tsx"]) {
+      expect(read(file), file).not.toMatch(/\bsampleHero\b/);
+      expect(read(file), file).not.toMatch(/\bsampleDisaster\b/);
+      expect(read(file), file).toMatch(/\bsampleRadar\b/);
+    }
+  });
+
+  it("the radar's 安全性 axis still reads sampleWardProfiles and says SAMPLE (PR 8)", () => {
+    expect(read("src/data/sample.ts")).toMatch(/export const sampleWardProfiles\b/);
+    expect(read("src/components/dashboard/WardRadar.tsx")).toContain("SampleNote");
+  });
+
+  it("the backend sample copy, its reader and its generator are gone", () => {
+    expect(existsSync(resolve(REPO_ROOT, "backend/data/sample_fallback.json"))).toBe(false);
+    expect(existsSync(resolve(REPO_ROOT, "backend/services/sample_data.py"))).toBe(false);
+    expect(existsSync(resolve(REPO_ROOT, "scripts/gen-sample-fallback.mjs"))).toBe(false);
   });
 });

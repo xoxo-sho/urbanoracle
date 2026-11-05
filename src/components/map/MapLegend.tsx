@@ -6,6 +6,9 @@ import { CHOROPLETH_NOTE, SOURCES } from "@/lib/sources";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import { landPriceYearLabel, ridershipYearLabel } from "@/lib/census-sources";
 import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
+import { CHOROPLETH_LABEL, pct1, quakeShortLine } from "@/lib/disaster";
+import { HAZARD_PORTAL_SOURCE } from "@/lib/credits";
+import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
 
 interface MapLegendProps {
   layers: DataLayer[];
@@ -24,16 +27,25 @@ interface MapLegendProps {
   landUse?: LandUse;
   /** The three stops the map ramp uses for that use, from the data; null while pending. */
   landPriceStops?: number[] | null;
+  /** State of the /disaster-risks answer that colours the 災害 choropleth (real-data plan PR 7). Required, as above. */
+  disasterStatus: DataStatus;
+  /** The /disaster-risks payload's `sources`: the survey and year the fill shows. */
+  disasterSources?: FieldSources;
+  /** The three stops of the 災害 ramp (share of 町丁目 at 総合危険度 rank 5), from the data; null while pending. */
+  disasterStops?: number[] | null;
 }
 
-// The ward fill under these layers is coloured from WARD_META in
+// The ward fill under this layer is coloured from WARD_META in
 // ward-boundaries.ts — a hardcoded table, neither the live feed nor the
 // sample set. The legend says so under the ramp. The 地価 layer left that
-// table in real-data plan PR 5: its fill is the 地価公示 snapshot's.
-const CHOROPLETH_LAYERS = new Set<string>(["demographics", "disaster-risk"]);
+// table in real-data plan PR 5 and the 災害 layer in PR 7: each fill is its
+// snapshot's.
+const CHOROPLETH_LAYERS = new Set<string>(["demographics"]);
 
 // The 地価 ramp's three colours, low to high; the stops themselves come from the data.
 const LAND_PRICE_COLORS = ["var(--up-fill)", "var(--up-strong)", "var(--up-text)"];
+// The 災害 ramp's three colours (MapView's downFill / downStrong / downText), low to high.
+const DISASTER_COLORS = ["var(--down-fill)", "var(--down-strong)", "var(--down-text)"];
 
 // Legend swatches mirror the map ramps, which are single-hue intensity
 // scales per semantic axis (design-spec-v1 §2).
@@ -46,15 +58,7 @@ const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; lab
       { color: "var(--chart-3)", label: "23k" },
     ],
   },
-  "disaster-risk": {
-    // The tiles are GSI rasters fetched client-side; this label is true.
-    label: "ハザードマップ（実データ）",
-    stops: [
-      { color: "var(--down-fill)", label: "浅い" },
-      { color: "var(--down-strong)", label: "浸水" },
-      { color: "var(--down-text)", label: "深い" },
-    ],
-  },
+
   transportation: {
     label: "乗降客数",
     stops: [
@@ -89,6 +93,33 @@ function TransportNote({ status, sources }: { status: DataStatus; sources?: Fiel
       出典: {SOURCES.ksj.label}
       {year ? ` ${year}` : ""}
     </p>
+  );
+}
+
+/**
+ * Under the 災害 ramp (real-data plan PR 7): the survey and year the fill shows
+ * when the answer arrived, else the state the fill is in; and, always, the 出典
+ * of the hazard rasters drawn over it.
+ */
+function DisasterNote({ status, sources }: { status: DataStatus; sources?: FieldSources }) {
+  const line = quakeShortLine(sources);
+  return (
+    <>
+      {status === "loading" ? (
+        <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+          {CHOROPLETH_LABEL}: {LOADING_TEXT}
+        </p>
+      ) : status !== "ok" ? (
+        <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+          {CHOROPLETH_LABEL}: {FAILED_TEXT}
+        </p>
+      ) : (
+        <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">出典: {line ?? SOURCES.tokyoKikendo.label}（町丁目の相対評価）</p>
+      )}
+      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+        重ね: {HAZARD_RASTER_NAMES} — {HAZARD_PORTAL_SOURCE}
+      </p>
+    </>
   );
 }
 
@@ -128,13 +159,22 @@ export default function MapLegend({
   landPriceSources,
   landUse = "residential",
   landPriceStops = null,
+  disasterStatus,
+  disasterSources,
+  disasterStops = null,
 }: MapLegendProps) {
   const stops = landPriceStatus === "ok" && landPriceStops && landPriceStops.length === LAND_PRICE_COLORS.length ? landPriceStops : null;
   const landPriceConfig = {
     label: `平均価格（${LAND_USE_LABEL[landUse]}）万円/m²`,
     stops: LAND_PRICE_COLORS.map((color, i) => ({ color, label: stops ? manPrice(stops[i]) : "" })),
   };
-  const configFor = (id: string) => (id === "land-price" ? landPriceConfig : LEGEND_CONFIG[id]);
+  const quakeStops = disasterStatus === "ok" && disasterStops && disasterStops.length === DISASTER_COLORS.length ? disasterStops : null;
+  const disasterConfig = {
+    label: CHOROPLETH_LABEL,
+    stops: DISASTER_COLORS.map((color, i) => ({ color, label: quakeStops ? pct1(quakeStops[i]) : "" })),
+  };
+  const configFor = (id: string) => (id === "land-price" ? landPriceConfig : id === "disaster-risk" ? disasterConfig : LEGEND_CONFIG[id]);
+  const stopsFor = (id: string) => (id === "land-price" ? stops : id === "disaster-risk" ? quakeStops : undefined);
   const activeLayers = layers.filter((l) => l.enabled && configFor(l.id));
   if (activeLayers.length === 0) return null;
 
@@ -144,7 +184,7 @@ export default function MapLegend({
         const config = configFor(layer.id);
         if (!config) return null;
         return (
-          <div key={layer.id} data-legend={layer.id} data-legend-stops={layer.id === "land-price" ? JSON.stringify(stops) : undefined}>
+          <div key={layer.id} data-legend={layer.id} data-legend-stops={stopsFor(layer.id) !== undefined ? JSON.stringify(stopsFor(layer.id)) : undefined}>
             <div className="text-[9px] font-medium text-muted-foreground mb-1">{config.label}</div>
             <div className="flex items-center gap-0.5">
               {/* h-audit: data-ramp — the legend swatch is the colour scale itself. */}
@@ -155,10 +195,10 @@ export default function MapLegend({
                 }}
               />
             </div>
-            {(layer.id !== "land-price" || stops) && (
+            {(stopsFor(layer.id) === undefined || stopsFor(layer.id)) && (
               <div className="flex justify-between mt-0.5">
                 {config.stops.map((s, i) => (
-                  <span key={i} className="text-[8px] text-muted-foreground" data-stop={layer.id === "land-price" ? "" : undefined}>
+                  <span key={i} className="text-[8px] text-muted-foreground" data-stop={stopsFor(layer.id) !== undefined ? "" : undefined}>
                     {s.label}
                   </span>
                 ))}
@@ -170,6 +210,7 @@ export default function MapLegend({
               </p>
             )}
             {layer.id === "land-price" && <LandPriceNote status={landPriceStatus} sources={landPriceSources} />}
+            {layer.id === "disaster-risk" && <DisasterNote status={disasterStatus} sources={disasterSources} />}
             {layer.id === "transportation" && (
               <TransportNote status={transportStatus} sources={transportSources} />
             )}

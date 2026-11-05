@@ -1,11 +1,11 @@
-"""The data endpoints: the live census call, the curated disaster set, and the
-four committed snapshots — 人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4),
-地価公示 (PR 5) and 用途地域 (PR 6).
+"""The data endpoints: the live census call and the five committed snapshots —
+人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4), 地価公示 (PR 5), 用途地域
+(PR 6) and 災害 (PR 7).
 
 Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
 ``status`` says whether the request got everything it asked for; ``isLive``
-says whether the figures came from the upstream source (the /disaster-risks
-payload is still the curated sample set and reports False). A partial answer
+says whether the figures came from the upstream source (every route does
+since PR 7; nothing serves a sample set). A partial answer
 adds ``unavailable``: the record fields the upstream did not deliver, so the
 client renders those cells as 取得失敗 and keeps データなし for a cell the
 upstream genuinely has no figure for. A /demographics answer carries
@@ -196,10 +196,27 @@ async def get_zoning() -> JSONResponse:
 
 @router.get("/disaster-risks")
 async def get_disaster_risks() -> JSONResponse:
-    # No upstream exists for this panel: the payload is the curated sample
-    # set, so isLive is False. The hazard rasters are fetched client-side
-    # from GSI and never pass through here.
-    return _envelope(disaster_risks.load_disaster_risks(), is_live=False)
+    """The committed 災害 snapshot (real-data plan PR 7): per ward, each hazard
+    in its source's own classes — 東京都 地域危険度 第9回 (町丁目 per rank 1–5 for
+    総合・建物倒壊・火災, a relative evaluation), 国土数値情報 A31a-25 洪水 and
+    A49-20 高潮 (share of the ward's area per 浸水深 class, 想定最大規模), A33-25
+    土砂 (警戒区域 / 特別警戒区域 per 現象) and 津波 (対象外 with its basis) — and
+    the 23区 record as ``total``. No ``level`` field.
+
+    No upstream and no cache: the file was validated when the app started
+    (main.py), so this route has no partial or failed answer of its own.
+    ``isLive`` is True: the figures are the sources' own, not a sample.
+    ``sources`` names, per hazard, the survey or edition, its year and table.
+    The hazard rasters on the map are fetched client-side from the ハザード
+    マップポータルサイト and never pass through here.
+    """
+    snapshot = disaster_risks.get(settings.DISASTER_RISKS_PATH)
+    return _envelope(
+        disaster_risks.rows(snapshot),
+        is_live=True,
+        sources=disaster_risks.sources(snapshot),
+        total=disaster_risks.total(snapshot),
+    )
 
 
 @router.get("/transport")

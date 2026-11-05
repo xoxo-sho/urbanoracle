@@ -25,6 +25,15 @@ const A55_NOTICES = [
   "最新の正確な都市計画決定情報が必要な場合は、該当する地方公共団体の担当課までお問い合わせください。",
   "本データを用いて行う一切の行為（コンテンツを編集・加工等した情報を利用することを含む）及び本データの利用によって発生した直接または間接の損失、損害等について、国土交通省並びに原典資料提供元の地方公共団体は一切の責任を負いません。",
 ];
+// Real-data plan PR 7: the 東京都 CC BY credit (東京都オープンデータ利用規約 2(1)ア/イ),
+// the four hazard datasets' 加工 lines and the hazard-map portal's 出典 line, word for word.
+const KIKENDO_EDITED =
+  "このサービスは、以下の著作物を改変して利用しています。地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
+const KSJ_A31_EDITED = "「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_A33_EDITED = "「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_A40_EDITED = "「国土数値情報（津波浸水想定データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const KSJ_A49_EDITED = "「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+const HAZARD_PORTAL_SOURCE = "出典：ハザードマップポータルサイト";
 const RETIRED = "OD" + "PT";
 const RETIRED_JA = "公共交通オープン" + "データ";
 const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
@@ -65,6 +74,7 @@ describe("landing page データ出典 — Japanese", () => {
     expect(text).toContain(KSJ_N03_EDITED);
     expect(text).toContain(KSJ_L01_EDITED);
     expect(text).toContain(KSJ_A55_EDITED);
+    for (const line of [KIKENDO_EDITED, KSJ_A31_EDITED, KSJ_A33_EDITED, KSJ_A40_EDITED, KSJ_A49_EDITED, HAZARD_PORTAL_SOURCE]) expect(text).toContain(line);
     for (const notice of A55_NOTICES) expect(text).toContain(notice);
     expect(text).not.toMatch(/をもとに.*作成/);
     expect(container.textContent).not.toContain(RETIRED);
@@ -99,6 +109,12 @@ describe("landing page データ出典 — English", () => {
       [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
       [KSJ_A55_EDITED, KSJ_A55_EDITED_EN],
       [A55_NOTICES[3], A55_NOTICE_ASOF_EN],
+      [KIKENDO_EDITED, "Translation: Earthquake regional risk survey (9th)"],
+      [KSJ_A31_EDITED, "Translation: Created by processing the National Land Numerical Information (flood inundation area data)"],
+      [KSJ_A33_EDITED, "Translation: Created by processing the National Land Numerical Information (sediment disaster warning area data)"],
+      [KSJ_A40_EDITED, "Translation: Created by processing the National Land Numerical Information (tsunami inundation data)"],
+      [KSJ_A49_EDITED, "Translation: Created by processing the National Land Numerical Information (storm surge inundation area data)"],
+      [HAZARD_PORTAL_SOURCE, "Translation: Source: Hazard Map Portal Site"],
     ]) {
       expect(text).toContain(ja);
       expect(text).toContain(en);

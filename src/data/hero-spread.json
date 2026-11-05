@@ -1,0 +1,76 @@
+{
+ "upside": {
+  "label": "国土数値情報 地価公示データ 2026年（令和8年）版 対前年変動率（2025年1月1日→2026年1月1日、%）",
+  "table": "L01-26",
+  "year": 2026,
+  "use": "住宅地",
+  "definition": "変動率は継続地点（前年と比較できる地点）の対前年変動率の単純平均"
+ },
+ "earthquake": {
+  "label": "東京都「地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）」町丁目別ランク（総合・建物倒壊・火災）",
+  "short": "東京都 地域危険度 第9回（2022年）",
+  "definition": "総合危険度ランク5の町丁目の数（区の全町丁目中）",
+  "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+ },
+ "flood": {
+  "label": "国土数値情報 洪水浸水想定区域データ（河川単位）2025年度（令和7年度）版 想定最大規模（東京都・関東地方整備局）",
+  "table": "A31a-25",
+  "definition": "区の面積に占める浸水深3m以上の区域の割合（想定最大規模）"
+ },
+ "rows": [
+  {
+   "code": "13103",
+   "region": "港区",
+   "change": 16.6367,
+   "nContinuing": 30,
+   "rank5": 0,
+   "chochomoku": 117,
+   "floodDeepShare": 0.1599
+  },
+  {
+   "code": "13106",
+   "region": "台東区",
+   "change": 14.15,
+   "nContinuing": 6,
+   "rank5": 1,
+   "chochomoku": 108,
+   "floodDeepShare": 37.8269
+  },
+  {
+   "code": "13109",
+   "region": "品川区",
+   "change": 13.8966,
+   "nContinuing": 29,
+   "rank5": 1,
+   "chochomoku": 130,
+   "floodDeepShare": 0.3412
+  },
+  {
+   "code": "13102",
+   "region": "中央区",
+   "change": 13.8429,
+   "nContinuing": 7,
+   "rank5": 0,
+   "chochomoku": 98,
+   "floodDeepShare": 4.1129
+  },
+  {
+   "code": "13105",
+   "region": "文京区",
+   "change": 13.8364,
+   "nContinuing": 22,
+   "rank5": 0,
+   "chochomoku": 68,
+   "floodDeepShare": 0.5872
+  },
+  {
+   "code": "13110",
+   "region": "目黒区",
+   "change": 13.6719,
+   "nContinuing": 32,
+   "rank5": 0,
+   "chochomoku": 88,
+   "floodDeepShare": 0.1639
+  }
+ ]
+}

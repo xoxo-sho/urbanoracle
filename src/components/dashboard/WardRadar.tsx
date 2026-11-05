@@ -45,7 +45,7 @@ export default function WardRadar({ profiles, selectedWard }: WardRadarProps) {
   });
 
   return (
-    <div className="chart-section">
+    <div className="chart-section" data-surface="ward-radar">
       <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         {selectedWard ? `${selectedWard} vs 23区平均` : "区別総合比較"}
       </h4>

@@ -88,21 +88,3 @@ export type MapPalette = Record<keyof (typeof MAP_COLORS)["light"], string>;
 export function mapPalette(dark: boolean): MapPalette {
   return dark ? MAP_COLORS.dark : MAP_COLORS.light;
 }
-
-/**
- * Disaster severity 1–5. Severity is downside, so it is a single-hue
- * intensity ramp rather than a traffic light: green→amber→red would introduce
- * two hues that carry no meaning in this system.
- */
-export const RISK_RAMP = [
-  { fill: "var(--chart-5)", text: "var(--muted-foreground)", bar: "var(--chart-5)" },
-  { fill: "var(--chart-4)", text: "var(--muted-foreground)", bar: "var(--chart-4)" },
-  { fill: "var(--down-fill)", text: "var(--down-text)", bar: "var(--down-ui)" },
-  { fill: "var(--down-fill)", text: "var(--down-text)", bar: "var(--down-aa)" },
-  { fill: "var(--down-fill)", text: "var(--down-text)", bar: "var(--down-strong)" },
-] as const;
-
-export function riskStep(level: number) {
-  const index = Math.max(1, Math.min(5, Math.round(level))) - 1;
-  return RISK_RAMP[index];
-}

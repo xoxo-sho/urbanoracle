@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { DataLayer, LandPriceWard, TransportStation } from "@/types";
+import type { DataLayer, DisasterWard, LandPriceWard, TransportStation } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
 import { mapPalette } from "@/lib/palette";
@@ -14,6 +14,7 @@ import { SOURCES } from "@/lib/sources";
 import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
+import { HAZARD_RASTERS } from "@/components/map/hazard-rasters";
 
 interface MapViewProps {
   selectedWard: string | null;
@@ -32,6 +33,14 @@ interface MapViewProps {
   landUse?: LandUse;
   landPriceStops?: number[] | null;
   landPriceStatus?: DataStatus;
+  /**
+   * The 災害 choropleth (real-data plan PR 7): the /disaster-risks payload —
+   * each ward's share of 町丁目 at 総合危険度 rank 5 — its state, and the three
+   * stops derived from the data (the legend prints the same array).
+   */
+  disaster?: DisasterWard[];
+  disasterStatus?: DataStatus;
+  disasterStops?: number[] | null;
 }
 
 function isDarkMode(): boolean {
@@ -63,6 +72,9 @@ export default function MapView({
   landUse = "residential",
   landPriceStops = null,
   landPriceStatus = "loading",
+  disaster = [],
+  disasterStatus = "loading",
+  disasterStops = null,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -76,11 +88,12 @@ export default function MapView({
     // palette is resolved to literals for the active mode.
     const c = mapPalette(isDarkMode());
     // Remove existing custom layers/sources
-    const layerIds = ["ward-fill", "ward-line", "ward-highlight-line", "station-circles", "station-labels", "hazard-flood", "hazard-tsunami", "hazard-landslide"];
+    const hazardIds = HAZARD_RASTERS.map((r) => r.id);
+    const layerIds = ["ward-fill", "ward-line", "ward-highlight-line", "station-circles", "station-labels", ...hazardIds];
     for (const id of layerIds) {
       if (m.getLayer(id)) m.removeLayer(id);
     }
-    const sourceIds = ["wards", "stations", "hazard-flood", "hazard-tsunami", "hazard-landslide"];
+    const sourceIds = ["wards", "stations", ...hazardIds];
     for (const id of sourceIds) {
       if (m.getSource(id)) m.removeSource(id);
     }
@@ -92,6 +105,10 @@ export default function MapView({
     // `landPriceText`. A ward the payload does not cover carries no
     // `landPrice` and keeps the empty fill.
     const figures = new Map(landPrices.map((w) => [w.region, w[landUse]]));
+    // The 災害 figure of each ward (real-data plan PR 7): its share of 町丁目 at
+    // 総合危険度 rank 5, merged as `rank5Share`; a ward the payload does not
+    // cover keeps the empty fill.
+    const rank5 = new Map(disaster.map((w) => [w.region, w.earthquake.rank5Share]));
     const landPriceText = (name: string): string => {
       const f = figures.get(name);
       if (f) return `${manPrice(f.meanPrice)}/m²（${LAND_USE_LABEL[landUse]} n=${f.n}）`;
@@ -108,6 +125,7 @@ export default function MapView({
           properties: {
             ...f.properties,
             ...(figure ? { landPrice: figure.meanPrice } : {}),
+            ...(rank5.has(f.properties.name) ? { rank5Share: rank5.get(f.properties.name) } : {}),
             landPriceText: landPriceText(f.properties.name),
           },
         };
@@ -145,12 +163,20 @@ export default function MapView({
         23000, c.neutral1,
       ] as maplibregl.ExpressionSpecification;
     } else if (riskEnabled) {
-      fillColor = ["interpolate", ["linear"], ["get", "maxRiskLevel"],
-        0, c.downFill,
-        2, c.downUi,
-        4, c.downStrong,
-        5, c.downText,
-      ] as maplibregl.ExpressionSpecification;
+      // Stops from the data (the legend prints the same three); no fill until
+      // the 災害 payload is on screen.
+      const stops = disasterStatus === "ok" && disasterStops && disasterStops.length === 3 ? disasterStops : null;
+      fillColor = stops
+        ? (["case",
+            ["has", "rank5Share"],
+            ["interpolate", ["linear"], ["get", "rank5Share"],
+              stops[0], c.downFill,
+              stops[1], c.downStrong,
+              stops[2], c.downText,
+            ],
+            c.emptyFill,
+          ] as maplibregl.ExpressionSpecification)
+        : c.emptyFill;
     } else {
       fillColor = c.emptyFill;
     }
@@ -245,49 +271,25 @@ export default function MapView({
       });
     }
 
-    // Hazard map tile overlays (disaster-risk layer)
+    // Hazard map tile overlays (disaster-risk layer): the ハザードマップポータルサイト
+    // sets that render in the 23 wards (hazard-rasters.ts), each with its 出典.
     if (isLayerEnabled(layers, "disaster-risk")) {
-      // Flood inundation areas (想定最大規模)
-      m.addSource("hazard-flood", {
-        type: "raster",
-        tiles: ["https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution: "ハザードマップポータルサイト（国土交通省）",
-      });
-      m.addLayer({
-        id: "hazard-flood",
-        type: "raster",
-        source: "hazard-flood",
-        paint: { "raster-opacity": 0.5 },
-      });
-
-      // Tsunami inundation areas
-      m.addSource("hazard-tsunami", {
-        type: "raster",
-        tiles: ["https://disaportaldata.gsi.go.jp/raster/04_tsunami_newlegend_data/{z}/{x}/{y}.png"],
-        tileSize: 256,
-      });
-      m.addLayer({
-        id: "hazard-tsunami",
-        type: "raster",
-        source: "hazard-tsunami",
-        paint: { "raster-opacity": 0.45 },
-      });
-
-      // Landslide hazard areas
-      m.addSource("hazard-landslide", {
-        type: "raster",
-        tiles: ["https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png"],
-        tileSize: 256,
-      });
-      m.addLayer({
-        id: "hazard-landslide",
-        type: "raster",
-        source: "hazard-landslide",
-        paint: { "raster-opacity": 0.45 },
-      });
+      for (const raster of HAZARD_RASTERS) {
+        m.addSource(raster.id, {
+          type: "raster",
+          tiles: [raster.tiles],
+          tileSize: 256,
+          attribution: raster.attribution,
+        });
+        m.addLayer({
+          id: raster.id,
+          type: "raster",
+          source: raster.id,
+          paint: { "raster-opacity": raster.opacity },
+        });
+      }
     }
-  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus]);
+  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus, disaster, disasterStatus, disasterStops]);
 
   // Initialize map
   useEffect(() => {
