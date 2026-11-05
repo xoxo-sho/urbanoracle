@@ -15,14 +15,13 @@ import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
 import ZoningPanel from "@/components/dashboard/ZoningPanel";
 import {
   dataLayers,
-  sampleDisasterRisks,
   sampleTransportTrends,
   sampleWardProfiles,
 } from "@/data/sample";
 import type {
   DataLayer,
   DemographicsData,
-  DisasterRisk,
+  DisasterWard,
   LandPriceWard,
   PopulationTrend,
   TransportStation,
@@ -31,9 +30,8 @@ import type {
 } from "@/types";
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
-import { SampleTag } from "@/components/dashboard/SampleNote";
 import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
-import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
+import { CHOROPLETH_NOTE, SAMPLE_NOTICE } from "@/lib/sources";
 import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
@@ -42,6 +40,14 @@ import {
   GSI_PALE_PROCESSED,
   GSI_TILE_LIST_URL,
   GSI_TILES_NAME,
+  HAZARD_PORTAL_SOURCE,
+  HAZARD_PORTAL_URL,
+  KIKENDO_CREDIT,
+  KIKENDO_EDITED,
+  KSJ_A31_EDITED,
+  KSJ_A33_EDITED,
+  KSJ_A40_EDITED,
+  KSJ_A49_EDITED,
   KSJ_A55_EDITED,
   KSJ_L01_EDITED,
   KSJ_N03_EDITED,
@@ -72,6 +78,8 @@ import {
   zoningLine,
 } from "@/lib/census-sources";
 import { landPriceStops, type LandUse } from "@/lib/land-price";
+import { K2_LABEL, countOf, disasterView, quakeShortLine, rank5Stops } from "@/lib/disaster";
+import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
 import { useGatedData } from "@/lib/use-gated-data";
 import { A55Notices } from "@/components/dashboard/RequiredCredits";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
@@ -109,13 +117,12 @@ export default function Home() {
   // One switch for every 地価 surface (real-data plan PR 5): 住宅地 by default.
   const [landUse, setLandUse] = useState<LandUse>("residential");
 
-  // The two live endpoints have no fallback: while loading or failed their
-  // surfaces say so (real-data plan PR 1). /disaster-risks has no upstream yet
-  // (PR 7): the server serves the curated sample set and the surface keeps
-  // its SAMPLE label, so until PR 7 the same set stands in while that one
-  // request is loading or failed.
+  // No endpoint has a fallback: while loading or failed their surfaces say so
+  // (real-data plan PR 1). The 災害 snapshot (PR 7) is one record per ward —
+  // each hazard in its source's own classes — and the 23区 record as `total`;
+  // the payload names, per hazard, the survey or edition and its 時点.
   const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics");
-  const disasterRisks = useGatedData<DisasterRisk[]>("/api/v1/disaster-risks");
+  const disasterRisks = useGatedData<DisasterWard[], DisasterWard>("/api/v1/disaster-risks");
   const transport = useGatedData<TransportStation[]>("/api/v1/transport");
   // The 人口推移 snapshot (real-data plan PR 3): its own route, so a census-table
   // failure on /demographics never takes the chart down. Same hook, same states.
@@ -145,7 +152,15 @@ export default function Home() {
   );
 
   const demographicsRows = useMemo(() => demographics.data ?? [], [demographics.data]);
-  const risks = useMemo(() => disasterRisks.data ?? sampleDisasterRisks, [disasterRisks.data]);
+  const disasterRows = useMemo(() => disasterRisks.data ?? [], [disasterRisks.data]);
+  const disasterSources = disasterRisks.sources ?? {};
+  const disasterInView = useMemo(
+    () => disasterView(disasterRows, disasterRisks.total, selectedWard),
+    [disasterRows, disasterRisks.total, selectedWard]
+  );
+  // The 災害 choropleth's stops (real-data plan PR 7): from the wards' share of
+  // 町丁目 at 総合危険度 rank 5; the legend prints the same array.
+  const disasterStops = useMemo(() => rank5Stops(disasterRows), [disasterRows]);
   const stations = useMemo(() => transport.data ?? [], [transport.data]);
   // The 駅別乗降客数 snapshot (real-data plan PR 4): the payload names, per
   // field, the 国土数値情報 edition and its year; every station note and the
@@ -174,10 +189,6 @@ export default function Home() {
     return demographicsRows.filter((d) => d.region === selectedWard);
   }, [selectedWard, demographicsRows]);
 
-  const filteredRisks = useMemo(() => {
-    if (!selectedWard) return risks;
-    return risks.filter((r) => r.region === selectedWard);
-  }, [selectedWard, risks]);
 
   const filteredStations = useMemo(() => {
     if (!selectedWard) return stations;
@@ -201,7 +212,6 @@ export default function Home() {
 
   // Key metrics
   const metricsDemo = selectedWard ? filteredDemographics : demographicsRows;
-  const metricsRisks = selectedWard ? filteredRisks : risks;
   const metricsStations = selectedWard ? filteredStations : stations;
 
   // Only wards with a published growth rate can rank; a null must not sort
@@ -209,7 +219,14 @@ export default function Home() {
   const topGrowth = [...metricsDemo]
     .filter((d) => hasValue(d.growthRate))
     .sort((a, b) => byValueDesc(a.growthRate, b.growthRate))[0];
-  const highRiskCount = metricsRisks.filter((r) => r.level >= 4).length;
+  // K2 (Architect decision 8): the count of 町丁目 at 総合危険度 rank 5 with its
+  // denominator — the survey's own class, no threshold of ours.
+  const k2Tile = isPending(disasterRisks.status)
+    ? pendingText(disasterRisks.status)
+    : disasterInView
+      ? countOf(disasterInView.earthquake.rank5, disasterInView.earthquake.n)
+      : NO_DATA;
+  const k2Source = quakeShortLine(disasterSources);
   // Sum the stations that carry a figure (each is its operators' sum, so the
   // tile equals the 事業者別 total). Treating null as 0 would claim a station
   // the source counts elsewhere carries nobody.
@@ -278,6 +295,9 @@ export default function Home() {
                 landUse={landUse}
                 landPriceStops={landStops}
                 landPriceStatus={landPrices.status}
+                disaster={disasterRows}
+                disasterStatus={disasterRisks.status}
+                disasterStops={disasterStops}
               />
               <div className="absolute top-3 left-3 z-10">
                 <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
@@ -292,6 +312,9 @@ export default function Home() {
                 landPriceSources={landPriceSources}
                 landUse={landUse}
                 landPriceStops={landStops}
+                disasterStatus={disasterRisks.status}
+                disasterSources={disasterSources}
+                disasterStops={disasterStops}
               />
             </div>
 
@@ -313,11 +336,17 @@ export default function Home() {
                   </span>
                 )}
               </div>
-              <div className="key-metric">
+              <div className="key-metric" data-surface="disaster-k2">
                 <Shield className="h-4 w-4 text-down-text" />
-                <span className="text-xl font-bold tabular-nums">{highRiskCount}</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">高リスク<br />{selectedWard ? "該当" : "地域"}</span>
-                {!disasterRisks.isLive && <SampleTag />}
+                <span className="text-xl font-bold tabular-nums">{k2Tile}</span>
+                <span className="text-[9px] text-muted-foreground text-center leading-tight">{K2_LABEL}</span>
+                {/* K2's own source line (real-data plan PR 7): the survey and its year
+                    as the payload names them, in the dashboard's provenance size. */}
+                {k2Source && !isPending(disasterRisks.status) && (
+                  <span data-source="earthquake" title={disasterSources.earthquake?.label} className="source-note text-center">
+                    {k2Source}
+                  </span>
+                )}
               </div>
               <div className="key-metric">
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -413,7 +442,9 @@ export default function Home() {
               {/* Disaster */}
               <TabsContent value="disaster" className="mt-4 flex-1 overflow-y-auto">
                 <DisasterRiskPanel
-                  risks={selectedWard ? filteredRisks : risks}
+                  disaster={disasterInView}
+                  disasterStatus={disasterRisks.status}
+                  disasterSources={disasterSources}
                   zoning={zoningView}
                   zoningStatus={zoning.status}
                   zoningSources={zoningSources}
@@ -501,7 +532,18 @@ export default function Home() {
                     <span className="block">{RIDERSHIP_DEFINITION_NOTE} ／ {RIDERSHIP_JR_NOTE}</span>
                   </li>
                 )}
-                <li>地図のハザード重ね（浸水・津波・土砂）: {SOURCES.hazard.label} タイル</li>
+                {disasterRisks.data !== null && (
+                  <li data-source="disaster">
+                    地震（災害タブ・ランク5の町丁目指標・地図の塗り分け）: {KIKENDO_CREDIT}
+                    <span className="block">{KIKENDO_EDITED}</span>
+                    <span className="block">
+                      洪水・土砂災害・津波・高潮（災害タブ）: {KSJ_SOURCE} ／ {KSJ_A31_EDITED} ／ {KSJ_A33_EDITED} ／ {KSJ_A40_EDITED} ／ {KSJ_A49_EDITED} ／ {KSJ_N03_EDITED}
+                    </span>
+                  </li>
+                )}
+                <li data-source="hazard-tiles">
+                  地図のハザード重ね（{HAZARD_RASTER_NAMES}）: {HAZARD_PORTAL_SOURCE}（{HAZARD_PORTAL_URL}）
+                </li>
                 <li>{WARD_BOUNDARY_CREDIT}</li>
                 <li>
                   地図タイル: <a href={GSI_TILE_LIST_URL} target="_blank" rel="noopener noreferrer" className="underline">{GSI_TILES_NAME}</a>（淡色地図）
@@ -512,10 +554,9 @@ export default function Home() {
             <div data-provenance="sample" className="sample-block">
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
-                <li>災害種別・リスク一覧・高リスク指標</li>
                 <li>乗降客数推移</li>
                 <li>区別総合比較</li>
-                <li>地図の塗り分け（人口・災害）: {CHOROPLETH_NOTE}</li>
+                <li>地図の塗り分け（人口）: {CHOROPLETH_NOTE}</li>
               </ul>
             </div>
           </div>

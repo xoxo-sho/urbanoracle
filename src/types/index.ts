@@ -40,12 +40,56 @@ export interface DemographicsData {
   };
 }
 
-export interface DisasterRisk {
-  id: string;
-  type: "flood" | "earthquake" | "landslide" | "tsunami";
-  level: 1 | 2 | 3 | 4 | 5;
+/**
+ * One ward (or the 23区) of /api/v1/disaster-risks (real-data plan PR 7,
+ * Architect decisions 1, 8 and the sub-decisions of 2026-11-05): each hazard
+ * in its source's own classes, never a scale of ours.
+ */
+export type QuakeKind = "total" | "building" | "fire";
+
+/** 東京都 地域危険度 第9回: the ward's 町丁目 per rank 1–5 (a relative evaluation among the 都's 町丁目). */
+export interface QuakeRanks {
+  n: number;
+  ranks: Record<QuakeKind, number[]>;
+  rank5: number;
+  rank5Share: number; // % of the ward's 町丁目 at 総合危険度 rank 5
+  relative: string;
+}
+
+/** One depth class of 洪水 (A31a 浸水深ランク) or 高潮 (A49): its area in the ward and its share of the ward's area. */
+export interface DepthClass {
+  code: number;
+  label: string;
+  m2: number;
+  share: number; // % of the N03 ward polygon
+}
+
+export interface DepthShares {
+  wardM2: number;
+  m2: number;
+  share: number;
+  classes: DepthClass[];
+}
+
+export interface FloodShares extends DepthShares {
+  deepM2: number;
+  deepShare: number; // % of the ward with 浸水深 3 m 以上 (ランク 3 以上)
+}
+
+export interface LandslideCounts {
+  phenomena: { code: number; name: string; warning: number; special: number }[];
+  warning: number;
+  special: number;
+}
+
+export interface DisasterWard {
   region: string;
-  description: string;
+  code: string;
+  earthquake: QuakeRanks;
+  flood: FloodShares;
+  landslide: LandslideCounts;
+  tsunami: { status: "notCovered"; text: string };
+  hightide: DepthShares;
 }
 
 /** One operator at a station (real-data plan PR 4): its lines there and its
@@ -133,18 +177,6 @@ export interface ZoningComposition {
   types: ZoningType[];
 }
 
-/**
- * The LP hero's sample set (src/data/sample.ts, HeroSpread.tsx) — the only
- * reader since real-data plan PR 5; PR 7 switches the hero with its downside.
- */
-export interface LandPriceSummary {
-  region: string;
-  avgPrice: number; // 平均地価 円/m²
-  maxPrice: number;
-  minPrice: number;
-  changeRate: number; // 前年比 %
-  count: number; // データ地点数
-}
 
 /**
  * One use's figures in one ward from the 地価公示 snapshot (real-data plan

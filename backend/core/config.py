@@ -116,5 +116,18 @@ class Settings:
             return Path(explicit)
         return Path(__file__).resolve().parents[1] / "data" / "zoning.json"
 
+    @property
+    def DISASTER_RISKS_PATH(self) -> Path:
+        """The committed 災害 snapshot (real-data plan PR 7), validated at startup.
+
+        Ships with backend/ in the image, like the other snapshots. The
+        override exists so a test can point the app at a broken file and prove
+        that it refuses to start.
+        """
+        explicit = os.environ.get("DISASTER_RISKS_PATH")
+        if explicit:
+            return Path(explicit)
+        return Path(__file__).resolve().parents[1] / "data" / "disaster_risks.json"
+
 
 settings = Settings()

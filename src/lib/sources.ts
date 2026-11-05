@@ -18,6 +18,11 @@ export const SOURCES = {
     label: "ハザードマップポータルサイト（国土交通省）",
     href: "https://disaportal.gsi.go.jp/",
   },
+  // Real-data plan PR 7 (Architect decision 1): the earthquake figures.
+  tokyoKikendo: {
+    label: "東京都 地震に関する地域危険度測定調査（都市整備局）",
+    href: "https://www.toshiseibi.metro.tokyo.lg.jp/",
+  },
   disastershield: {
     label: "DisasterShield（Beta）",
     href: "",
@@ -39,9 +44,9 @@ export type SourceKey = keyof typeof SOURCES;
 export const SAMPLE_NOTICE = `${SOURCES.sample.label}— 実データではありません`;
 
 /**
- * The map's 人口 and 災害 ward fills are coloured from WARD_META
- * (ward-boundaries.ts), a hardcoded table that is neither the live feed nor
- * the sample set. The 地価 fill left that table in real-data plan PR 5: it is
- * the 地価公示 snapshot's, and its legend cites it.
+ * The map's 人口 ward fill is coloured from WARD_META (ward-boundaries.ts), a
+ * hardcoded table that is neither the live feed nor the sample set. The 地価
+ * fill left that table in real-data plan PR 5 and the 災害 fill in PR 7: each
+ * is its snapshot's, and its legend cites it.
  */
 export const CHOROPLETH_NOTE = "固定の参考値 — 実データではありません";

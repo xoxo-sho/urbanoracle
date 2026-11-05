@@ -12,6 +12,18 @@ import {
   A55_NOTICES_LABEL_EN,
   ESTAT_API_CREDIT,
   ESTAT_API_CREDIT_EN,
+  HAZARD_PORTAL_SOURCE,
+  HAZARD_PORTAL_SOURCE_EN,
+  KIKENDO_CREDIT_EN,
+  KIKENDO_EDITED,
+  KSJ_A31_EDITED,
+  KSJ_A33_EDITED,
+  KSJ_A40_EDITED,
+  KSJ_A31_EDITED_EN,
+  KSJ_A33_EDITED_EN,
+  KSJ_A40_EDITED_EN,
+  KSJ_A49_EDITED,
+  KSJ_A49_EDITED_EN,
   KSJ_A55_EDITED,
   KSJ_A55_EDITED_EN,
   KSJ_L01_EDITED,
@@ -34,6 +46,14 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: KSJ_N03_EDITED, en: KSJ_N03_EDITED_EN },
   { ja: KSJ_L01_EDITED, en: KSJ_L01_EDITED_EN },
   { ja: KSJ_A55_EDITED, en: KSJ_A55_EDITED_EN },
+  // Real-data plan PR 7: the 東京都 CC BY credit with its 改変 sentence, the four
+  // hazard datasets' 加工 lines and the hazard-map portal's 出典 line.
+  { ja: KIKENDO_EDITED, en: KIKENDO_CREDIT_EN },
+  { ja: KSJ_A31_EDITED, en: KSJ_A31_EDITED_EN },
+  { ja: KSJ_A33_EDITED, en: KSJ_A33_EDITED_EN },
+  { ja: KSJ_A40_EDITED, en: KSJ_A40_EDITED_EN },
+  { ja: KSJ_A49_EDITED, en: KSJ_A49_EDITED_EN },
+  { ja: HAZARD_PORTAL_SOURCE, en: HAZARD_PORTAL_SOURCE_EN },
 ];
 
 // The A55 page's six 注意事項 (real-data plan PR 6), all of them, in their own
@@ -46,9 +66,9 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
  * Editorial density rather than marketing abstraction: the hero shows the
  * upside×downside spread instead of describing it, and every section below
  * carries figures, units and provenance. A reader should be able to check the
- * claim on the page they are reading it on — which is why the hero says
- * SAMPLE and the provenance table separates what the code path fetches from
- * what is still a provisional sample.
+ * claim on the page they are reading it on — which is why the hero's units
+ * line names its surveys and definitions, and the provenance table separates
+ * what the code path fetches from what is still a provisional sample.
  *
  * Every string comes from src/i18n/lp.ts. The markup is the page's markup as
  * it was before the toggle existed; in Japanese it renders the same text.
@@ -67,7 +87,7 @@ const CAPABILITIES: { side: "up" | "down"; label: LpKey; title: LpKey; body: LpK
     label: "downLabel",
     title: "downTitle",
     body: "downBody",
-    sources: ["srcHazard"],
+    sources: ["srcKikendo", "srcKsj", "srcHazard"],
   },
 ];
 
@@ -80,6 +100,9 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcKsj", "liveStations", "liveStationsYear"],
   ["srcKsj", "liveLandPrice", "liveLandPriceYear"],
   ["srcKsj", "liveZoning", "liveZoningYear"],
+  ["srcKikendo", "liveQuake", "liveQuakeYear"],
+  ["srcKsj", "liveDisasterKsj", "liveDisasterKsjYear"],
+  ["srcHero", "liveHero", "liveHeroYear"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
   ["srcTiles", "liveTiles", "none"],
@@ -87,8 +110,6 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
 
 // Surfaces still fed from src/data/sample.ts, or from a hardcoded table.
 const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [
-  ["sampleHero", "none"],
-  ["sampleDisaster", "none"],
   ["sampleRidership", "none"],
   ["sampleRadar", "sampleRadarScale"],
   ["sampleChoropleth", "none"],

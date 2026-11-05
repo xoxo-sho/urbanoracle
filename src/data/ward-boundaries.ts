@@ -2,48 +2,48 @@
 // The actual polygon geometries are loaded from /public/data/tokyo-wards.geojson
 // (sourced from dataofjapan/land TopoJSON, converted to GeoJSON)
 
-// The 地価 fields left this table in real-data plan PR 5: MapView merges the
-// 地価公示 snapshot's figure for the chosen use into each feature at layer time
-// (landPrice, landPriceText), so the fill and the hover tooltip read the
-// payload, never a constant.
+// The 地価 fields left this table in real-data plan PR 5 and the 災害 fields
+// (the Lv.1–5 maximum and the hazard types) in PR 7: MapView merges the 地価公示 snapshot's
+// figure for the chosen use (landPrice, landPriceText) and the 災害 snapshot's
+// share of 町丁目 at 総合危険度 rank 5 (rank5Share) into each feature at layer
+// time, so those fills and the hover tooltip read the payload, never a constant.
 export interface WardFeatureProperties {
   name: string;
   population: number;
   density: number;
   growthRate: number;
   elderly: number;
-  maxRiskLevel: number;
-  riskTypes: string;
   landPrice?: number;
   landPriceText?: string;
+  rank5Share?: number;
 }
 
 export type WardFeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon, WardFeatureProperties>;
 
 const WARD_META: Record<string, Omit<WardFeatureProperties, "name">> = {
-  "千代田区": { population: 67927, density: 5830, growthRate: 2.1, elderly: 21, maxRiskLevel: 0, riskTypes: "" },
-  "中央区": { population: 174073, density: 17110, growthRate: 3.5, elderly: 17, maxRiskLevel: 0, riskTypes: "" },
-  "港区": { population: 260486, density: 12770, growthRate: 1.8, elderly: 21, maxRiskLevel: 0, riskTypes: "" },
-  "新宿区": { population: 349385, density: 19100, growthRate: 0.5, elderly: 22, maxRiskLevel: 0, riskTypes: "" },
-  "文京区": { population: 240069, density: 21260, growthRate: 1.3, elderly: 21, maxRiskLevel: 0, riskTypes: "" },
-  "台東区": { population: 211444, density: 20910, growthRate: 0.9, elderly: 24, maxRiskLevel: 4, riskTypes: "earthquake" },
-  "墨田区": { population: 275082, density: 19980, growthRate: 0.7, elderly: 24, maxRiskLevel: 5, riskTypes: "earthquake" },
-  "江東区": { population: 524310, density: 13050, growthRate: 2.4, elderly: 20, maxRiskLevel: 5, riskTypes: "flood" },
-  "品川区": { population: 422488, density: 18500, growthRate: 1.1, elderly: 21, maxRiskLevel: 2, riskTypes: "tsunami" },
-  "目黒区": { population: 287750, density: 19540, growthRate: 0.6, elderly: 22, maxRiskLevel: 0, riskTypes: "" },
-  "大田区": { population: 748081, density: 12300, growthRate: 0.2, elderly: 25, maxRiskLevel: 0, riskTypes: "" },
-  "世田谷区": { population: 939099, density: 16200, growthRate: 0.8, elderly: 23, maxRiskLevel: 3, riskTypes: "landslide" },
-  "渋谷区": { population: 243883, density: 16020, growthRate: 1.2, elderly: 20, maxRiskLevel: 0, riskTypes: "" },
-  "中野区": { population: 344880, density: 22120, growthRate: 0.4, elderly: 23, maxRiskLevel: 0, riskTypes: "" },
-  "杉並区": { population: 591108, density: 17360, growthRate: 0.3, elderly: 24, maxRiskLevel: 0, riskTypes: "" },
-  "豊島区": { population: 301599, density: 23200, growthRate: 0.3, elderly: 24, maxRiskLevel: 0, riskTypes: "" },
-  "北区": { population: 355213, density: 17230, growthRate: -0.2, elderly: 27, maxRiskLevel: 3, riskTypes: "earthquake,landslide" },
-  "荒川区": { population: 217475, density: 21400, growthRate: 0.1, elderly: 25, maxRiskLevel: 4, riskTypes: "earthquake" },
-  "板橋区": { population: 584483, density: 18140, growthRate: 0.1, elderly: 24, maxRiskLevel: 0, riskTypes: "" },
-  "練馬区": { population: 752608, density: 15650, growthRate: 0.4, elderly: 24, maxRiskLevel: 0, riskTypes: "" },
-  "足立区": { population: 695043, density: 13060, growthRate: -0.3, elderly: 27, maxRiskLevel: 4, riskTypes: "flood" },
-  "葛飾区": { population: 464526, density: 13360, growthRate: -0.1, elderly: 25, maxRiskLevel: 4, riskTypes: "flood" },
-  "江戸川区": { population: 697932, density: 13990, growthRate: -0.2, elderly: 23, maxRiskLevel: 3, riskTypes: "flood,tsunami" },
+  "千代田区": { population: 67927, density: 5830, growthRate: 2.1, elderly: 21 },
+  "中央区": { population: 174073, density: 17110, growthRate: 3.5, elderly: 17 },
+  "港区": { population: 260486, density: 12770, growthRate: 1.8, elderly: 21 },
+  "新宿区": { population: 349385, density: 19100, growthRate: 0.5, elderly: 22 },
+  "文京区": { population: 240069, density: 21260, growthRate: 1.3, elderly: 21 },
+  "台東区": { population: 211444, density: 20910, growthRate: 0.9, elderly: 24 },
+  "墨田区": { population: 275082, density: 19980, growthRate: 0.7, elderly: 24 },
+  "江東区": { population: 524310, density: 13050, growthRate: 2.4, elderly: 20 },
+  "品川区": { population: 422488, density: 18500, growthRate: 1.1, elderly: 21 },
+  "目黒区": { population: 287750, density: 19540, growthRate: 0.6, elderly: 22 },
+  "大田区": { population: 748081, density: 12300, growthRate: 0.2, elderly: 25 },
+  "世田谷区": { population: 939099, density: 16200, growthRate: 0.8, elderly: 23 },
+  "渋谷区": { population: 243883, density: 16020, growthRate: 1.2, elderly: 20 },
+  "中野区": { population: 344880, density: 22120, growthRate: 0.4, elderly: 23 },
+  "杉並区": { population: 591108, density: 17360, growthRate: 0.3, elderly: 24 },
+  "豊島区": { population: 301599, density: 23200, growthRate: 0.3, elderly: 24 },
+  "北区": { population: 355213, density: 17230, growthRate: -0.2, elderly: 27 },
+  "荒川区": { population: 217475, density: 21400, growthRate: 0.1, elderly: 25 },
+  "板橋区": { population: 584483, density: 18140, growthRate: 0.1, elderly: 24 },
+  "練馬区": { population: 752608, density: 15650, growthRate: 0.4, elderly: 24 },
+  "足立区": { population: 695043, density: 13060, growthRate: -0.3, elderly: 27 },
+  "葛飾区": { population: 464526, density: 13360, growthRate: -0.1, elderly: 25 },
+  "江戸川区": { population: 697932, density: 13990, growthRate: -0.2, elderly: 23 },
 };
 
 // Ward center coordinates (pre-computed from GeoJSON centroids)

@@ -1,0 +1,4062 @@
+{
+ "region": "東京23区",
+ "sources": {
+  "earthquake": {
+   "year": 2022,
+   "table": "地域危険度 第9回",
+   "label": "東京都「地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）」町丁目別ランク（総合・建物倒壊・火災）"
+  },
+  "flood": {
+   "year": 2025,
+   "table": "A31a-25",
+   "label": "国土数値情報 洪水浸水想定区域データ（河川単位）2025年度（令和7年度）版 想定最大規模（東京都・関東地方整備局）"
+  },
+  "landslide": {
+   "year": 2025,
+   "table": "A33-25",
+   "label": "国土数値情報 土砂災害警戒区域データ 2025年度（令和7年度）版（東京都 2025年7月30日時点）"
+  },
+  "tsunami": {
+   "year": 2023,
+   "table": "A40-23",
+   "label": "国土数値情報 津波浸水想定データ（東京都、A40-23）"
+  },
+  "hightide": {
+   "year": 2020,
+   "table": "A49-20",
+   "label": "国土数値情報 高潮浸水想定区域データ 2020年度（令和2年度）版 東京都 想定最大規模"
+  },
+  "wards": {
+   "year": 2026,
+   "table": "N03-20260101",
+   "label": "国土数値情報 行政区域データ 2026年（令和8年）1月1日時点 東京都（区の面積）"
+  }
+ },
+ "hazards": {
+  "earthquake": {
+   "kinds": [
+    {
+     "key": "total",
+     "name": "総合危険度"
+    },
+    {
+     "key": "building",
+     "name": "建物倒壊危険度"
+    },
+    {
+     "key": "fire",
+     "name": "火災危険度"
+    }
+   ],
+   "ranks": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）",
+   "allChochomoku": 5192
+  },
+  "flood": {
+   "classes": [
+    {
+     "code": 1,
+     "label": "0.5m未満"
+    },
+    {
+     "code": 2,
+     "label": "0.5m以上3.0m未満"
+    },
+    {
+     "code": 3,
+     "label": "3.0m以上5.0m未満"
+    },
+    {
+     "code": 4,
+     "label": "5.0m以上10.0m未満"
+    },
+    {
+     "code": 5,
+     "label": "10.0m以上20.0m未満"
+    },
+    {
+     "code": 6,
+     "label": "20.0m以上"
+    }
+   ],
+   "deepFrom": 3,
+   "deepLabel": "浸水深3m以上"
+  },
+  "landslide": {
+   "phenomena": [
+    {
+     "code": 1,
+     "name": "急傾斜地の崩壊"
+    },
+    {
+     "code": 2,
+     "name": "土石流"
+    },
+    {
+     "code": 3,
+     "name": "地滑り"
+    }
+   ],
+   "zones": [
+    {
+     "code": 1,
+     "name": "土砂災害警戒区域"
+    },
+    {
+     "code": 2,
+     "name": "土砂災害特別警戒区域"
+    }
+   ]
+  },
+  "tsunami": {
+   "status": "notCovered",
+   "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）",
+   "basis": [
+    {
+     "title": "北海道、福島県、東京都及び岐阜県における津波浸水想定の設定・変更について（令和5年7月28日、国土交通省 社会資本整備審議会 河川分科会 資料7-1）",
+     "url": "https://www.mlit.go.jp/river/shinngikai_blog/shaseishin/kasenbunkakai/bunkakai/dai65kai/pdf/7-1.pdf",
+     "bytes": 1989492,
+     "sha256": "63d4b6877c76bb7b73f556d526663789e71cdd2e07f9e96351b68a4c7d7631ef",
+     "page": 4,
+     "quote": "津波浸水想定は、東京都の区部を除いて設定済み。"
+    },
+    {
+     "title": "東京都の津波浸水想定について（解説）（東京都）",
+     "url": "https://www.bousai.metro.tokyo.lg.jp/_res/projects/default_project/_page_/001/023/364/1.pdf",
+     "bytes": 3127169,
+     "sha256": "3c6816760d967b8532a6e32a6ebaf16032ced548f0bb07cbbd297b3bfb397244",
+     "page": 1,
+     "quote": "「津波浸水想定」は、津波防災地域づくりに関する法律（平成 23 年法律第 123 号）第 8 条第１項に基づいて、東京都の島しょ部を対象として実施しました。"
+    }
+   ]
+  },
+  "hightide": {
+   "classes": [
+    {
+     "code": 1,
+     "label": "0.3m未満"
+    },
+    {
+     "code": 2,
+     "label": "0.3m以上0.5m未満"
+    },
+    {
+     "code": 3,
+     "label": "0.5m以上1m未満"
+    },
+    {
+     "code": 4,
+     "label": "1m以上3m未満"
+    },
+    {
+     "code": 5,
+     "label": "3m以上5m未満"
+    },
+    {
+     "code": 6,
+     "label": "5m以上10m未満"
+    },
+    {
+     "code": 7,
+     "label": "10m以上20m未満"
+    }
+   ]
+  }
+ },
+ "inputs": {
+  "tokyo_kikendo9_all2.csv": {
+   "path": "backend/tests/fixtures/disaster/tokyo_kikendo9_all2.csv",
+   "sha256": "62ad9f4479f43ea254ed89bdfbc289ee9ccf7f18546a3713c29e6d63bbabbfb9",
+   "cut_from": {
+    "title": "地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）",
+    "url": "https://www.toshiseibi.metro.tokyo.lg.jp/bosai/chousa_6/download/all2.csv",
+    "served_at": "https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/csv_bosai_chousa_6_download_all2",
+    "file": "all2.csv",
+    "bytes": 355915,
+    "sha256": "62ad9f4479f43ea254ed89bdfbc289ee9ccf7f18546a3713c29e6d63bbabbfb9",
+    "encoding": "cp932",
+    "last_modified": "Tue, 01 Oct 2024 09:54:46 GMT",
+    "published": "2022-09-09（令和4年9月公表; 作成日 2022/09/09 13:45:57 on the API catalog page）",
+    "press": "https://www.toshiseibi.metro.tokyo.lg.jp/information/press/r4/09/2022090901",
+    "catalog": "https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d0000000012",
+    "api_page": "https://spec.api.metro.tokyo.lg.jp/spec/t000008d0000000012-5611a503ba1c2785d49d69234d168148-0?lang=ja",
+    "committed": "whole, byte for byte"
+   }
+  },
+  "ksj_A31a-25_L2_tokyo23.csv": {
+   "path": "backend/tests/fixtures/disaster/ksj_A31a-25_L2_tokyo23.csv",
+   "sha256": "a0ed0db97841c8bfb73894bb20d658f78895df1732f60274a606cde75ff14136",
+   "cut_from": {
+    "id": "A31a-25",
+    "edition": "2025年度（令和7年度）版",
+    "year": 2025,
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A31a-2025.html",
+    "zips": [
+     {
+      "file": "A31a-25_13_10_GEOJSON.zip",
+      "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A31a/A31a-25/A31a-25_13_10_GEOJSON.zip",
+      "bytes": 12009145,
+      "sha256": "ecef23e95ac75554bfd42e6156800291b7af27bca49198002eab6f0394fe9f93",
+      "scope": "東京都 洪水予報河川・水位周知河川"
+     },
+     {
+      "file": "A31a-25_13_20_GEOJSON.zip",
+      "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A31a/A31a-25/A31a-25_13_20_GEOJSON.zip",
+      "bytes": 20496987,
+      "sha256": "3101bac42ebb9693f7c9f92d994b7eb60a2cfe2bf2659a21dfb2a0886885e0b4",
+      "scope": "東京都 その他の河川"
+     },
+     {
+      "file": "A31a-25_83_10_GEOJSON.zip",
+      "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A31a/A31a-25/A31a-25_83_10_GEOJSON.zip",
+      "bytes": 532040825,
+      "sha256": "e66542cecda1c2ed9e7cf74d3333512a65bdb334557410389e521e7c259bca35",
+      "scope": "関東地方整備局 洪水予報河川・水位周知河川（国管理河川）"
+     }
+    ],
+    "member_dir": "20_想定最大規模",
+    "polygons_kept": 198374,
+    "codelist": {
+     "url": "https://nlftp.mlit.go.jp/ksj/gml/codelist/water_depth_code.xlsx",
+     "sha256": "6d2d0ea50cdf5909b9729d92d18139c4f054e6384c5929f1b74694aef37ba700"
+    }
+   }
+  },
+  "ksj_A49-20_tokyo23.csv": {
+   "path": "backend/tests/fixtures/disaster/ksj_A49-20_tokyo23.csv",
+   "sha256": "9761c47148c51d404cdfb6a5cfe5c56155c0bcca668a4e5a4385ae391ef22492",
+   "cut_from": {
+    "id": "A49-20",
+    "edition": "2020年度（令和2年度）版",
+    "year": 2020,
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-2024.html",
+    "file": "A49-20_13_GML.zip",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A49/A49-20/A49-20_13_GML.zip",
+    "bytes": 31712745,
+    "sha256": "cec46df37c0d8cabc660fc85f8ec6f0cac78b6754a5387f7be21b7a599810390",
+    "polygons_kept": 59039
+   }
+  },
+  "ksj_A33-25_tokyo23.csv": {
+   "path": "backend/tests/fixtures/disaster/ksj_A33-25_tokyo23.csv",
+   "sha256": "083c73472aa686e2d3f6ad59e1359e68e762efd0548685fe5fe1d30f5eda59fb",
+   "cut_from": {
+    "id": "A33-25",
+    "edition": "2025年度（令和7年度）版",
+    "year": 2025,
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A33-2025.html",
+    "file": "A33-25_13_GEOJSON.zip",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A33/A33-25/A33-25_13_GEOJSON.zip",
+    "bytes": 7011838,
+    "sha256": "4107d815b48fd3a4e9d5394ff4c8504f9f54924293bb021c5f51b6ea3f2ee847",
+    "rows_kept": 1821,
+    "tokyo_asof": "2025-07-30"
+   }
+  },
+  "ksj_A40-23_tokyo23_coverage.json": {
+   "path": "backend/tests/fixtures/disaster/ksj_A40-23_tokyo23_coverage.json",
+   "sha256": "e4abd27c1a7745a82b8e548e8b1b73b920536b27481cbecfc4b30a91a94824f3",
+   "cut_from": {
+    "id": "A40-23",
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A40-2024.html",
+    "file": "A40-23_13_GML.zip",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A40/A40-23/A40-23_13_GML.zip",
+    "bytes": 8710803,
+    "sha256": "b8e24973e5f9b885d481c28211f107587d14597cb3d9674d26c1aa591dacdc5c",
+    "member": "A40-23_13_GML/A40-23_13.geojson",
+    "licence": "オープンデータ（CC_BY_4.0（一部制限））— 東京都 「オープンデータとして利用可（商用利用可・再配信可）」"
+   }
+  },
+  "ksj_N03-20260101_tokyo23.geojson": {
+   "path": "backend/tests/fixtures/stations/ksj_N03-20260101_tokyo23.geojson",
+   "sha256": "8a98881f85ac06ea4f435a38c2285e9f9eaa82a4384b20f4ad265f9847d89297",
+   "cut_from": {
+    "id": "N03-20260101",
+    "edition": "2026年（令和8年）1月1日時点",
+    "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+    "url": "https://nlftp.mlit.go.jp/ksj/gml/data/N03/N03-2026/N03-20260101_13_GML.zip",
+    "file": "N03-20260101_13_GML.zip",
+    "bytes": 13153227,
+    "sha256": "94f10b26256566db970dd74b09d614f059c1e8a432f9244ac9c4add76c32ff16"
+   }
+  }
+ },
+ "projection": {
+  "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）",
+  "method": "etl/zoning.py tm_project + shoelace on geometry rounded to 9 decimals; set operations on JGD2011 lon/lat (shapely, grid 1e-9°)"
+ },
+ "licence": {
+  "earthquake": {
+   "name": "クリエイティブ・コモンズ・ライセンス 表示4.0国際（CC BY 4.0）— 東京都オープンデータ利用規約",
+   "url": "https://portal.data.metro.tokyo.lg.jp/terms/",
+   "basis": "東京都オープンデータAPIカタログの当該データセットのページ（https://spec.api.metro.tokyo.lg.jp/spec/t000008d0000000012-5611a503ba1c2785d49d69234d168148-0?lang=ja）が「ライセンス クリエイティブ・コモンズ 表示（CC BY）」と記し、「実データ」としてこの all2.csv を指す（2026-11-04 直接読了）。東京都オープンデータ利用規約（https://portal.data.metro.tokyo.lg.jp/terms/）は、本サイトの著作物を「クリエイティブ・コモンズ・ライセンス表示 4.0 国際」で許諾し（複製・翻案等を自由に、商用可）、第3項で「コンテンツが、コンテンツ提供者の他のサイトにおいても公開されている場合には、他のサイトの利用規約…と本利用規約が異なるときは、本利用規約が優先するものとします。」と定める。都市整備局サイトポリシー（https://www.toshiseibi.metro.tokyo.lg.jp/policy）の「無断で複製・転用することはできません」は同局サイト一般の定めであり、同じファイルがオープンデータとして公開されている本データには、上記第3項によりオープンデータ利用規約が優先する。カタログ本体（https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d0000000012）はこの環境から HTTP 403（地域制限）で読めず、API カタログのページで読んだ。"
+  },
+  "ksj": {
+   "name": "国土数値情報 利用規約（PDL1.0準拠）— A31a（2021年度以降）「オープンデータ（CC_BY_4.0）」; A33・A40・A49 は「オープンデータ（CC_BY_4.0（一部制限））」で東京都は「商用利用可・再配信可」; N03「オープンデータ（CC_BY_4.0）」",
+   "url": "https://nlftp.mlit.go.jp/ksj/other/agreement.html"
+  }
+ },
+ "credit": {
+  "kikendo": "地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）",
+  "kikendo_edited": "このサービスは、以下の著作物を改変して利用しています。地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）",
+  "source": "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）",
+  "edited_a31": "「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "edited_a33": "「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "edited_a40": "「国土数値情報（津波浸水想定データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "edited_a49": "「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "edited_n03": "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "pages": {
+   "A31a": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A31a-2025.html",
+   "A33": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A33-2025.html",
+   "A40": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A40-2024.html",
+   "A49": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-2024.html",
+   "kikendo": "https://spec.api.metro.tokyo.lg.jp/spec/t000008d0000000012-5611a503ba1c2785d49d69234d168148-0?lang=ja"
+  }
+ },
+ "notices": {
+  "A31a": [
+   "洪水浸水想定のシミュレーションの実施にあたっては、支川の氾濫、シミュレーションの前提となる降雨を超える規模の降雨、高潮及び内水による氾濫等を考慮していませんので、この洪水浸水想定区域に指定されていない区域においても浸水が発生する場合や、実際の浸水深がこの洪水浸水想定よりも大きい場合があります。",
+   "東京都：独自の施策として、洪水予報河川及び水位周知河川以外の河川からの外水氾濫や内水氾濫での浸水も表示した「浸水予想区域図」を作成・公表しており、区市町村等の自治体はこの「浸水予想区域図」を基にハザードマップを作成しています。そのため、住民の方々が所有しているハザードマップと浸水域が異なる場合があります。"
+  ],
+  "A33": [
+   "本ページで提供する土砂災害警戒区域等の位置は、概略位置を示した参考図であり土砂災害警戒区域等の境界を明示するものではありません。"
+  ]
+ },
+ "notes": {
+  "earthquake": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）。区の値は、その区の町丁目のうち各ランクに当たる町丁目の数。災害時活動困難度は困難係数のみでランクがないため扱わない",
+  "rank5": "総合危険度ランク5の町丁目の数と、区の全町丁目数に対する割合（地図の塗り分け）",
+  "flood": "想定最大規模の洪水浸水想定区域のうち、区（行政区域データ N03-20260101 の区ポリゴン）の面積に占める浸水深の区分ごとの割合。複数の河川の区域が重なる所は最も深い区分で数える。都管理河川（東京都）と国管理河川（関東地方整備局：荒川・江戸川・綾瀬川・多摩川・利根川など）を含む",
+  "landslide": "区の範囲に掛かる土砂災害警戒区域・特別警戒区域の数（区域番号の数、現象ごと）。区の境をまたぐ区域は両方の区で数える。0 は該当する区域がないこと",
+  "tsunami": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）",
+  "hightide": "想定最大規模の高潮浸水想定区域のうち、区の面積に占める浸水深の区分ごとの割合（区分は国土数値情報 A49 の表記のまま）",
+  "area": "面積は平面直角座標系第IX系（EPSG:6677、JGD2011）上で計算。区の面積は行政区域データ N03-20260101 の区ポリゴン（河川・海面・埋立地を含む）"
+ },
+ "total": {
+  "code": "13100",
+  "name": "東京23区",
+  "earthquake": {
+   "n": 3138,
+   "ranks": {
+    "total": [
+     954,
+     1084,
+     735,
+     280,
+     85
+    ],
+    "building": [
+     743,
+     1202,
+     820,
+     288,
+     85
+    ],
+    "fire": [
+     1008,
+     1067,
+     694,
+     284,
+     85
+    ]
+   },
+   "rank5": 85,
+   "rank5Share": 2.7087,
+   "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+  },
+  "flood": {
+   "wardM2": 622934736.327,
+   "m2": 309671802.789,
+   "share": 49.7118,
+   "classes": [
+    {
+     "code": 1,
+     "label": "0.5m未満",
+     "m2": 59919576.357,
+     "share": 9.6189
+    },
+    {
+     "code": 2,
+     "label": "0.5m以上3.0m未満",
+     "m2": 138016288.53,
+     "share": 22.1558
+    },
+    {
+     "code": 3,
+     "label": "3.0m以上5.0m未満",
+     "m2": 91663534.466,
+     "share": 14.7148
+    },
+    {
+     "code": 4,
+     "label": "5.0m以上10.0m未満",
+     "m2": 20010327.994,
+     "share": 3.2123
+    },
+    {
+     "code": 5,
+     "label": "10.0m以上20.0m未満",
+     "m2": 62075.442,
+     "share": 0.01
+    },
+    {
+     "code": 6,
+     "label": "20.0m以上",
+     "m2": 0.0,
+     "share": 0.0
+    }
+   ],
+   "deepM2": 111735937.902,
+   "deepShare": 17.937
+  },
+  "landslide": {
+   "phenomena": [
+    {
+     "code": 1,
+     "name": "急傾斜地の崩壊",
+     "warning": 1008,
+     "special": 686
+    },
+    {
+     "code": 2,
+     "name": "土石流",
+     "warning": 0,
+     "special": 0
+    },
+    {
+     "code": 3,
+     "name": "地滑り",
+     "warning": 0,
+     "special": 0
+    }
+   ],
+   "warning": 1008,
+   "special": 686
+  },
+  "tsunami": {
+   "status": "notCovered",
+   "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+  },
+  "hightide": {
+   "wardM2": 622934736.327,
+   "m2": 187386645.425,
+   "share": 30.0813,
+   "classes": [
+    {
+     "code": 1,
+     "label": "0.3m未満",
+     "m2": 14708767.159,
+     "share": 2.3612
+    },
+    {
+     "code": 2,
+     "label": "0.3m以上0.5m未満",
+     "m2": 10436187.06,
+     "share": 1.6753
+    },
+    {
+     "code": 3,
+     "label": "0.5m以上1m未満",
+     "m2": 23263760.613,
+     "share": 3.7345
+    },
+    {
+     "code": 4,
+     "label": "1m以上3m未満",
+     "m2": 76716915.524,
+     "share": 12.3154
+    },
+    {
+     "code": 5,
+     "label": "3m以上5m未満",
+     "m2": 52893859.57,
+     "share": 8.4911
+    },
+    {
+     "code": 6,
+     "label": "5m以上10m未満",
+     "m2": 9366055.5,
+     "share": 1.5035
+    },
+    {
+     "code": 7,
+     "label": "10m以上20m未満",
+     "m2": 1099.999,
+     "share": 0.0002
+    }
+   ]
+  }
+ },
+ "wards": [
+  {
+   "code": "13101",
+   "name": "千代田区",
+   "earthquake": {
+    "n": 115,
+    "ranks": {
+     "total": [
+      82,
+      30,
+      3,
+      0,
+      0
+     ],
+     "building": [
+      61,
+      26,
+      26,
+      2,
+      0
+     ],
+     "fire": [
+      103,
+      12,
+      0,
+      0,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 11351690.804,
+    "m2": 4732393.597,
+    "share": 41.6889,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1735170.965,
+      "share": 15.2856
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2962768.681,
+      "share": 26.0998
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 31130.855,
+      "share": 0.2742
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 3323.096,
+      "share": 0.0293
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 34453.951,
+    "deepShare": 0.3035
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 40,
+      "special": 28
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 40,
+    "special": 28
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 11351690.804,
+    "m2": 2545543.646,
+    "share": 22.4244,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 829840.607,
+      "share": 7.3103
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 530688.462,
+      "share": 4.675
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 753749.701,
+      "share": 6.64
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 429019.761,
+      "share": 3.7793
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 2245.115,
+      "share": 0.0198
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13102",
+   "name": "中央区",
+   "earthquake": {
+    "n": 98,
+    "ranks": {
+     "total": [
+      52,
+      41,
+      4,
+      1,
+      0
+     ],
+     "building": [
+      25,
+      32,
+      38,
+      3,
+      0
+     ],
+     "fire": [
+      67,
+      27,
+      3,
+      1,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 10014857.294,
+    "m2": 6321243.26,
+    "share": 63.1187,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1895948.621,
+      "share": 18.9314
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 4013398.521,
+      "share": 40.0744
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 350888.194,
+      "share": 3.5037
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 59701.127,
+      "share": 0.5961
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 1306.797,
+      "share": 0.013
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 411896.118,
+    "deepShare": 4.1129
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 10014857.294,
+    "m2": 5538895.156,
+    "share": 55.3068,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 727897.266,
+      "share": 7.2682
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 466248.759,
+      "share": 4.6556
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 1375693.875,
+      "share": 13.7365
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 2855108.444,
+      "share": 28.5087
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 74546.816,
+      "share": 0.7444
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 38599.997,
+      "share": 0.3854
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 799.999,
+      "share": 0.008
+     }
+    ]
+   }
+  },
+  {
+   "code": "13103",
+   "name": "港区",
+   "earthquake": {
+    "n": 117,
+    "ranks": {
+     "total": [
+      78,
+      35,
+      4,
+      0,
+      0
+     ],
+     "building": [
+      74,
+      34,
+      8,
+      1,
+      0
+     ],
+     "fire": [
+      103,
+      14,
+      0,
+      0,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 20848622.808,
+    "m2": 5405192.202,
+    "share": 25.9259,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 3226801.246,
+      "share": 15.4773
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2145063.596,
+      "share": 10.2888
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 25537.562,
+      "share": 0.1225
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 7789.798,
+      "share": 0.0374
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 33327.36,
+    "deepShare": 0.1599
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 212,
+      "special": 141
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 212,
+    "special": 141
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 20848622.808,
+    "m2": 5261650.546,
+    "share": 25.2374,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 933733.382,
+      "share": 4.4786
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 721408.805,
+      "share": 3.4602
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 1491559.0,
+      "share": 7.1542
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 1967636.357,
+      "share": 9.4377
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 115516.333,
+      "share": 0.5541
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 31796.669,
+      "share": 0.1525
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13104",
+   "name": "新宿区",
+   "earthquake": {
+    "n": 152,
+    "ranks": {
+     "total": [
+      56,
+      55,
+      32,
+      8,
+      1
+     ],
+     "building": [
+      49,
+      82,
+      20,
+      1,
+      0
+     ],
+     "fire": [
+      73,
+      63,
+      13,
+      3,
+      0
+     ]
+    },
+    "rank5": 1,
+    "rank5Share": 0.6579,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 18220434.936,
+    "m2": 4795090.98,
+    "share": 26.3171,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 2572662.426,
+      "share": 14.1197
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2154955.027,
+      "share": 11.8271
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 66103.803,
+      "share": 0.3628
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 1369.724,
+      "share": 0.0075
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 67473.527,
+    "deepShare": 0.3703
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 54,
+      "special": 32
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 54,
+    "special": 32
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 18220434.936,
+    "m2": 462465.581,
+    "share": 2.5382,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 70552.02,
+      "share": 0.3872
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 65050.451,
+      "share": 0.357
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 146000.523,
+      "share": 0.8013
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 180446.727,
+      "share": 0.9904
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 415.86,
+      "share": 0.0023
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13105",
+   "name": "文京区",
+   "earthquake": {
+    "n": 68,
+    "ranks": {
+     "total": [
+      21,
+      23,
+      20,
+      4,
+      0
+     ],
+     "building": [
+      17,
+      40,
+      10,
+      1,
+      0
+     ],
+     "fire": [
+      30,
+      27,
+      8,
+      3,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 11283916.162,
+    "m2": 2662385.768,
+    "share": 23.5945,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1312078.899,
+      "share": 11.6279
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 1284042.183,
+      "share": 11.3794
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 66160.121,
+      "share": 0.5863
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 104.565,
+      "share": 0.0009
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 66264.686,
+    "deepShare": 0.5872
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 106,
+      "special": 62
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 106,
+    "special": 62
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 11283916.162,
+    "m2": 476918.101,
+    "share": 4.2265,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 46206.843,
+      "share": 0.4095
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 42560.01,
+      "share": 0.3772
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 121193.933,
+      "share": 1.074
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 264318.289,
+      "share": 2.3424
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 2639.026,
+      "share": 0.0234
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13106",
+   "name": "台東区",
+   "earthquake": {
+    "n": 108,
+    "ranks": {
+     "total": [
+      11,
+      53,
+      37,
+      6,
+      1
+     ],
+     "building": [
+      4,
+      10,
+      45,
+      31,
+      18
+     ],
+     "fire": [
+      12,
+      47,
+      31,
+      15,
+      3
+     ]
+    },
+    "rank5": 1,
+    "rank5Share": 0.9259,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 10104305.207,
+    "m2": 8075252.792,
+    "share": 79.9189,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 412531.373,
+      "share": 4.0827
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 3840580.695,
+      "share": 38.0093
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 3821591.281,
+      "share": 37.8214
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 549.443,
+      "share": 0.0054
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 3822140.724,
+    "deepShare": 37.8269
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 5,
+      "special": 1
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 5,
+    "special": 1
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 10104305.207,
+    "m2": 3908308.333,
+    "share": 38.6796,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 1983213.16,
+      "share": 19.6274
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 1145161.62,
+      "share": 11.3334
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 775333.548,
+      "share": 7.6733
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 4600.005,
+      "share": 0.0455
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13107",
+   "name": "墨田区",
+   "earthquake": {
+    "n": 104,
+    "ranks": {
+     "total": [
+      8,
+      52,
+      21,
+      8,
+      15
+     ],
+     "building": [
+      2,
+      8,
+      39,
+      36,
+      19
+     ],
+     "fire": [
+      15,
+      47,
+      20,
+      8,
+      14
+     ]
+    },
+    "rank5": 15,
+    "rank5Share": 14.4231,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 13769373.808,
+    "m2": 12747361.822,
+    "share": 92.5776,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 374966.61,
+      "share": 2.7232
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 7316050.189,
+      "share": 53.1328
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 4637043.775,
+      "share": 33.6765
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 419301.248,
+      "share": 3.0452
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 5056345.023,
+    "deepShare": 36.7217
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 13769373.808,
+    "m2": 12135103.695,
+    "share": 88.1311,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 22799.461,
+      "share": 0.1656
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 21121.863,
+      "share": 0.1534
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 97926.442,
+      "share": 0.7112
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 2427681.342,
+      "share": 17.631
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 8234103.393,
+      "share": 59.8001
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 1331471.194,
+      "share": 9.6698
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13108",
+   "name": "江東区",
+   "earthquake": {
+    "n": 155,
+    "ranks": {
+     "total": [
+      56,
+      34,
+      47,
+      12,
+      6
+     ],
+     "building": [
+      45,
+      28,
+      42,
+      30,
+      10
+     ],
+     "fire": [
+      68,
+      45,
+      30,
+      6,
+      6
+     ]
+    },
+    "rank5": 6,
+    "rank5Share": 3.871,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 44181902.305,
+    "m2": 21054144.42,
+    "share": 47.6533,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 4210799.087,
+      "share": 9.5306
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 9346578.923,
+      "share": 21.1548
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 6738290.87,
+      "share": 15.2512
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 758475.54,
+      "share": 1.7167
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 7496766.41,
+    "deepShare": 16.968
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 44181902.305,
+    "m2": 25382431.646,
+    "share": 57.4498,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 1200659.182,
+      "share": 2.7175
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 888529.285,
+      "share": 2.0111
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 2373671.768,
+      "share": 5.3725
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 7859573.243,
+      "share": 17.7891
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 7490679.244,
+      "share": 16.9542
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 5569118.924,
+      "share": 12.605
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 200.0,
+      "share": 0.0005
+     }
+    ]
+   }
+  },
+  {
+   "code": "13109",
+   "name": "品川区",
+   "earthquake": {
+    "n": 130,
+    "ranks": {
+     "total": [
+      33,
+      25,
+      44,
+      27,
+      1
+     ],
+     "building": [
+      32,
+      45,
+      51,
+      2,
+      0
+     ],
+     "fire": [
+      40,
+      25,
+      36,
+      29,
+      0
+     ]
+    },
+    "rank5": 1,
+    "rank5Share": 0.7692,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 22845613.187,
+    "m2": 7523310.347,
+    "share": 32.9311,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 4274268.408,
+      "share": 18.7094
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 3171100.324,
+      "share": 13.8806
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 77836.101,
+      "share": 0.3407
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 105.514,
+      "share": 0.0005
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 77941.615,
+    "deepShare": 0.3412
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 54,
+      "special": 36
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 54,
+    "special": 36
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 22845613.187,
+    "m2": 5121504.573,
+    "share": 22.4179,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 528342.881,
+      "share": 2.3127
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 520416.665,
+      "share": 2.278
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 1889562.499,
+      "share": 8.271
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 2158208.973,
+      "share": 9.4469
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 22670.231,
+      "share": 0.0992
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 2303.324,
+      "share": 0.0101
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13110",
+   "name": "目黒区",
+   "earthquake": {
+    "n": 88,
+    "ranks": {
+     "total": [
+      33,
+      40,
+      13,
+      2,
+      0
+     ],
+     "building": [
+      28,
+      50,
+      10,
+      0,
+      0
+     ],
+     "fire": [
+      37,
+      37,
+      13,
+      1,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 14671500.158,
+    "m2": 3373982.814,
+    "share": 22.9968,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1552012.83,
+      "share": 10.5784
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 1797923.104,
+      "share": 12.2545
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 23000.764,
+      "share": 0.1568
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 1046.116,
+      "share": 0.0071
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 24046.88,
+    "deepShare": 0.1639
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 28,
+      "special": 18
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 28,
+    "special": 18
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 14671500.158,
+    "m2": 49025.226,
+    "share": 0.3342,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 18884.199,
+      "share": 0.1287
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 10106.974,
+      "share": 0.0689
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 13719.292,
+      "share": 0.0935
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 4414.76,
+      "share": 0.0301
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 500.002,
+      "share": 0.0034
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 1399.999,
+      "share": 0.0095
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13111",
+   "name": "大田区",
+   "earthquake": {
+    "n": 215,
+    "ranks": {
+     "total": [
+      50,
+      63,
+      61,
+      32,
+      9
+     ],
+     "building": [
+      38,
+      68,
+      86,
+      20,
+      3
+     ],
+     "fire": [
+      50,
+      72,
+      60,
+      27,
+      6
+     ]
+    },
+    "rank5": 9,
+    "rank5Share": 4.186,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 61844402.067,
+    "m2": 27536195.023,
+    "share": 44.525,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 4442601.096,
+      "share": 7.1835
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 21396283.141,
+      "share": 34.597
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 1675069.536,
+      "share": 2.7085
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 20957.954,
+      "share": 0.0339
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 1283.296,
+      "share": 0.0021
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 1697310.786,
+    "deepShare": 2.7445
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 95,
+      "special": 58
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 95,
+    "special": 58
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 61844402.067,
+    "m2": 20189578.818,
+    "share": 32.6458,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 2649374.921,
+      "share": 4.2839
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 2190905.57,
+      "share": 3.5426
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 5631267.742,
+      "share": 9.1055
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 9617934.717,
+      "share": 15.5518
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 86695.867,
+      "share": 0.1402
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 13400.001,
+      "share": 0.0217
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13112",
+   "name": "世田谷区",
+   "earthquake": {
+    "n": 277,
+    "ranks": {
+     "total": [
+      125,
+      100,
+      43,
+      9,
+      0
+     ],
+     "building": [
+      130,
+      143,
+      4,
+      0,
+      0
+     ],
+     "fire": [
+      99,
+      100,
+      60,
+      18,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 58043226.013,
+    "m2": 17874484.759,
+    "share": 30.7951,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 8464928.999,
+      "share": 14.5838
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 8121738.276,
+      "share": 13.9926
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 1029814.322,
+      "share": 1.7742
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 239314.429,
+      "share": 0.4123
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 18688.733,
+      "share": 0.0322
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 1287817.484,
+    "deepShare": 2.2187
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 106,
+      "special": 82
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 106,
+    "special": 82
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 58043226.013,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13113",
+   "name": "渋谷区",
+   "earthquake": {
+    "n": 80,
+    "ranks": {
+     "total": [
+      40,
+      33,
+      4,
+      3,
+      0
+     ],
+     "building": [
+      35,
+      39,
+      6,
+      0,
+      0
+     ],
+     "fire": [
+      54,
+      21,
+      5,
+      0,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 15107542.426,
+    "m2": 3154869.565,
+    "share": 20.8827,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1585745.758,
+      "share": 10.4964
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 1539423.431,
+      "share": 10.1898
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 25125.559,
+      "share": 0.1663
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 4574.817,
+      "share": 0.0303
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 29700.376,
+    "deepShare": 0.1966
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 10,
+      "special": 8
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 10,
+    "special": 8
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 15107542.426,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13114",
+   "name": "中野区",
+   "earthquake": {
+    "n": 85,
+    "ranks": {
+     "total": [
+      12,
+      26,
+      31,
+      14,
+      2
+     ],
+     "building": [
+      7,
+      60,
+      18,
+      0,
+      0
+     ],
+     "fire": [
+      8,
+      33,
+      28,
+      16,
+      0
+     ]
+    },
+    "rank5": 2,
+    "rank5Share": 2.3529,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 15591305.298,
+    "m2": 5336383.97,
+    "share": 34.2267,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 2803614.987,
+      "share": 17.9819
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2455475.986,
+      "share": 15.749
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 74266.477,
+      "share": 0.4763
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 3026.52,
+      "share": 0.0194
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 77292.997,
+    "deepShare": 0.4957
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 24,
+      "special": 10
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 24,
+    "special": 10
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 15591305.298,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13115",
+   "name": "杉並区",
+   "earthquake": {
+    "n": 139,
+    "ranks": {
+     "total": [
+      29,
+      55,
+      36,
+      18,
+      1
+     ],
+     "building": [
+      26,
+      108,
+      5,
+      0,
+      0
+     ],
+     "fire": [
+      12,
+      62,
+      44,
+      20,
+      1
+     ]
+    },
+    "rank5": 1,
+    "rank5Share": 0.7194,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 34048892.212,
+    "m2": 9738028.415,
+    "share": 28.6001,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 5627205.082,
+      "share": 16.5268
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 4046635.414,
+      "share": 11.8848
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 63593.83,
+      "share": 0.1868
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 594.089,
+      "share": 0.0017
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 64187.919,
+    "deepShare": 0.1885
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 6,
+      "special": 5
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 6,
+    "special": 5
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 34048892.212,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13116",
+   "name": "豊島区",
+   "earthquake": {
+    "n": 83,
+    "ranks": {
+     "total": [
+      17,
+      22,
+      37,
+      6,
+      1
+     ],
+     "building": [
+      10,
+      49,
+      24,
+      0,
+      0
+     ],
+     "fire": [
+      19,
+      31,
+      24,
+      9,
+      0
+     ]
+    },
+    "rank5": 1,
+    "rank5Share": 1.2048,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 13009478.151,
+    "m2": 3127250.995,
+    "share": 24.0383,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 2036985.854,
+      "share": 15.6577
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 1081397.806,
+      "share": 8.3124
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 8344.621,
+      "share": 0.0641
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 522.714,
+      "share": 0.004
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 8867.335,
+    "deepShare": 0.0682
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 20,
+      "special": 9
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 20,
+    "special": 9
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 13009478.151,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13117",
+   "name": "北区",
+   "earthquake": {
+    "n": 113,
+    "ranks": {
+     "total": [
+      18,
+      36,
+      33,
+      20,
+      6
+     ],
+     "building": [
+      16,
+      25,
+      57,
+      13,
+      2
+     ],
+     "fire": [
+      22,
+      32,
+      33,
+      19,
+      7
+     ]
+    },
+    "rank5": 6,
+    "rank5Share": 5.3097,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 20604803.835,
+    "m2": 12061061.014,
+    "share": 58.5352,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 1365241.301,
+      "share": 6.6258
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 3504634.598,
+      "share": 17.0088
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 4329256.376,
+      "share": 21.0109
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 2842366.595,
+      "share": 13.7947
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 19562.144,
+      "share": 0.0949
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 7191185.115,
+    "deepShare": 34.9005
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 97,
+      "special": 71
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 97,
+    "special": 71
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 20604803.835,
+    "m2": 7256552.505,
+    "share": 35.2178,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 507803.049,
+      "share": 2.4645
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 432827.094,
+      "share": 2.1006
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 941265.026,
+      "share": 4.5682
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 4771248.693,
+      "share": 23.156
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 602008.641,
+      "share": 2.9217
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 1400.002,
+      "share": 0.0068
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13118",
+   "name": "荒川区",
+   "earthquake": {
+    "n": 52,
+    "ranks": {
+     "total": [
+      4,
+      9,
+      10,
+      16,
+      13
+     ],
+     "building": [
+      3,
+      2,
+      11,
+      24,
+      12
+     ],
+     "fire": [
+      4,
+      9,
+      10,
+      12,
+      17
+     ]
+    },
+    "rank5": 13,
+    "rank5Share": 25.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 10153943.448,
+    "m2": 9578041.089,
+    "share": 94.3283,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 167784.663,
+      "share": 1.6524
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2863584.192,
+      "share": 28.2017
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 6499049.076,
+      "share": 64.0052
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 47597.025,
+      "share": 0.4688
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 26.133,
+      "share": 0.0003
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 6546672.234,
+    "deepShare": 64.4742
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 7,
+      "special": 5
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 7,
+    "special": 5
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 10153943.448,
+    "m2": 4838254.586,
+    "share": 47.649,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 1291832.458,
+      "share": 12.7225
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 856361.838,
+      "share": 8.4338
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 1671847.539,
+      "share": 16.465
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 1017412.751,
+      "share": 10.0199
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 800.0,
+      "share": 0.0079
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13119",
+   "name": "板橋区",
+   "earthquake": {
+    "n": 134,
+    "ranks": {
+     "total": [
+      48,
+      61,
+      23,
+      2,
+      0
+     ],
+     "building": [
+      27,
+      93,
+      14,
+      0,
+      0
+     ],
+     "fire": [
+      49,
+      58,
+      27,
+      0,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 32216783.118,
+    "m2": 13671556.088,
+    "share": 42.4361,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 2679814.829,
+      "share": 8.3181
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 2561426.225,
+      "share": 7.9506
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 3143610.391,
+      "share": 9.7577
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 5271034.343,
+      "share": 16.3611
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 15670.3,
+      "share": 0.0486
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 8430315.034,
+    "deepShare": 26.1675
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 147,
+      "special": 114
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 147,
+    "special": 114
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 32216783.118,
+    "m2": 3623226.64,
+    "share": 11.2464,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 425431.818,
+      "share": 1.3205
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 336089.146,
+      "share": 1.0432
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 702322.236,
+      "share": 2.18
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 1853592.089,
+      "share": 5.7535
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 305791.351,
+      "share": 0.9492
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13120",
+   "name": "練馬区",
+   "earthquake": {
+    "n": 202,
+    "ranks": {
+     "total": [
+      70,
+      93,
+      37,
+      2,
+      0
+     ],
+     "building": [
+      69,
+      132,
+      1,
+      0,
+      0
+     ],
+     "fire": [
+      48,
+      81,
+      66,
+      7,
+      0
+     ]
+    },
+    "rank5": 0,
+    "rank5Share": 0.0,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 48073042.203,
+    "m2": 12130317.182,
+    "share": 25.2331,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 7929064.344,
+      "share": 16.4938
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 4142448.208,
+      "share": 8.617
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 39575.535,
+      "share": 0.0823
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 16930.145,
+      "share": 0.0352
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 2298.95,
+      "share": 0.0048
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 58804.63,
+    "deepShare": 0.1223
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 15,
+      "special": 11
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 15,
+    "special": 11
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 48073042.203,
+    "m2": 0.0,
+    "share": 0.0,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13121",
+   "name": "足立区",
+   "earthquake": {
+    "n": 269,
+    "ranks": {
+     "total": [
+      51,
+      103,
+      62,
+      37,
+      16
+     ],
+     "building": [
+      16,
+      68,
+      128,
+      45,
+      12
+     ],
+     "fire": [
+      49,
+      113,
+      63,
+      30,
+      14
+     ]
+    },
+    "rank5": 16,
+    "rank5Share": 5.948,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 53235554.418,
+    "m2": 49176678.684,
+    "share": 92.3756,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 260233.687,
+      "share": 0.4888
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 22115659.776,
+      "share": 41.543
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 20307539.41,
+      "share": 38.1466
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 6490659.924,
+      "share": 12.1923
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 2585.887,
+      "share": 0.0049
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 26800785.221,
+    "deepShare": 50.3438
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 53235554.418,
+    "m2": 23693140.375,
+    "share": 44.5062,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 3238406.042,
+      "share": 6.0832
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 2028668.191,
+      "share": 3.8107
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 4472338.666,
+      "share": 8.401
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 9141923.233,
+      "share": 17.1726
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 4757603.176,
+      "share": 8.9369
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 54201.067,
+      "share": 0.1018
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "code": "13122",
+   "name": "葛飾区",
+   "earthquake": {
+    "n": 155,
+    "ranks": {
+     "total": [
+      14,
+      50,
+      58,
+      25,
+      8
+     ],
+     "building": [
+      7,
+      19,
+      75,
+      48,
+      6
+     ],
+     "fire": [
+      9,
+      51,
+      56,
+      31,
+      8
+     ]
+    },
+    "rank5": 8,
+    "rank5Share": 5.1613,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 34872280.957,
+    "m2": 31485766.526,
+    "share": 90.2888,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 243481.445,
+      "share": 0.6982
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 10297571.593,
+      "share": 29.5294
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 17362330.38,
+      "share": 49.7883
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 3581729.906,
+      "share": 10.271
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 653.202,
+      "share": 0.0019
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 20944713.488,
+    "deepShare": 60.0612
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 34872280.957,
+    "m2": 29562207.808,
+    "share": 84.7728,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 159729.603,
+      "share": 0.458
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 105786.878,
+      "share": 0.3034
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 484887.17,
+      "share": 1.3905
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 14452295.417,
+      "share": 41.4435
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 14308985.409,
+      "share": 41.0325
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 50423.331,
+      "share": 0.1446
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 100.0,
+      "share": 0.0003
+     }
+    ]
+   }
+  },
+  {
+   "code": "13123",
+   "name": "江戸川区",
+   "earthquake": {
+    "n": 199,
+    "ranks": {
+     "total": [
+      46,
+      45,
+      75,
+      28,
+      5
+     ],
+     "building": [
+      22,
+      41,
+      102,
+      31,
+      3
+     ],
+     "fire": [
+      37,
+      60,
+      64,
+      29,
+      9
+     ]
+    },
+    "rank5": 5,
+    "rank5Share": 2.5126,
+    "relative": "ランクは都内の町丁目（市街化区域の5,192町丁目）の中での相対評価（ランク1〜5、5が最も危険度が高い）"
+   },
+   "flood": {
+    "wardM2": 48841265.512,
+    "m2": 38110811.477,
+    "share": 78.0299,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.5m未満",
+      "m2": 745633.847,
+      "share": 1.5266
+     },
+     {
+      "code": 2,
+      "label": "0.5m以上3.0m未満",
+      "m2": 15857548.641,
+      "share": 32.4675
+     },
+     {
+      "code": 3,
+      "label": "3.0m以上5.0m未満",
+      "m2": 21268375.627,
+      "share": 43.5459
+     },
+     {
+      "code": 4,
+      "label": "5.0m以上10.0m未満",
+      "m2": 239253.362,
+      "share": 0.4899
+     },
+     {
+      "code": 5,
+      "label": "10.0m以上20.0m未満",
+      "m2": 0.0,
+      "share": 0.0
+     },
+     {
+      "code": 6,
+      "label": "20.0m以上",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ],
+    "deepM2": 21507628.989,
+    "deepShare": 44.0358
+   },
+   "landslide": {
+    "phenomena": [
+     {
+      "code": 1,
+      "name": "急傾斜地の崩壊",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 2,
+      "name": "土石流",
+      "warning": 0,
+      "special": 0
+     },
+     {
+      "code": 3,
+      "name": "地滑り",
+      "warning": 0,
+      "special": 0
+     }
+    ],
+    "warning": 0,
+    "special": 0
+   },
+   "tsunami": {
+    "status": "notCovered",
+    "text": "対象外：東京都の津波浸水想定（津波防災地域づくり法第8条）は島しょ部が対象で、区部には設定されていない（国土数値情報 A40 に23区の区域なし）"
+   },
+   "hightide": {
+    "wardM2": 48841265.512,
+    "m2": 37341838.19,
+    "share": 76.4555,
+    "classes": [
+     {
+      "code": 1,
+      "label": "0.3m未満",
+      "m2": 74060.267,
+      "share": 0.1516
+     },
+     {
+      "code": 2,
+      "label": "0.3m以上0.5m未満",
+      "m2": 74255.449,
+      "share": 0.152
+     },
+     {
+      "code": 3,
+      "label": "0.5m以上1m未満",
+      "m2": 321421.653,
+      "share": 0.6581
+     },
+     {
+      "code": 4,
+      "label": "1m以上3m未満",
+      "m2": 17711500.723,
+      "share": 36.2634
+     },
+     {
+      "code": 5,
+      "label": "3m以上5m未満",
+      "m2": 16888659.106,
+      "share": 34.5787
+     },
+     {
+      "code": 6,
+      "label": "5m以上10m未満",
+      "m2": 2271940.992,
+      "share": 4.6517
+     },
+     {
+      "code": 7,
+      "label": "10m以上20m未満",
+      "m2": 0.0,
+      "share": 0.0
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -136,6 +136,59 @@ export const ZONING_FAR_NOTE = "容積率・建蔽率は用途地域ごとの面
 export const ZONING_ASOF_NOTE =
   "時点は国土数値情報 公表自治体及び掲載データ一覧（A55_R6_datalist.xlsx）のデータ時点年の列から区ごとに読む。記載のない区は「掲載データ一覧に記載なし」";
 
+/**
+ * 災害 (real-data plan PR 7, Architect decisions 2026-11-05).
+ *
+ * 地震: 東京都「地震に関する地域危険度測定調査（第9回）」. Its dataset page on
+ * the 東京都オープンデータAPIカタログ (read 2026-11-04) licenses it CC BY, and
+ * 東京都オープンデータ利用規約 (https://portal.data.metro.tokyo.lg.jp/terms/)
+ * prescribes the credit — 2(1)ア 「【タイトル】、東京都・【その他の著作権者】、
+ * クリエイティブ・コモンズ・ライセンス 表示4.0国際（URL）」 — and, for a modified
+ * use (the dashboard counts the 町丁目 per rank), 2(1)イ the sentence that the
+ * work is modified. The same two sentences are recorded in the snapshot's
+ * `credit.kikendo` / `credit.kikendo_edited` (backend/data/disaster_risks.json).
+ */
+export const KIKENDO_TITLE = "地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）";
+export const TOKYO_CC_BY = "クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
+export const KIKENDO_CREDIT = `${KIKENDO_TITLE}、東京都、${TOKYO_CC_BY}`;
+export const KIKENDO_EDITED = `このサービスは、以下の著作物を改変して利用しています。${KIKENDO_CREDIT}`;
+export const KIKENDO_CREDIT_EN =
+  "Translation: Earthquake regional risk survey (9th), list of regional risk (published September 2022), Tokyo Metropolitan Government, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja). This service modifies the work above.";
+/**
+ * 国土数値情報 利用規約 1)イ for the 洪水 (A31a), 土砂 (A33), 津波 (A40) and
+ * 高潮 (A49) figures: the 加工 form with no editor name (Architect decision 12).
+ * Recorded in the snapshot's `credit.edited_a31` … `edited_a49`.
+ */
+export const KSJ_A31_EDITED = `「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_A33_EDITED = `「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_A40_EDITED = `「国土数値情報（津波浸水想定データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_A49_EDITED = `「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
+export const KSJ_A31_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (flood inundation area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+export const KSJ_A33_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (sediment disaster warning area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+export const KSJ_A40_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (tsunami inundation data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+export const KSJ_A49_EDITED_EN =
+  "Translation: Created by processing the National Land Numerical Information (storm surge inundation area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+/**
+ * The A33 page's 【重要：データ利用時の注意事項】 bullet that applies to every
+ * 土砂 figure here, and the A31a page's 留意事項 and 東京都 note, word for word
+ * (read 2026-11-04). The snapshot carries the same sentences in `notices`.
+ */
+export const A33_NOTICE = "本ページで提供する土砂災害警戒区域等の位置は、概略位置を示した参考図であり土砂災害警戒区域等の境界を明示するものではありません。";
+export const A31_NOTICES = [
+  "洪水浸水想定のシミュレーションの実施にあたっては、支川の氾濫、シミュレーションの前提となる降雨を超える規模の降雨、高潮及び内水による氾濫等を考慮していませんので、この洪水浸水想定区域に指定されていない区域においても浸水が発生する場合や、実際の浸水深がこの洪水浸水想定よりも大きい場合があります。",
+  "東京都：独自の施策として、洪水予報河川及び水位周知河川以外の河川からの外水氾濫や内水氾濫での浸水も表示した「浸水予想区域図」を作成・公表しており、区市町村等の自治体はこの「浸水予想区域図」を基にハザードマップを作成しています。そのため、住民の方々が所有しているハザードマップと浸水域が異なる場合があります。",
+] as const;
+/**
+ * ハザードマップポータルサイト 利用規約 (令和6年12月9日) 1)1 出典記載例, for the
+ * 洪水 and 急傾斜地 rasters drawn as they are served (no 加工).
+ */
+export const HAZARD_PORTAL_URL = "https://disaportal.gsi.go.jp/";
+export const HAZARD_PORTAL_SOURCE = "出典：ハザードマップポータルサイト";
+export const HAZARD_PORTAL_SOURCE_EN = "Translation: Source: Hazard Map Portal Site";
+
 /** dataofjapan/land README: name the upstream, 地球地図日本. */
 export const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
 export const WARD_BOUNDARY_CREDIT = `区境界: ${BOUNDARY_SOURCE}`;
