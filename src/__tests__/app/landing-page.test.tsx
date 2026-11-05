@@ -30,9 +30,15 @@ const FALSE_PROMISE = "表示するすべての数値に、出典・単位・年
 const REMOVED_SOURCE = "不動産情報ライブラリ";
 
 describe("landing page hero", () => {
-  it("carries the sample label", () => {
+  // Real-data plan PR 7 (Architect decision 11): the hero's rows are measured —
+  // L01 住宅地 変動率 with the ward's 地域危険度 and 洪水 figures — so it carries
+  // no sample label; the sample group of the table below still exists (radar).
+  it("carries no sample label", () => {
     const { container } = render(<LandingPage />);
-    expect(container.textContent).toContain(SAMPLE);
+    const hero = container.querySelector("[data-hero-spread]");
+    expect(hero).not.toBeNull();
+    expect(hero!.textContent).not.toContain(SAMPLE);
+    expect(hero!.textContent).not.toContain("SAMPLE");
   });
 });
 

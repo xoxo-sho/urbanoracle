@@ -117,10 +117,15 @@ def test_every_response_is_strictly_valid_json(client, estat_stub, route):
     json.loads(resp.text, parse_constant=_reject)
 
 
-def test_disaster_risks_reports_is_live_false(client):
-    """The Next route claimed isLive:true while serving static sample data."""
-    resp = client.get("/api/v1/disaster-risks", headers={"Authorization": "Bearer active-token"})
-    assert resp.json()["isLive"] is False
+def test_disaster_risks_is_live_from_the_committed_snapshot(client):
+    """Real-data plan PR 7: the 災害 figures are the committed snapshot's
+    (東京都 地域危険度 第9回 + 国土数値情報 A31a / A33 / A40 / A49), validated at
+    startup — the sample list with its Lv.1–5 and isLive false is gone."""
+    body = client.get("/api/v1/disaster-risks", headers={"Authorization": "Bearer active-token"}).json()
+    assert body["isLive"] is True
+    assert body["status"] == "ok"
+    assert set(body["sources"]) >= {"earthquake", "flood", "landslide", "tsunami", "hightide"}
+    assert all("level" not in r for r in body["data"])
 
 
 def test_transport_is_live_and_complete_from_the_committed_snapshot(client):

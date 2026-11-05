@@ -5,7 +5,6 @@ import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import {
   dataLayers,
-  sampleDisasterRisks,
   sampleTransportTrends,
   sampleWardProfiles,
 } from "@/data/sample";
@@ -21,6 +20,8 @@ import {
   TRANSPORT_SOURCES,
   ZONING_FIXTURE,
   ZONING_SOURCES,
+  disasterSnapshotRows,
+  loadDisasterSnapshot,
 } from "@/__tests__/fixtures/live-data";
 import HeroSpread from "@/components/landing/HeroSpread";
 import LandPriceChart from "@/components/dashboard/LandPriceChart";
@@ -83,66 +84,32 @@ function expectSampleLabelled(root: HTMLElement, surfaces: number) {
 }
 
 describe("sample surfaces carry the sample label and no real-source attribution", () => {
-  it("HeroSpread (LP hero) — label plus a SAMPLE tag inside the spread", () => {
-    const { container } = render(<HeroSpread />);
-    expectSampleLabelled(container, 1);
-    expect(container.textContent).toContain("SAMPLE");
-  });
 
-
-  it("DisasterRiskPanel — pie + risk list are sample; the 用途地域 bar (real-data plan PR 6) is not: unavailable → 取得失敗 naming 国土数値情報, no 出典", () => {
-    const { container } = render(
-      <DisasterRiskPanel risks={sampleDisasterRisks} zoning={null} zoningStatus="unavailable" selectedWard={null} />
-    );
-    const text = container.textContent ?? "";
-    expect(occurrences(text, SAMPLE_LABEL)).toBeGreaterThanOrEqual(2);
-    const d2 = container.querySelector('[data-surface="disaster-zoning"]');
-    expect(d2).not.toBeNull();
-    expect(d2!.querySelector('[data-provenance="sample"]')).toBeNull();
-    expect(d2!.textContent).toContain(FAILED_TEXT);
-    expect(d2!.textContent).toContain(SOURCES.ksj.label);
-    expect(text).not.toContain("出典:");
-    expect(text).not.toContain("出典：");
-    for (const real of REAL_SOURCE_STRINGS.filter((r) => r !== "国土数値情報")) expect(text).not.toContain(real);
-  });
-
-  it("DisasterRiskPanel (zoning ok) — the 用途地域 bar cites 国土数値情報 with the edition and carries no sample label; the pie still does", () => {
-    const { container } = render(
-      <DisasterRiskPanel risks={sampleDisasterRisks} zoning={ZONING_FIXTURE[0]} zoningStatus="ok" zoningSources={ZONING_SOURCES} selectedWard="江東区" />
-    );
-    const d2 = container.querySelector('[data-surface="disaster-zoning"]');
-    expect(d2).not.toBeNull();
-    expect(d2!.querySelector('[data-provenance="sample"]')).toBeNull();
-    expect(d2!.textContent).toContain(SOURCES.ksj.label);
-    expect(d2!.textContent).toContain(`${ZONING_SOURCES.zoning.year}年度`);
-    expect(d2!.textContent).not.toContain(SAMPLE_LABEL);
-    expect(occurrences(container.textContent ?? "", SAMPLE_LABEL)).toBeGreaterThanOrEqual(2);
-  });
 
   it("WardRadar — profiles are sample", () => {
     const { container } = render(<WardRadar profiles={sampleWardProfiles} selectedWard={null} />);
     expectSampleLabelled(container, 1);
   });
 
-  describe("MapLegend — the 人口 and 災害 choropleths are a hardcoded table (WARD_META)", () => {
+  describe("MapLegend — the 人口 choropleth is a hardcoded table (WARD_META); 災害 left it in real-data plan PR 7", () => {
     const withOnly = (id: string) => dataLayers.map((l) => ({ ...l, enabled: l.id === id }));
 
-    for (const id of ["demographics", "disaster-risk"] as const) {
-      it(`${id} layer legend says 固定の参考値`, () => {
-        const { container } = render(<MapLegend layers={withOnly(id)} transportStatus="ok" landPriceStatus="ok" />);
-        const text = container.textContent ?? "";
-        expect(text).toContain(CHOROPLETH_NOTE);
-        for (const real of REAL_SOURCE_STRINGS) expect(text).not.toContain(real);
-      });
-    }
+    it("demographics layer legend says 固定の参考値", () => {
+      const { container } = render(<MapLegend layers={withOnly("demographics")} transportStatus="ok" landPriceStatus="ok" disasterStatus="ok" />);
+      const text = container.textContent ?? "";
+      expect(text).toContain(CHOROPLETH_NOTE);
+      for (const real of REAL_SOURCE_STRINGS) expect(text).not.toContain(real);
+    });
 
-    it("disaster-risk legend keeps ハザードマップ（実データ） for the GSI tiles", () => {
-      const { container } = render(<MapLegend layers={withOnly("disaster-risk")} transportStatus="ok" landPriceStatus="ok" />);
-      expect(container.textContent).toContain("ハザードマップ（実データ）");
+    it("disaster-risk legend: no 固定の参考値 and no 「ハザードマップ（実データ）」; the tiles' 出典 is named", () => {
+      const { container } = render(<MapLegend layers={withOnly("disaster-risk")} transportStatus="ok" landPriceStatus="ok" disasterStatus="ok" />);
+      expect(container.textContent).not.toContain(CHOROPLETH_NOTE);
+      expect(container.textContent).not.toContain("ハザードマップ（実データ）");
+      expect(container.textContent).toContain("出典：ハザードマップポータルサイト");
     });
 
     it("land-price legend no longer describes undrawn points (ruling 1)", () => {
-      const { container } = render(<MapLegend layers={withOnly("land-price")} transportStatus="ok" landPriceStatus="ok" />);
+      const { container } = render(<MapLegend layers={withOnly("land-price")} transportStatus="ok" landPriceStatus="ok" disasterStatus="ok" />);
       expect(container.textContent).not.toContain("概算中心");
     });
   });
@@ -216,21 +183,21 @@ describe("the 地価 surfaces have no sample path (real-data plan PR 5)", () => 
     const land = dataLayers.map((l) => ({ ...l, enabled: l.id === "land-price" }));
 
     it("loading → 読み込み中, no sample label, no 固定の参考値", () => {
-      const { container } = render(<MapLegend layers={land} transportStatus="ok" landPriceStatus="loading" />);
+      const { container } = render(<MapLegend disasterStatus="ok" layers={land} transportStatus="ok" landPriceStatus="loading" />);
       expect(container.textContent).toContain(LOADING_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
       expect(container.textContent).not.toContain(CHOROPLETH_NOTE);
     });
 
     it("unavailable → 取得失敗, no sample label", () => {
-      const { container } = render(<MapLegend layers={land} transportStatus="ok" landPriceStatus="unavailable" />);
+      const { container } = render(<MapLegend disasterStatus="ok" layers={land} transportStatus="ok" landPriceStatus="unavailable" />);
       expect(container.textContent).toContain(FAILED_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
     it("ok → cites 国土数値情報 with the payload's year and prints the stops it is handed", () => {
       const { container } = render(
-        <MapLegend layers={land} transportStatus="ok" landPriceStatus="ok" landPriceSources={LAND_PRICES_SOURCES} landUse="commercial" landPriceStops={[300_000, 900_000, 5_000_000]} />
+        <MapLegend disasterStatus="ok" layers={land} transportStatus="ok" landPriceStatus="ok" landPriceSources={LAND_PRICES_SOURCES} landUse="commercial" landPriceStops={[300_000, 900_000, 5_000_000]} />
       );
       const text = container.textContent ?? "";
       expect(text).toContain(SOURCES.ksj.label);
@@ -324,23 +291,65 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
     const transport = dataLayers.map((l) => ({ ...l, enabled: l.id === "transportation" }));
 
     it("loading → 乗降客数: 読み込み中, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="loading" landPriceStatus="ok" />);
+      const { container } = render(<MapLegend disasterStatus="ok" layers={transport} transportStatus="loading" landPriceStatus="ok" />);
       expect(container.textContent).toContain(LOADING_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
     it("unavailable → 乗降客数: 取得失敗, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="unavailable" landPriceStatus="ok" />);
+      const { container } = render(<MapLegend disasterStatus="ok" layers={transport} transportStatus="unavailable" landPriceStatus="ok" />);
       expect(container.textContent).toContain(FAILED_TEXT);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
     });
 
     it("ok → cites 国土数値情報 with the payload's year, no sample label", () => {
-      const { container } = render(<MapLegend layers={transport} transportStatus="ok" transportSources={TRANSPORT_SOURCES} landPriceStatus="ok" />);
+      const { container } = render(<MapLegend disasterStatus="ok" layers={transport} transportStatus="ok" transportSources={TRANSPORT_SOURCES} landPriceStatus="ok" />);
       expect(container.textContent).toContain(SOURCES.ksj.label);
       expect(container.textContent).toContain(`${RIDERSHIP_YEAR}年度`);
       expect(container.textContent).not.toContain(SAMPLE_LABEL);
       expect(container.textContent).not.toContain(FAILED_TEXT);
     });
+  });
+});
+
+describe("the 災害 surfaces and the LP hero have no sample path (real-data plan PR 7)", () => {
+  const ROWS = disasterSnapshotRows(loadDisasterSnapshot());
+  const SNAP_SOURCES = loadDisasterSnapshot().sources;
+
+  it("HeroSpread (LP hero) — no sample label and no SAMPLE tag; it cites what it shows", () => {
+    const { container } = render(<HeroSpread />);
+    const text = container.textContent ?? "";
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    expect(text).not.toContain("SAMPLE");
+    expect(text).toContain("地域危険度 第9回");
+    expect(text).toContain("A31a-25");
+  });
+
+  it("DisasterRiskPanel (unavailable) — 取得失敗 on every hazard and on D2, naming the sources; no sample label", () => {
+    const { container } = render(
+      <DisasterRiskPanel disaster={null} disasterStatus="unavailable" zoning={null} zoningStatus="unavailable" selectedWard={null} />
+    );
+    const text = container.textContent ?? "";
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    expect(container.querySelector('[data-provenance="sample"]')).toBeNull();
+    expect(text).toContain(FAILED_TEXT);
+    expect(text).not.toContain("Lv.");
+  });
+
+  it("DisasterRiskPanel (ok) — every hazard cites its source; no sample label", () => {
+    const { container } = render(
+      <DisasterRiskPanel
+        disaster={ROWS.find((r) => r.region === "江東区")!}
+        disasterStatus="ok"
+        disasterSources={SNAP_SOURCES}
+        zoning={ZONING_FIXTURE[0]}
+        zoningStatus="ok"
+        zoningSources={ZONING_SOURCES}
+        selectedWard="江東区"
+      />
+    );
+    const text = container.textContent ?? "";
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    for (const key of ["earthquake", "flood", "landslide", "tsunami", "hightide"]) expect(text).toContain(SNAP_SOURCES[key].label);
   });
 });

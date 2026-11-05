@@ -8,7 +8,7 @@ import { test, expect, type BrowserContext } from "@playwright/test";
  *
  * The dashboard is shown signed in without any real identity: Firebase's
  * persisted user is seeded in localStorage and accounts:lookup is answered
- * here; every /api/v1/* call is answered from backend/data/sample_fallback.json.
+ * here; every /api/v1/* call is answered from the committed snapshots under backend/data/.
  * The map tiles themselves are real network requests, which is the point.
  */
 
@@ -20,10 +20,15 @@ const PROCESSED = "地理院タイル（淡色地図）を加工して作成";
 const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 
 // /demographics answers with a real-shaped fixture (the sample set it used
-// to fall back to left in real-data plan PR 1); /disaster-risks still serves
-// the curated sample set from backend/data/sample_fallback.json; /transport
-// answers from the committed 国土数値情報 station snapshot itself (PR 4).
-const sample = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "sample_fallback.json"), "utf8"));
+// to fall back to left in real-data plan PR 1); /transport answers from the
+// committed 国土数値情報 station snapshot itself (PR 4); /disaster-risks from the
+// committed 災害 snapshot (PR 7) — the sample list it used to serve is gone.
+const disaster = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "disaster_risks.json"), "utf8")) as {
+  sources: Record<string, unknown>;
+  total: { name: string } & Record<string, unknown>;
+  wards: ({ name: string } & Record<string, unknown>)[];
+};
+const disasterRecord = ({ name, ...rest }: { name: string } & Record<string, unknown>) => ({ ...rest, region: name });
 const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
 interface SnapshotStation {
   code: string;
@@ -113,7 +118,7 @@ const API: Record<string, unknown> = {
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
   "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
   "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },
-  "/api/v1/disaster-risks": { status: "ok", data: sample.sampleDisasterRisks, isLive: false },
+  "/api/v1/disaster-risks": { status: "ok", data: disaster.wards.map(disasterRecord), isLive: true, sources: disaster.sources, total: disasterRecord(disaster.total) },
   "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },
 };

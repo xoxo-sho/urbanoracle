@@ -1,37 +1,18 @@
 import { describe, it, expect } from "vitest";
-import {
-  sampleLandPriceSummary,
-  sampleDisasterRisks,
-  sampleWardProfiles,
-} from "@/data/sample";
+import { sampleWardProfiles } from "@/data/sample";
 
 /**
  * The sets that remain are checked here. sampleDemographics and
  * sampleTransportStations, and their three integrity tests, left with
  * real-data plan PR 1: the two live endpoints no longer fall back to them,
  * so there is no bundled copy to keep complete. sampleLandPrices left with
- * PR 5 (the 地価 surfaces read the 地価公示 snapshot); sampleLandPriceSummary
- * stays only for the LP hero until PR 7 switches it with the downside.
- * sampleZoning left with PR 6 (the 用途地域 surfaces read the A55-24 snapshot),
- * and its sum-to-100 check with it.
+ * PR 5 (the 地価 surfaces read the 地価公示 snapshot); sampleZoning with PR 6
+ * (the 用途地域 surfaces read the A55-24 snapshot), and its sum-to-100 check
+ * with it. sampleDisasterRisks and sampleLandPriceSummary left with PR 7 (the
+ * 災害 surfaces and the LP hero read the 災害 and 地価公示 snapshots), and their
+ * level and change-rate checks with them.
  */
 describe("Sample data integrity", () => {
-  it("has land price summaries with valid change rates (the LP hero's set, until PR 7)", () => {
-    for (const p of sampleLandPriceSummary) {
-      expect(p.avgPrice).toBeGreaterThan(0);
-      expect(p.maxPrice).toBeGreaterThanOrEqual(p.avgPrice);
-      expect(p.minPrice).toBeLessThanOrEqual(p.avgPrice);
-    }
-  });
-
-  it("has disaster risks with valid levels", () => {
-    for (const r of sampleDisasterRisks) {
-      expect(r.level).toBeGreaterThanOrEqual(1);
-      expect(r.level).toBeLessThanOrEqual(5);
-      expect(["flood", "earthquake", "landslide", "tsunami"]).toContain(r.type);
-    }
-  });
-
   it("has ward profiles for all 23 wards", () => {
     expect(sampleWardProfiles).toHaveLength(23);
     for (const p of sampleWardProfiles) {
@@ -39,5 +20,4 @@ describe("Sample data integrity", () => {
       expect(p.population).toBeLessThanOrEqual(100);
     }
   });
-
 });

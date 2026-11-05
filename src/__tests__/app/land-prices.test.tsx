@@ -556,7 +556,8 @@ describe("credits — the 加工 form with no editor name, beside the figures an
     expect(sample).not.toContain("地価列");
     expect(sample).not.toContain("密度 vs 地価");
     // The fixed-value choropleth note now covers only the layers still on WARD_META.
-    expect(sample).toContain("地図の塗り分け（人口・災害）");
+    // Real-data plan PR 7: the 災害 fill left WARD_META; only 人口 stays on the fixed table.
+    expect(sample).toContain("地図の塗り分け（人口）");
     expect(sample).not.toContain("地図の塗り分け:");
   });
 });
@@ -602,16 +603,16 @@ describe("states — 読み込み中 / 取得失敗 / data on every 地価 surfa
   });
 });
 
-describe("the LP hero is untouched (switched in PR 7 with the downside)", () => {
-  it("the hero keeps its SAMPLE tag; the provenance table lists 地価公示 as live, the hero as sample, and the 加工 statement among the notices", () => {
+describe("the LP hero's upside is the 地価公示 snapshot's (switched in PR 7 with the downside)", () => {
+  it("the hero carries no SAMPLE tag; the provenance table lists 地価公示 and the hero as live, and the 加工 statement among the notices", () => {
     const { container } = render(<LandingPage />);
-    const hero = container.querySelector(".sample-tag");
-    expect(hero).not.toBeNull();
+    expect(container.querySelector("[data-hero-spread] .sample-tag")).toBeNull();
     const live = container.querySelector('tbody[data-provenance="live"]')?.textContent ?? "";
     const sample = container.querySelector('tbody[data-provenance="sample"]')?.textContent ?? "";
     expect(live).toContain("地価公示");
     expect(live).toContain(`${YEAR}年`);
-    expect(sample).toContain("LP ヒーロー");
+    expect(live).toContain("LP ヒーロー");
+    expect(sample).not.toContain("LP ヒーロー");
     expect(sample).not.toContain("区別平均地価");
     expect(container.querySelector('[data-credit="required"]')?.textContent).toContain(EDITED_L01);
   });

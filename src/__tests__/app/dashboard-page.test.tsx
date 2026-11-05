@@ -123,17 +123,17 @@ describe("用途地域 tab — the committed A55-24 snapshot (real-data plan PR 
 });
 
 describe("key metrics consume status", () => {
-  it("both live endpoints unavailable → 成長率 and 乗降客 say 取得失敗 with no sample label; 高リスク keeps its sample label", () => {
+  it("every endpoint unavailable → 成長率, 乗降客 and the ランク5 tile say 取得失敗 with no sample label (PR 7: K2 has no sample path)", () => {
     const { container } = render(<Home />);
-    for (const caption of ["成長率", "乗降客"]) {
+    for (const caption of ["成長率", "乗降客", "ランク5の町丁目"]) {
       const tile = keyMetric(container, caption);
       expect(tile.textContent).toContain(FAILED_TEXT);
       expect(tile.textContent).not.toContain(SAMPLE);
     }
-    expect(keyMetric(container, "高リスク").textContent).toContain(SAMPLE);
+    expect(container.textContent).not.toContain("高リスク");
   });
 
-  it("demographics + transport ok → figures, no sample label; 高リスク (still sample-fed) is labelled", () => {
+  it("demographics + transport ok → figures, no sample label; the ランク5 tile (PR 7) carries none either", () => {
     gate.state = LIVE;
     const { container } = render(<Home />);
     const growth = keyMetric(container, "成長率");
@@ -142,7 +142,7 @@ describe("key metrics consume status", () => {
     const passengers = keyMetric(container, "乗降客");
     expect(passengers.textContent).toContain("0万");
     expect(passengers.textContent).not.toContain(SAMPLE);
-    expect(keyMetric(container, "高リスク").textContent).toContain(SAMPLE);
+    expect(keyMetric(container, "ランク5の町丁目").textContent).not.toContain(SAMPLE);
   });
 });
 

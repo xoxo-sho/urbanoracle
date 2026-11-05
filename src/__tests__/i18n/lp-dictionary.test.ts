@@ -58,7 +58,8 @@ describe("LP dictionary", () => {
   it("fixed English wording", () => {
     expect(en.heroCta).toBe("Sign in");
     expect(en.headerSignIn).toBe("Sign in");
-    expect(en.sampleTag).toBe("SAMPLE");
+    // The hero's SAMPLE tag left with real-data plan PR 7.
+    expect("sampleTag" in en).toBe(false);
     expect(en.sampleNotice).toBe("Sample data (provisional) — not real data");
   });
 });

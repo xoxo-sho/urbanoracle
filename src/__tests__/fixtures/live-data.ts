@@ -479,3 +479,79 @@ export const ZONING_TOTAL: ZoningComposition = {
     { code: 13, name: "工業専用地域", m2: 3_652_000, share: 4.3091, n: 1, far: FAR(200, 200, 200), bcr: FAR(60, 60, 60) },
   ],
 };
+
+// ---- 災害 (real-data plan PR 7) -------------------------------------------------
+//
+// What /api/v1/disaster-risks serves: the committed snapshot built by
+// etl/disaster.py from the excerpts under backend/tests/fixtures/disaster/ —
+// per ward the 東京都 地域危険度 第9回 rank counts, the A31a-25 / A49-20 depth
+// class shares, the A33-25 zone counts and the A40 対象外 statement — and the
+// 23区 record as `total`. Read from the file, never re-typed.
+
+/** One ward (or the 23区) as the builder writes it (backend/data/disaster_risks.json). */
+export interface DisasterSnapshotRecord {
+  code: string;
+  name: string;
+  earthquake: { n: number; ranks: { total: number[]; building: number[]; fire: number[] }; rank5: number; rank5Share: number; relative: string };
+  flood: { wardM2: number; m2: number; share: number; deepM2: number; deepShare: number; classes: { code: number; label: string; m2: number; share: number }[] };
+  landslide: { phenomena: { code: number; name: string; warning: number; special: number }[]; warning: number; special: number };
+  tsunami: { status: "notCovered"; text: string };
+  hightide: { wardM2: number; m2: number; share: number; classes: { code: number; label: string; m2: number; share: number }[] };
+}
+
+export interface DisasterSnapshot {
+  region: string;
+  sources: FieldSources;
+  hazards: { tsunami: { text: string } } & Record<string, unknown>;
+  credit: Record<string, string>;
+  notices: { A31a: string[]; A33: string[] };
+  notes: Record<string, string>;
+  total: DisasterSnapshotRecord;
+  wards: DisasterSnapshotRecord[];
+}
+
+export function loadDisasterSnapshot(): DisasterSnapshot {
+  const file = path.join(process.cwd(), "backend", "data", "disaster_risks.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no 災害 snapshot at ${file} — etl/disaster.py build has not been run`);
+  }
+  return JSON.parse(text) as DisasterSnapshot;
+}
+
+/** The client record the route makes of one ward (backend/services/disaster_risks.py rows / total): `name` becomes `region`. */
+export type DisasterRecord = Omit<DisasterSnapshotRecord, "name"> & { region: string };
+
+function disasterRecord(r: DisasterSnapshotRecord): DisasterRecord {
+  const { name, ...rest } = r;
+  return { ...rest, region: name };
+}
+
+export function disasterSnapshotRows(snapshot: DisasterSnapshot): DisasterRecord[] {
+  return snapshot.wards.map(disasterRecord);
+}
+
+export function disasterSnapshotTotal(snapshot: DisasterSnapshot): DisasterRecord {
+  return disasterRecord(snapshot.total);
+}
+
+/** The LP hero's committed rows (src/data/hero-spread.json, built by etl/disaster.py hero). */
+export interface HeroSpreadFile {
+  upside: { label: string; table: string; year: number; use: string; definition: string };
+  earthquake: { label: string; short: string; definition: string; relative: string };
+  flood: { label: string; table: string; definition: string };
+  rows: { code: string; region: string; change: number; nContinuing: number; rank5: number; chochomoku: number; floodDeepShare: number }[];
+}
+
+export function loadHeroSpread(): HeroSpreadFile {
+  const file = path.join(process.cwd(), "src", "data", "hero-spread.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no hero file at ${file} — etl/disaster.py hero has not been run`);
+  }
+  return JSON.parse(text) as HeroSpreadFile;
+}
