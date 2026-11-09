@@ -38,6 +38,20 @@ Licence: both datasets are 「オープンデータ（CC_BY_4.0）」 under the 
 加工 form with no editor name (Architect decision 12, 2026-11-02), carried
 in the snapshot.
 
+Real-data plan PR 4b (Architect decisions 2026-11-09) adds, all from the same
+committed excerpt:
+
+* 乗降客数推移: the sum, per ward and for the 23 wards, of a fixed panel of
+  units over 2018 and 2020–2024 (``ridership_panel.json`` beside the excerpts
+  says, per unit, in or out and the reason class of every excluded one). 2019
+  is a gap: S12's 乗降客数2019 repeats 乗降客数2018 on every 東日本旅客鉄道 row of
+  the panel. Values are S12's as published — nothing adjusted or re-dated;
+* each figure row's 備考 of the snapshot's year, as S12 writes it;
+* for a station every row of which says 他路線駅に記載 (重複コード 2): the row
+  that names it in its 備考 — where the figure is counted — or the plain
+  statement that S12 names none;
+* S12's own notice on what the operators' figures are, verbatim.
+
 Run (from the repo root, with -I so nothing in the download dir is imported):
 
   python -I etl/stations.py extract
@@ -108,6 +122,18 @@ N03_CODE, N03_NAME = "N03_007", "N03_004"
 META = "ksj.meta.json"
 WARD_CODES = [f"131{n:02d}" for n in range(1, 24)]
 
+# --- 乗降客数推移: the committed panel (real-data plan PR 4b) ------------------------
+
+PANEL = "ridership_panel.json"
+TOTAL_CODE = "13100"
+REASON_CLASSES = ("repeat_or_lag", "definition_change", "opened_or_closed", "entry_error", "unexplained")
+INCLUDES = "を含む"
+COUNTED_ELSEWHERE = "他の行に計上"
+COUNTED_ELSEWHERE_UNNAMED = "他の行に計上（国土数値情報に記載先の明示なし）"
+# How an operator is written in the 「…に含まれます」 note: the three every
+# reader knows by a short name, the rest as the source names them.
+NOTE_OPERATORS = {"東日本旅客鉄道": "JR", "東京地下鉄": "東京メトロ", "東京都": "都営"}
+
 REGION = "東京23区"
 LICENCE = {
     "name": "国土数値情報 利用規約（PDL1.0準拠）— 駅別乗降客数データ・行政区域データはいずれも「オープンデータ（CC_BY_4.0）」",
@@ -128,6 +154,10 @@ NOTES = {
         "S12 の乗降客数2024 / 乗降客数2023 の東日本旅客鉄道の行はいずれもその2倍に一致（2026-11-02 確認）。"
     ),
     "position": "駅の位置は S12 の線形（国土数値情報（鉄道）駅データと同じ位置）の中点；区は N03 の区ポリゴンがその中点を含むもの",
+    # S12's own notice, verbatim: the second bullet of 「その他の情報」 on the
+    # dataset's page (S12_PAGE), read 2026-11-09.
+    "source_notice": "各事業者から提供された駅別乗降客数は、各社で独自に算出したものであり、統一的な基準に基づいたものではありませんので、その旨を認識した上でご利用ください。",
+    "source_notice_at": f"国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」（{S12_PAGE}）",
 }
 
 
@@ -286,6 +316,206 @@ def _figure(props: dict, year: int) -> int | None:
     return value
 
 
+def _remark(props: dict, year: int) -> str | None:
+    """The row's 備考 for ``year`` as S12 writes it, or None."""
+    value = props[column(year, 2)]
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{props[NAME]} {props[OPERATOR]} {props[LINE]}: 備考{year} {value!r}")
+    return value
+
+
+def named_lines(remark: str, own_operator: str, operators: set[str]) -> list[tuple[str, str]]:
+    """The lines a 「…を含む」 備考 names, each with its operator.
+
+    「田園都市線、東京地下鉄・11号線半蔵門線、東京地下鉄・13号線副都心線を含む」
+    → the row's own operator for 田園都市線, 東京地下鉄 for the other two;
+    「東京都・10号線新宿線・12号線大江戸線」 is one operator with two lines;
+    the pre-2022 punctuation 「東京都、6号線三田線」 is an operator, a comma,
+    then its line. A 備考 that does not end in を含む names nothing.
+    """
+    if not remark.endswith(INCLUDES):
+        return []
+    out: list[tuple[str, str]] = []
+    pending: str | None = None
+    for item in remark[: -len(INCLUDES)].split("、"):
+        tokens = item.split("・")
+        if tokens[0] in operators and len(tokens) == 1:
+            pending = tokens[0]
+            continue
+        if tokens[0] in operators:
+            out += [(tokens[0], t) for t in tokens[1:]]
+        else:
+            out += [(pending or own_operator, t) for t in tokens]
+        pending = None
+    return out
+
+
+def _short_line(line: str) -> str:
+    """「5号線東西線」 → 「東西線」; other names as they are."""
+    head, sep, tail = line.partition("号線")
+    return tail if sep and head.isdigit() and tail else line
+
+
+def _counted_elsewhere(members: list[dict], rows: list[dict], year: int, operators: set[str]) -> dict:
+    """For a station every row of which says 他路線駅に記載: where S12 counts it.
+
+    The target of a row is the figure row of the same S12 group whose 備考
+    names the row's line (and operator). Either every row has one — the note
+    names the ward and station — or none has and nothing is claimed.
+    """
+    targets: list[dict] = []
+    unnamed = 0
+    for m in members:
+        mp = m["props"]
+        found = [
+            r
+            for r in rows
+            if r["props"][GROUP_CODE] == mp[GROUP_CODE]
+            and _figure(r["props"], year) is not None
+            and (mp[OPERATOR], mp[LINE]) in named_lines(_remark(r["props"], year) or "", r["props"][OPERATOR], operators)
+        ]
+        if not found:
+            unnamed += 1
+        for r in found:
+            target = {
+                "ward": r["ward"][1],
+                "wardCode": r["ward"][0],
+                "station": r["props"][NAME],
+                "operator": r["props"][OPERATOR],
+                "line": r["props"][LINE],
+                "remark": _remark(r["props"], year),
+            }
+            if target not in targets:
+                targets.append(target)
+    if unnamed and targets:
+        raise ValueError(f"{members[0]['props'][NAME]}: S12 names a counting row for some of the station's rows only")
+    if not targets:
+        return {"label": COUNTED_ELSEWHERE_UNNAMED, "targets": []}
+    places: dict[tuple[str, str], list[str]] = defaultdict(list)
+    for t in targets:
+        places[(t["ward"], t["station"])].append(f"{NOTE_OPERATORS.get(t['operator'], t['operator'])}{_short_line(t['line'])}")
+    note = "、".join(f"{ward}の{station}駅（{'、'.join(lines)}）" for (ward, station), lines in places.items())
+    return {"label": COUNTED_ELSEWHERE, "targets": targets, "note": f"乗降客数は{note}に含まれます"}
+
+
+def _trend(fixtures: Path, rows: list[dict], wards: list[dict], names: dict[str, str], year: int) -> tuple[dict, dict]:
+    """乗降客数推移 from the committed panel: (the snapshot's ``trend``, its input record).
+
+    ``rows`` are the snapshot's rows with their excerpt position (1-based).
+    Checked here, so a panel that no longer fits the excerpt cannot build:
+    the excerpt is the one the panel was written against; every row
+    reference matches its feature; every row with a figure in ``year`` is in
+    exactly one unit; a unit lies in one ward; every unit in the panel has a
+    figure in every panel year; every excluded unit states a reason class.
+    """
+    panel = _load(fixtures / PANEL)
+    excerpt_sha = sha256(fixtures / S12_EXCERPT)
+    if panel["excerpt"]["sha256"] != excerpt_sha:
+        raise ValueError(f"{PANEL}: written against excerpt {panel['excerpt']['sha256']}, the committed one is {excerpt_sha}")
+    years, gap_years = panel["years"], panel["gapYears"]
+    if years != sorted(set(years)) or years[-1] != year or not all(FIRST_YEAR <= y <= LAST_YEAR for y in years + gap_years):
+        raise ValueError(f"{PANEL}: years {years}")
+    if any(g in years or not years[0] < g < years[-1] for g in gap_years):
+        raise ValueError(f"{PANEL}: gap years {gap_years}")
+
+    by_feature = {r["feature"]: r for r in rows}
+    seen: set[int] = set()
+    units: list[dict] = []
+    for u in panel["units"]:
+        members = []
+        for ref in u["rows"]:
+            r = by_feature.get(ref["feature"])
+            if r is None:
+                raise ValueError(f"{PANEL}: feature {ref['feature']} is not a station row of the snapshot")
+            p = r["props"]
+            if (p[STATION_CODE], p[OPERATOR], p[LINE], p[NAME]) != (ref["code"], ref["operator"], ref["line"], ref["station"]):
+                raise ValueError(f"{PANEL}: feature {ref['feature']} is {p[NAME]} {p[OPERATOR]} {p[LINE]}, not {ref}")
+            if ref["feature"] in seen:
+                raise ValueError(f"{PANEL}: feature {ref['feature']} in two units")
+            seen.add(ref["feature"])
+            if r["ward"][0] != u["wardCode"] or r["ward"][1] != u["ward"]:
+                raise ValueError(f"{PANEL}: feature {ref['feature']} lies in {r['ward'][1]}, the unit says {u['ward']}")
+            members.append(r)
+        figures = {y: sum(v for v in (_figure(m["props"], y) for m in members) if v is not None) for y in years}
+        if not figures[year]:
+            raise ValueError(f"{PANEL}: a unit of {u['ward']} has no {year} figure")
+        if u["in"]:
+            if "reasons" in u or not all(figures[y] > 0 for y in years):
+                raise ValueError(f"{PANEL}: a unit in the panel lacks a figure in one of {years}, or states a reason: {u['rows']}")
+        else:
+            reasons = u.get("reasons") or []
+            if not reasons or any(c["class"] not in REASON_CLASSES or not c["years"] for c in reasons):
+                raise ValueError(f"{PANEL}: an excluded unit states no reason class: {u['rows']}")
+        units.append({"wardCode": u["wardCode"], "in": u["in"], "figures": figures, "members": members, "reasons": u.get("reasons")})
+    missing = [r for r in rows if _figure(r["props"], year) is not None and r["feature"] not in seen]
+    if missing:
+        raise ValueError(f"{PANEL}: {len(missing)} rows with a {year} figure are in no unit, e.g. {missing[0]['props'][NAME]}")
+
+    # The gap: the operators every panel row of which repeats the previous
+    # year's value in the gap year — S12's own columns, nothing else.
+    gaps = []
+    for g in gap_years:
+        both: dict[str, int] = defaultdict(int)
+        same: dict[str, int] = defaultdict(int)
+        for u in units:
+            if not u["in"]:
+                continue
+            for m in u["members"]:
+                a, b = _figure(m["props"], g - 1), _figure(m["props"], g)
+                if a and b is not None:
+                    both[m["props"][OPERATOR]] += 1
+                    same[m["props"][OPERATOR]] += a == b
+        repeating = [{"operator": op, "rows": n} for op, n in sorted(same.items(), key=lambda kv: -kv[1]) if n and n == both[op]]
+        if not repeating:
+            raise ValueError(f"{PANEL}: no operator repeats {g - 1} in {g} on every panel row — the gap has no reason in S12")
+        who = "・".join(f"{r['operator']}{r['rows']}行すべて" for r in repeating)
+        gaps.append(
+            {
+                "year": g,
+                "repeating": repeating,
+                "text": f"{g}年度は表示しません：国土数値情報の{g}年度の値が、パネルの{who}で前年度（{g - 1}年度）と同じ値のため",
+            }
+        )
+
+    def view(code: str, name: str, mine: list[dict], passengers: int) -> dict:
+        inside = [u for u in mine if u["in"]]
+        series = [{"year": y, "passengers": sum(u["figures"][y] for u in inside)} for y in years]
+        if sum(u["figures"][year] for u in mine) != passengers:
+            raise ValueError(f"{PANEL}: the units of {name} sum to {sum(u['figures'][year] for u in mine)}, 日間乗降客 is {passengers}")
+        return {
+            "code": code,
+            "name": name,
+            "units": len(mine),
+            "panelUnits": len(inside),
+            "passengers": passengers,
+            "panelPassengers": series[-1]["passengers"],
+            "series": series,
+        }
+
+    views = [view(TOTAL_CODE, REGION, units, sum(w["passengers"] for w in wards))]
+    views += [view(w["code"], names[w["code"]], [u for u in units if u["wardCode"] == w["code"]], w["passengers"]) for w in wards]
+    excluded: dict[str, int] = defaultdict(int)
+    for u in units:
+        if not u["in"]:
+            excluded[u["reasons"][0]["class"]] += 1
+    trend = {
+        "panel": {
+            "id": panel["id"],
+            "decided": panel["decided"],
+            "units": len(units),
+            "unitsIn": sum(1 for u in units if u["in"]),
+            "excludedByFirstReason": {c: excluded[c] for c in REASON_CLASSES if excluded[c]},
+        },
+        "years": years,
+        "gaps": gaps,
+        "views": views,
+    }
+    record = {"path": f"backend/tests/fixtures/stations/{PANEL}", "sha256": sha256(fixtures / PANEL), "id": panel["id"], "decided": panel["decided"]}
+    return trend, record
+
+
 def build(fixtures: Path = FIXTURES) -> dict:
     meta = json.loads((fixtures / META).read_text(encoding="utf-8"))
     n03, s12 = _load(fixtures / N03_EXCERPT), _load(fixtures / S12_EXCERPT)
@@ -295,7 +525,8 @@ def build(fixtures: Path = FIXTURES) -> dict:
     rows: list[dict] = []
     straddling: list[dict] = []
     dropped: list[dict] = []
-    for f in s12["features"]:
+    operator_names = {f["properties"][OPERATOR] for f in s12["features"]}
+    for position, f in enumerate(s12["features"], start=1):
         p = f["properties"]
         coords = f["geometry"]["coordinates"]
         x, y = midpoint(coords)
@@ -318,7 +549,7 @@ def build(fixtures: Path = FIXTURES) -> dict:
                     "assigned": ward[1],
                 }
             )
-        rows.append({"props": p, "ward": ward, "point": (round(x, 6), round(y, 6))})
+        rows.append({"props": p, "ward": ward, "point": (round(x, 6), round(y, 6)), "feature": position})
 
     # one station per (group code, ward): the rows of a same-name station
     # cluster that fall in this ward
@@ -360,10 +591,24 @@ def build(fixtures: Path = FIXTURES) -> dict:
             "dailyPassengers": sum(known) if known else None,
             "operators": operators,
         }
+        # Each figure row's 備考 of the year, as S12 writes it (real-data plan
+        # PR 4b): what else the row's figure contains.
+        remarks = [
+            {"operator": r["props"][OPERATOR], "line": r["props"][LINE], "text": _remark(r["props"], year)}
+            for r in members
+            if _figure(r["props"], year) is not None and _remark(r["props"], year)
+        ]
+        if remarks:
+            station["remarks"] = remarks
         if not known and all(r["props"][column(year, 0)] == DUP_OTHER_ROW for r in members):
             # Every row says 他路線駅に記載: S12 counts this station on another
             # row (another group, or the same group across a ward boundary).
-            station["note"] = f"乗降客数{year}は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+            # The row whose 備考 names it says where; without one nothing is claimed.
+            elsewhere = _counted_elsewhere(members, rows, year, operator_names)
+            note = elsewhere.pop("note", None)
+            station["countedElsewhere"] = elsewhere
+            if note:
+                station["note"] = note
         stations.append(station)
     # A group whose every row says 他路線駅に記載 (重複コード 2) has its figure on
     # another group's row: when exactly one same-name group in the same ward
@@ -389,6 +634,8 @@ def build(fixtures: Path = FIXTURES) -> dict:
                         mine["lines"] = sorted(set(mine["lines"]) | set(op["lines"]))
                         mine["rows"] += op["rows"]
                 merged.append({"name": name, "ward": target["ward"], "code": st["code"], "into": target["code"], "operators": [o["name"] for o in st["operators"]]})
+                if st.get("remarks"):
+                    raise ValueError(f"{name}: a folded group carries a 備考")
                 folded.add(st["code"] + "/" + ward_code)
     stations = [st for st in stations if st["code"] + "/" + st["wardCode"] not in folded]
     for st in stations:
@@ -410,6 +657,8 @@ def build(fixtures: Path = FIXTURES) -> dict:
             }
         )
 
+    trend, panel_input = _trend(fixtures, rows, wards, index.names, year)
+
     return {
         "region": REGION,
         "year": year,
@@ -430,6 +679,15 @@ def build(fixtures: Path = FIXTURES) -> dict:
                 "table": N03_ID,
                 "label": f"国土数値情報 行政区域データ {N03_EDITION} 東京都（区の判定：中点の包含）",
             },
+            "trend": {
+                "year": year,
+                "table": S12_ID,
+                "label": (
+                    f"国土数値情報 駅別乗降客数データ {S12_EDITION} "
+                    + "・".join(f"乗降客数{y}" for y in trend["years"])
+                    + "（1日平均、人/日）— 全年度を同じ基準で比べられる行の合計"
+                ),
+            },
         },
         "inputs": {
             S12_EXCERPT: {
@@ -442,6 +700,7 @@ def build(fixtures: Path = FIXTURES) -> dict:
                 "sha256": sha256(fixtures / N03_EXCERPT),
                 "cut_from": meta["N03"],
             },
+            PANEL: panel_input,
         },
         "licence": LICENCE,
         "credit": CREDIT,
@@ -450,6 +709,7 @@ def build(fixtures: Path = FIXTURES) -> dict:
         "droppedRows": dropped,
         "mergedGroups": merged,
         "wards": wards,
+        "trend": trend,
         "stations": stations,
     }
 

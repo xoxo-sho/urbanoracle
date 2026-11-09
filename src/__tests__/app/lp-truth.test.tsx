@@ -62,8 +62,10 @@ describe("landing page copy says only what the code does", () => {
     productCopy.querySelectorAll(PROVIDER_VERBATIM).forEach((el) => el.remove());
     const all = readable(productCopy);
 
+    // Real-data plan PR 4b: the last sample row (乗降客数推移) became a live one,
+    // so the group the exemption once named is gone and nothing is exempt.
     const sampleGroups = container.querySelectorAll(SAMPLE_GROUP);
-    expect(sampleGroups.length, "the sample group the exemption names must exist").toBe(1);
+    expect(sampleGroups.length, "no sample group is left on the LP").toBe(0);
     const outside = productCopy.cloneNode(true) as Element;
     outside.querySelectorAll(SAMPLE_GROUP).forEach((el) => el.remove());
     const outsideText = readable(outside);
@@ -75,10 +77,8 @@ describe("landing page copy says only what the code does", () => {
     expect(found, "retired claims in the Japanese LP render").toEqual([]);
 
     const liveText = readable(container.querySelector(LIVE_GROUP)!);
-    const sampleText = readable(sampleGroups[0]);
     for (const word of LIVE_ONLY) {
       expect(liveText, `${word} listed as live`).toContain(word);
-      expect(sampleText, `${word} not listed as sample`).not.toContain(word);
     }
   });
 

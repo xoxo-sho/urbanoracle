@@ -32,7 +32,7 @@ const REMOVED_SOURCE = "不動産情報ライブラリ";
 describe("landing page hero", () => {
   // Real-data plan PR 7 (Architect decision 11): the hero's rows are measured —
   // L01 住宅地 変動率 with the ward's 地域危険度 and 洪水 figures — so it carries
-  // no sample label; the sample group of the table below still exists (乗降客数推移).
+  // no sample label; the table's sample group left with real-data plan PR 4b (乗降客数推移).
   it("carries no sample label", () => {
     const { container } = render(<LandingPage />);
     const hero = container.querySelector("[data-hero-spread]");
@@ -43,7 +43,7 @@ describe("landing page hero", () => {
 });
 
 describe("landing page データ出典 table", () => {
-  it("has 実データ and サンプル groups and lists no source that is not fetched", () => {
+  it("has the 実データ group and no サンプル group (real-data plan PR 4b), and lists no source that is not fetched", () => {
     const { container } = render(<LandingPage />);
     const table = container.querySelector("table");
     expect(table).not.toBeNull();
@@ -51,8 +51,9 @@ describe("landing page データ出典 table", () => {
 
     const live = table!.querySelector('[data-provenance="live"]');
     expect(live).not.toBeNull();
-    expect(table!.querySelector('[data-provenance="sample"]')).not.toBeNull();
-    expect(text).toContain(SAMPLE);
+    expect(table!.querySelector('[data-provenance="sample"]')).toBeNull();
+    expect(text).not.toContain(SAMPLE);
+    expect(live!.textContent).toContain("乗降客数推移");
     for (const label of NOT_LIVE_SOURCES) expect(text).not.toContain(label);
 
     // Ruling 1 (revised): the REINFOLIB fetch is gone, and so is its row.

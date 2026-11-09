@@ -70,7 +70,7 @@ const ja = {
     "地震は東京都の地域危険度（町丁目ごとのランク1〜5、都内の町丁目の中での相対評価）、洪水・高潮は想定最大規模の浸水深の区分ごとの面積割合、土砂災害は警戒区域・特別警戒区域の数を、区ごとに示します。23区には津波浸水想定が設定されていないことも、その根拠とともに示します。洪水と急傾斜地の崩壊の想定区域は、ハザードマップポータルサイトのタイルで地図に重ねます。",
 
   provTitle: "データ出典",
-  provIntro: "現在のコードパスで実際に取得しているデータと、暫定のサンプル値を分けて示します。",
+  provIntro: "現在のコードパスで実際に取得しているデータを示します。",
   thSource: "出典",
   thContent: "内容",
   thYear: "年次",
@@ -92,6 +92,8 @@ const ja = {
   liveMenchoYear: "2025年10月1日時点",
   liveStations: "駅別乗降客数・駅の位置（交通タブ・乗降客指標・地図の駅バブル）",
   liveStationsYear: "2024年度 駅別乗降客数データ（S12-25）・行政区域データ（N03-20260101）",
+  liveRidershipTrend: "乗降客数推移（交通タブ：全年度を同じ基準で比べられる行の合計。2019年度は表示なし）",
+  liveRidershipTrendYear: "2018年度・2020〜2024年度 駅別乗降客数データ（S12-25）",
   liveLandPrice: "地価公示の区別平均価格・変動率（住宅地／商業地：地価タブ・区別テーブルの地価列・地図の塗り分け）",
   liveLandPriceYear: "2026年地価公示（2026年1月1日時点）・地価公示データ（L01-26）",
   liveZoning: "用途地域の面積構成・容積率・建蔽率（用途地域タブ・災害タブ）",
@@ -110,7 +112,6 @@ const ja = {
   liveHeroYear: "2026年地価公示（L01-26）・地域危険度 第9回・洪水浸水想定区域（A31a-25）",
   liveBoundaries: "行政区界（区境界ポリゴン）",
   liveTiles: "地図タイル（淡色地図）",
-  sampleRidership: "乗降客数推移",
 
   provRequiredTitle: "データ提供元が求める表示",
 
@@ -158,7 +159,7 @@ const en = {
     "By ward: earthquake risk from the Tokyo Metropolitan Government's regional risk survey (ranks 1–5 per chome, a relative evaluation among the chome in Tokyo), the share of the area in each inundation depth class for flood and storm surge (maximum assumed scale), and the number of sediment disaster warning and special warning areas. That no tsunami inundation projection is set for the 23 wards is shown with its basis. The assumed flood and steep-slope failure areas are overlaid on the map using tiles from the Hazard Map Portal Site.",
 
   provTitle: "Data sources",
-  provIntro: "Data the current code path actually fetches is shown separately from provisional sample values.",
+  provIntro: "The data the current code path actually fetches.",
   thSource: "Source",
   thContent: "Content",
   thYear: "Year",
@@ -180,6 +181,8 @@ const en = {
   liveMenchoYear: "As of 2025/10/1",
   liveStations: "Ridership and station locations by station (Transport tab, ridership metric, station bubbles on the map)",
   liveStationsYear: "FY2024 ridership by station (S12-25), administrative area data (N03-20260101)",
+  liveRidershipTrend: "Ridership trend (Transport tab: the sum of the rows comparable across every year shown; FY2019 is not shown)",
+  liveRidershipTrendYear: "FY2018 and FY2020–2024 ridership by station (S12-25)",
   liveLandPrice: "Published land price (chika koji) average and year-on-year change by ward (residential / commercial: Land price tab, land price column of the ward table, map shading)",
   liveLandPriceYear: "2026 published land prices (as of 2026/1/1), published land price data (L01-26)",
   liveZoning: "Zoning area mix, floor area ratio and building coverage ratio (Zoning tab, Disaster tab)",
@@ -198,7 +201,6 @@ const en = {
   liveHeroYear: "2026 published land prices (L01-26), regional risk survey 9th, flood inundation areas (A31a-25)",
   liveBoundaries: "Administrative boundaries (ward boundary polygons)",
   liveTiles: "Map tiles (pale map)",
-  sampleRidership: "Ridership trend",
 
   provRequiredTitle: "Notices the data providers require (the prescribed Japanese text, each followed by a translation)",
 

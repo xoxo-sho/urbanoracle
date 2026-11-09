@@ -71,8 +71,8 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
  * upside×downside spread instead of describing it, and every section below
  * carries figures, units and provenance. A reader should be able to check the
  * claim on the page they are reading it on — which is why the hero's units
- * line names its surveys and definitions, and the provenance table separates
- * what the code path fetches from what is still a provisional sample.
+ * line names its surveys and definitions, and the provenance table lists what
+ * the code path fetches (no surface is a provisional sample since PR 4b).
  *
  * Every string comes from src/i18n/lp.ts. The markup is the page's markup as
  * it was before the toggle existed; in Japanese it renders the same text.
@@ -102,6 +102,7 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "livePopTrend", "livePopTrendYear"],
   ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcKsj", "liveStations", "liveStationsYear"],
+  ["srcKsj", "liveRidershipTrend", "liveRidershipTrendYear"],
   ["srcKsj", "liveLandPrice", "liveLandPriceYear"],
   ["srcKsj", "liveZoning", "liveZoningYear"],
   ["srcKikendo", "liveQuake", "liveQuakeYear"],
@@ -114,9 +115,10 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcTiles", "liveTiles", "none"],
 ];
 
-// Surfaces still fed from src/data/sample.ts: since real-data plan PR 8 (the
-// radar became 「23区の中での位置」, the 人口 fill reads the census) only one.
-const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [["sampleRidership", "none"]];
+// Surfaces still fed from a sample set: none since real-data plan PR 4b
+// (乗降客数推移 sums the S12 panel), so the table's sample group renders
+// nothing. The group, its notice and SAMPLE_NOTICE are deleted in PR 9.
+const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [];
 
 export default function LandingContent() {
   const { lang, t } = useLang();
@@ -200,8 +202,8 @@ export default function LandingContent() {
         </section>
 
         {/* ── Provenance: the credibility section is a table, not a promise.
-               Two groups: what the current code path fetches, and what is
-               still a provisional sample. Years only where the code pins one. ── */}
+               What the current code path fetches; the sample group has had
+               no row since real-data plan PR 4b. Years only where the code pins one. ── */}
         <section
           className="mx-auto max-w-5xl px-6 py-12"
           style={{ borderTop: "1px solid var(--rule)" }}
@@ -231,20 +233,22 @@ export default function LandingContent() {
                   </tr>
                 ))}
               </tbody>
-              <tbody data-provenance="sample" className="sample-block">
-                <tr style={{ borderBottom: "1px solid var(--rule)" }}>
-                  <th colSpan={3} className="pt-4 pb-1 text-left text-[10px] tracking-[0.2em] uppercase">
-                    {t.sampleNotice}
-                  </th>
-                </tr>
-                {SAMPLE_ROWS.map(([content, scale]) => (
-                  <tr key={content} style={{ borderBottom: "1px solid var(--rule)" }}>
-                    <td className="py-2 pr-3">{t.srcSample}</td>
-                    <td className="py-2 pr-3">{t[content]}</td>
-                    <td className="py-2 font-mono tabular-nums">{t[scale]}</td>
+              {SAMPLE_ROWS.length > 0 && (
+                <tbody data-provenance="sample" className="sample-block">
+                  <tr style={{ borderBottom: "1px solid var(--rule)" }}>
+                    <th colSpan={3} className="pt-4 pb-1 text-left text-[10px] tracking-[0.2em] uppercase">
+                      {t.sampleNotice}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
+                  {SAMPLE_ROWS.map(([content, scale]) => (
+                    <tr key={content} style={{ borderBottom: "1px solid var(--rule)" }}>
+                      <td className="py-2 pr-3">{t.srcSample}</td>
+                      <td className="py-2 pr-3">{t[content]}</td>
+                      <td className="py-2 font-mono tabular-nums">{t[scale]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              )}
             </table>
           </div>
           {/* The providers' own wording, verbatim in both languages; the English

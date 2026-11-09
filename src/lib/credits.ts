@@ -111,6 +111,43 @@ export const RIDERSHIP_DEFINITION_NOTE = "事業者ごとの駅別乗降客数�
 export const RIDERSHIP_JR_NOTE = "JR東日本の値は乗車人員を2倍した値（原典資料による）";
 
 /**
+ * S12's own notice on what the operators' figures are (real-data plan PR 4b,
+ * Architect decision 2026-11-09): the second bullet of 「その他の情報」 on the
+ * dataset's page, verbatim, shown on every transport surface with where it
+ * is. The sentence comes from the snapshot's `notes.source_notice`.
+ */
+export const KSJ_S12_PAGE_URL = "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html";
+export const RIDERSHIP_SOURCE_NOTICE =
+  "各事業者から提供された駅別乗降客数は、各社で独自に算出したものであり、統一的な基準に基づいたものではありませんので、その旨を認識した上でご利用ください。";
+export const RIDERSHIP_SOURCE_NOTICE_AT = `国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」（${KSJ_S12_PAGE_URL}）`;
+/** The same, without the address, where the line must stay short (the panels, the line under the tiles). */
+export const RIDERSHIP_SOURCE_NOTICE_FROM = "国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」";
+/**
+ * The 日間乗降客 tile is too narrow for the sentence: it made the tile tall and
+ * stretched the two beside it. The tile carries this marker and the sentence
+ * stands once, full width, directly under the three tiles, led by the same
+ * mark (Architect decision 2026-11-09).
+ */
+export const RIDERSHIP_NOTICE_MARKER = "※ 下記の注記参照";
+export const RIDERSHIP_NOTICE_LEAD = "※ 日間乗降客：";
+
+/**
+ * 事業者別 groups the figures by the operator S12 writes them under, and a row
+ * may hold another operator's line (its 備考 says which) — so the title says
+ * whose rows these are (Architect decision 2026-11-09).
+ */
+export const RIDERSHIP_OPERATORS_TITLE = "国土数値情報の記載事業者別（他社線を含む行あり）";
+
+/**
+ * 乗降客数推移 (real-data plan PR 4b): what the chart sums. A unit is one S12
+ * row, or the rows of one station whose figures S12 moves between each other
+ * inside one ward; the panel holds the units whose every drawn year is
+ * comparable. Values are S12's as published.
+ */
+export const RIDERSHIP_TREND_UNIT_NOTE =
+  "単位＝国土数値情報の事業者・駅ごとの行（同じ区の中で値が行の間を移る駅は1単位）。全年度を同じ基準で比べられる単位だけを合計し、値は国土数値情報の掲載値のまま（補正なし）";
+
+/**
  * What a 地価 figure is (real-data plan PR 5, Architect decision 4): per ward
  * and use, the simple mean of the 地価公示価格 over every point, the simple mean
  * 対前年変動率 over the 継続 points — the definitions 東京都 publishes its

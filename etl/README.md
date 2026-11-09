@@ -38,7 +38,13 @@ python -I etl/green.py build                 # committed CSV → backend/data/gr
 fixture README under `backend/tests/fixtures/stations/` records their URLs,
 sizes and sha256. The ward of a station is decided by a standard-library
 point-in-polygon over the N03 ward polygons, so `build` (and the drift test
-that re-runs it in CI) needs no geospatial dependency.
+that re-runs it in CI) needs no geospatial dependency. Since PR 4b `build`
+also reads `ridership_panel.json` beside the excerpts — the committed record
+of which units 乗降客数推移 sums (panel B2: 2018 and 2020–2024, 2019 a gap)
+and the reason class of every excluded one — and writes the trend, each
+figure row's 備考, the 「他の行に計上」 records and S12's own notice into the
+snapshot. The panel is an input, not an output: the checks behind it compare
+S12 with the operators' own figures, which are not committed.
 
 `etl/land_prices.py` (real-data plan PR 5) expects the raw zip unzipped under
 `etl/_downloads/ksj_L01-26_13/`; the fixture README under

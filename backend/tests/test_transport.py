@@ -21,6 +21,7 @@ MINIMAL = {
                 {"name": "東京地下鉄", "lines": ["4号線丸ノ内線"], "rows": 1, "figureRows": 1, "passengers": 100},
                 {"name": "東京都", "lines": ["10号線新宿線"], "rows": 1, "figureRows": 0, "passengers": None},
             ],
+            "remarks": [{"operator": "東日本旅客鉄道", "line": "山手線", "text": "中央線を含む"}],
         },
         {
             "code": "000002",
@@ -31,7 +32,11 @@ MINIMAL = {
             "lng": 139.77,
             "dailyPassengers": None,
             "operators": [{"name": "ゆりかもめ", "lines": ["東京臨海新交通臨海線"], "rows": 1, "figureRows": 0, "passengers": None}],
-            "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）",
+            "countedElsewhere": {
+                "label": "他の行に計上",
+                "targets": [{"ward": "千代田区", "wardCode": "13101", "station": "東京", "operator": "東日本旅客鉄道", "line": "山手線", "remark": "中央線を含む"}],
+            },
+            "note": "乗降客数は千代田区の東京駅（JR山手線）に含まれます",
         },
     ],
     "sources": {"ridership": {"year": 2024, "table": "S12-25", "label": "x"}},
@@ -67,11 +72,17 @@ def test_rows_are_the_client_records_of_the_snapshot_stations():
         {"name": "東京地下鉄", "lines": ["4号線丸ノ内線"], "passengers": 100},
         {"name": "東京都", "lines": ["10号線新宿線"], "passengers": None},
     ]
-    assert "note" not in tokyo
+    assert "note" not in tokyo and "countedElsewhere" not in tokyo
+    # Real-data plan PR 4b: the figure rows' 備考 go through as the source writes them — a copy, not the snapshot's list.
+    assert tokyo["remarks"] == [{"operator": "東日本旅客鉄道", "line": "山手線", "text": "中央線を含む"}]
+    assert tokyo["remarks"] is not MINIMAL["stations"][0]["remarks"]
     other = rows[1]
-    # A station the source counts on another row: None, never 0, and it says why.
+    # A station the source counts on another row: None, never 0; it says so and where.
     assert other["dailyPassengers"] is None
-    assert other["note"].startswith("乗降客数2024は")
+    assert other["countedElsewhere"]["label"] == "他の行に計上"
+    assert other["countedElsewhere"]["targets"][0]["ward"] == "千代田区"
+    assert other["note"] == "乗降客数は千代田区の東京駅（JR山手線）に含まれます"
+    assert "remarks" not in other
 
 
 def test_rows_never_add_駅_twice():

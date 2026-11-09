@@ -57,14 +57,14 @@ test.describe("Dashboard", () => {
     await expect(toggle).toBeVisible();
   });
 
-  test("provenance footer is visible and labels sample surfaces", async ({ page }) => {
-    await expect(page.locator('footer [data-provenance="sample"]')).toBeVisible();
+  test("provenance footer is visible and has no sample group (real-data plan PR 4b)", async ({ page }) => {
+    // The last sample surface, 乗降客数推移, reads the S12 panel; the footer's
+    // sample group renders nothing. With no API behind the dev server the
+    // snapshot surfaces are listed in no group.
+    await expect(page.locator('footer [data-provenance="sample"]')).toHaveCount(0);
     await expect(page.locator('footer [data-provenance="live"]')).toBeVisible();
     await expect(page.getByText("国土数値情報")).toHaveCount(0);
-    // Real-data plan PR 6: 用途地域 reads the committed A55-24 snapshot and is
-    // no longer in the sample list; with no API behind the dev server it is
-    // listed in neither group.
-    await expect(page.locator('footer [data-provenance="sample"]')).not.toContainText("用途地域");
+    await expect(page.locator("footer")).not.toContainText("サンプルデータ");
   });
 
   test("用途地域 tab without a backend says 取得失敗, never SAMPLE (real-data plan PR 6)", async ({ page }) => {

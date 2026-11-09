@@ -18,6 +18,16 @@ ridership upstream has left the code path (decision 3); every credit is the 加�
 name (decision 12); the per-operator figures feed the 事業者別 panel, whose
 total equals the ward's 日間乗降客 (decision 13).
 
+Real-data plan PR 4b (Architect decisions 2026-11-09): the snapshot also
+carries 乗降客数推移 — a fixed panel of units summed per ward and for the 23
+wards over 2018 and 2020–2024, 2019 a gap with its reason (``trend``; the
+panel itself, with the reason class of every excluded unit, is the builder's
+committed input ``ridership_panel.json``) — each figure row's 備考 of the year
+as S12 writes it (``remarks``), where S12 counts a station every row of
+which says 他路線駅に記載 (``countedElsewhere`` and its ``note``), and S12's own
+notice on what the operators' figures are (``notes.source_notice``). The
+route sends the trend beside ``data`` as ``total``.
+
 The route has no upstream, so the only thing that can be wrong is the file
 itself — checked when the app module is imported (``check_at_startup``): a
 missing or malformed snapshot stops the process, Cloud Run refuses the
@@ -34,10 +44,14 @@ from pathlib import Path
 from typing import Any
 
 WARD_CODES = [f"131{n:02d}" for n in range(1, 24)]
-REQUIRED_KEYS = ("region", "year", "sources", "inputs", "licence", "credit", "notes", "wards", "stations")
-REQUIRED_SOURCES = ("ridership", "stations", "wards")
+REQUIRED_KEYS = ("region", "year", "sources", "inputs", "licence", "credit", "notes", "wards", "trend", "stations")
+REQUIRED_SOURCES = ("ridership", "stations", "wards", "trend")
 REQUIRED_CREDITS = ("source", "edited_s12", "edited_n03")
-REQUIRED_NOTES = ("definition", "jr_east")
+REQUIRED_NOTES = ("definition", "jr_east", "source_notice", "source_notice_at")
+TOTAL_CODE = "13100"
+# What the 駅一覧 cell of a station counted on another row reads: with the row
+# S12 names, or without one.
+COUNTED_LABELS = ("他の行に計上", "他の行に計上（国土数値情報に記載先の明示なし）")
 # The 23 wards lie inside this box (the N03 polygons do); a coordinate outside
 # it is a swapped lat/lng or a corrupt file, not a station.
 LAT_RANGE, LNG_RANGE = (35.45, 35.95), (139.50, 140.00)
@@ -143,6 +157,33 @@ def validate(snapshot: Any) -> None:
             raise SnapshotError(f"{where}.dailyPassengers {total!r} != sum of operators {sum(known) if known else None!r}")
         if "note" in station:
             _text(station["note"], f"{where}.note")
+        if "remarks" in station:
+            remarks = station["remarks"]
+            if not isinstance(remarks, list) or not remarks:
+                raise SnapshotError(f"{where}.remarks: expected a non-empty list")
+            for j, remark in enumerate(remarks):
+                if not isinstance(remark, dict):
+                    raise SnapshotError(f"{where}.remarks[{j}]: not an object")
+                for key in ("operator", "line", "text"):
+                    _text(remark.get(key), f"{where}.remarks[{j}].{key}")
+        elsewhere = station.get("countedElsewhere")
+        if elsewhere is not None:
+            # Only a station without a figure is counted elsewhere; the note
+            # is the sentence naming where, present exactly when S12 names a row.
+            if total is not None or not isinstance(elsewhere, dict):
+                raise SnapshotError(f"{where}.countedElsewhere: on a station with a figure, or not an object")
+            targets = elsewhere.get("targets")
+            if elsewhere.get("label") not in COUNTED_LABELS or not isinstance(targets, list):
+                raise SnapshotError(f"{where}.countedElsewhere: label {elsewhere.get('label')!r}")
+            if (elsewhere["label"] == COUNTED_LABELS[0]) != bool(targets) or bool(targets) != ("note" in station):
+                raise SnapshotError(f"{where}.countedElsewhere: label, targets and note disagree")
+            for j, target in enumerate(targets):
+                if not isinstance(target, dict):
+                    raise SnapshotError(f"{where}.countedElsewhere.targets[{j}]: not an object")
+                for key in ("ward", "wardCode", "station", "operator", "line", "remark"):
+                    _text(target.get(key), f"{where}.countedElsewhere.targets[{j}].{key}")
+        elif "note" in station:
+            raise SnapshotError(f"{where}.note: a note without the row it explains (countedElsewhere)")
         per_ward_total[ward_code] = per_ward_total.get(ward_code, 0) + (total or 0)
         per_ward_count[ward_code] = per_ward_count.get(ward_code, 0) + 1
 
@@ -159,6 +200,8 @@ def validate(snapshot: Any) -> None:
                 f"wards[{code}]: {w.get('stations')} stations / {w.get('passengers')} passengers, "
                 f"stations list says {per_ward_count[code]} / {per_ward_total[code]}"
             )
+
+    _validate_trend(snapshot["trend"], year, wards, per_ward_total)
 
     credit = snapshot["credit"]
     if not isinstance(credit, dict):
@@ -177,6 +220,77 @@ def validate(snapshot: Any) -> None:
     if not isinstance(licence, dict):
         raise SnapshotError("licence: not an object")
     _text(licence.get("url"), "licence.url")
+
+
+def _int(value: Any, where: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise SnapshotError(f"{where}: expected a non-negative integer, got {value!r}")
+    return value
+
+
+def _validate_trend(trend: Any, year: int, wards: list[dict], per_ward_total: dict[str, int]) -> None:
+    """乗降客数推移: one view for 東京23区 and one per ward, each a series over the
+    same years ending in the snapshot's year; the 23区 view is the sum of the
+    wards; a view's 日間乗降客 is its ward's; the panel never exceeds the whole;
+    every year left out between the first and the last has its stated reason."""
+    if not isinstance(trend, dict):
+        raise SnapshotError("trend: not an object")
+    panel = trend.get("panel")
+    if not isinstance(panel, dict):
+        raise SnapshotError("trend.panel: not an object")
+    _text(panel.get("id"), "trend.panel.id")
+    years = trend.get("years")
+    if not isinstance(years, list) or len(years) < 2 or any(isinstance(y, bool) or not isinstance(y, int) for y in years):
+        raise SnapshotError(f"trend.years: {years!r}")
+    if years != sorted(set(years)) or years[-1] != year:
+        raise SnapshotError(f"trend.years: {years} must ascend and end in {year}")
+    gaps = trend.get("gaps")
+    if not isinstance(gaps, list):
+        raise SnapshotError("trend.gaps: not a list")
+    gap_years = []
+    for i, gap in enumerate(gaps):
+        if not isinstance(gap, dict):
+            raise SnapshotError(f"trend.gaps[{i}]: not an object")
+        gap_years.append(_int(gap.get("year"), f"trend.gaps[{i}].year"))
+        _text(gap.get("text"), f"trend.gaps[{i}].text")
+    missing = [y for y in range(years[0], years[-1] + 1) if y not in years]
+    if sorted(gap_years) != missing:
+        raise SnapshotError(f"trend.gaps: years {sorted(gap_years)}, the series leaves out {missing}")
+
+    views = trend.get("views")
+    expected = [(TOTAL_CODE, None)] + [(w["code"], w["name"]) for w in wards]
+    if not isinstance(views, list) or [v.get("code") for v in views if isinstance(v, dict)] != [code for code, _ in expected]:
+        raise SnapshotError("trend.views: expected 東京23区 and then the 23 特別区 in code order")
+    for (code, name), view in zip(expected, views):
+        where = f"trend.views[{code}]"
+        _text(view.get("name"), f"{where}.name")
+        if name is not None and view["name"] != name:
+            raise SnapshotError(f"{where}.name: {view['name']!r}, the ward is {name!r}")
+        units, inside = _int(view.get("units"), f"{where}.units"), _int(view.get("panelUnits"), f"{where}.panelUnits")
+        if inside > units:
+            raise SnapshotError(f"{where}: {inside} panel units of {units}")
+        passengers = _int(view.get("passengers"), f"{where}.passengers")
+        want = sum(per_ward_total.values()) if name is None else per_ward_total[code]
+        if passengers != want:
+            raise SnapshotError(f"{where}.passengers {passengers}, the stations sum to {want}")
+        series = view.get("series")
+        if not isinstance(series, list) or [p.get("year") for p in series if isinstance(p, dict)] != years:
+            raise SnapshotError(f"{where}.series: expected one point per year of {years}")
+        for point in series:
+            _int(point.get("passengers"), f"{where}.series[{point['year']}].passengers")
+        if _int(view.get("panelPassengers"), f"{where}.panelPassengers") != series[-1]["passengers"] or series[-1]["passengers"] > passengers:
+            raise SnapshotError(f"{where}: the panel's {year} sum must be the series' last point and no more than 日間乗降客")
+        if (inside == units) != (series[-1]["passengers"] == passengers):
+            raise SnapshotError(f"{where}: all units in the panel must mean the whole of 日間乗降客, and only then")
+    total, ward_views = views[0], views[1:]
+    for key in ("units", "panelUnits"):
+        if total[key] != sum(v[key] for v in ward_views):
+            raise SnapshotError(f"trend.views[{TOTAL_CODE}].{key} is not the sum of the wards")
+    for i, point in enumerate(total["series"]):
+        if point["passengers"] != sum(v["series"][i]["passengers"] for v in ward_views):
+            raise SnapshotError(f"trend.views[{TOTAL_CODE}].series[{point['year']}] is not the sum of the wards")
+    if (panel.get("units"), panel.get("unitsIn")) != (total["units"], total["panelUnits"]):
+        raise SnapshotError("trend.panel: its counts are not the 23区 view's")
 
 
 def load(path: Path) -> dict:
@@ -232,12 +346,33 @@ def rows(snapshot: dict) -> list[dict]:
             "wardCode": s["wardCode"],
             "operators": [{"name": o["name"], "lines": list(o["lines"]), "passengers": o["passengers"]} for o in s["operators"]],
         }
+        if s.get("remarks"):
+            record["remarks"] = deepcopy(s["remarks"])
+        if s.get("countedElsewhere"):
+            record["countedElsewhere"] = deepcopy(s["countedElsewhere"])
         if s.get("note"):
             record["note"] = s["note"]
         out.append(record)
     return out
 
 
+def total(snapshot: dict) -> dict:
+    """What the route sends beside ``data``: the 23区 record carrying 乗降客数推移 —
+    the panel's id, its years, each gap with its reason, and one view per
+    region (東京23区 first, then the wards in code order)."""
+    trend = snapshot["trend"]
+    return {
+        "code": TOTAL_CODE,
+        "name": snapshot["region"],
+        "trend": {
+            "panel": trend["panel"]["id"],
+            "years": list(trend["years"]),
+            "gaps": [{"year": g["year"], "text": g["text"]} for g in trend["gaps"]],
+            "views": deepcopy(trend["views"]),
+        },
+    }
+
+
 def sources(snapshot: dict) -> dict[str, dict]:
-    """Per field (ridership, stations, wards): the year, table and label — the /demographics ``sources`` shape."""
+    """Per field (ridership, stations, wards, trend): the year, table and label — the /demographics ``sources`` shape."""
     return deepcopy(snapshot["sources"])

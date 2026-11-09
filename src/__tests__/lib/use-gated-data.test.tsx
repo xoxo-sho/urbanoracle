@@ -5,7 +5,6 @@ import { SOURCES } from "@/lib/sources";
 import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
-import { sampleTransportTrends } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
   LAND_PRICES_FIXTURE,
@@ -171,11 +170,11 @@ describe("consumers render by status", () => {
     expect(container.textContent).not.toContain("2025年速報");
   });
 
-  it("TransportPanel: unavailable → 取得失敗 naming 国土数値情報 as the source that failed, no citation, trends still sample", () => {
+  it("TransportPanel: unavailable → 取得失敗 naming 国土数値情報 as the source that failed, no citation, no sample (real-data plan PR 4b)", () => {
     const { container } = render(
       <TransportPanel
         stations={[]}
-        trends={sampleTransportTrends}
+        trend={null}
         selectedWard={null}
         status="unavailable"
       />
@@ -184,14 +183,14 @@ describe("consumers render by status", () => {
     expect(text).toContain(FAILED_TEXT);
     expect(text).toContain(SOURCES.ksj.label);
     expect(text).not.toContain(KSJ_CITATION);
-    expect(text).toContain(SAMPLE);
+    expect(text).not.toContain(SAMPLE);
   });
 
-  it("TransportPanel: ok → 国土数値情報 and the payload's year on the station section, trends still sample", () => {
+  it("TransportPanel: ok → 国土数値情報 and the payload's year on the station section; without a trend in the payload 乗降客数推移 says データなし, never a sample (real-data plan PR 4b)", () => {
     const { container } = render(
       <TransportPanel
         stations={STATIONS_FIXTURE}
-        trends={sampleTransportTrends}
+        trend={null}
         selectedWard={null}
         status="ok"
         sources={TRANSPORT_SOURCES}
@@ -200,7 +199,8 @@ describe("consumers render by status", () => {
     const text = container.textContent ?? "";
     expect(text).toContain(KSJ_CITATION);
     expect(text).toContain(`${RIDERSHIP_YEAR}年度`);
-    expect(text).toContain(SAMPLE);
+    expect(text).not.toContain(SAMPLE);
+    expect(container.querySelector('[data-surface="ridership-trend"]')?.textContent).toContain("データなし");
     // Real-data plan PR 4: positions and lines come from S12 itself, so the
     // old "bundled, provenance unverified" note is gone.
     expect(text).not.toContain("同梱データ（出典未確認）");

@@ -17,6 +17,11 @@
    "year": 2026,
    "table": "N03-20260101",
    "label": "国土数値情報 行政区域データ 2026年（令和8年）1月1日時点 東京都（区の判定：中点の包含）"
+  },
+  "trend": {
+   "year": 2024,
+   "table": "S12-25",
+   "label": "国土数値情報 駅別乗降客数データ 2024年度（令和6年度）版 乗降客数2018・乗降客数2020・乗降客数2021・乗降客数2022・乗降客数2023・乗降客数2024（1日平均、人/日）— 全年度を同じ基準で比べられる行の合計"
   }
  },
  "inputs": {
@@ -58,6 +63,12 @@
     "features_kept": 118,
     "cut": "features whose N03_007 is 13101–13123; geometry kept verbatim"
    }
+  },
+  "ridership_panel.json": {
+   "path": "backend/tests/fixtures/stations/ridership_panel.json",
+   "sha256": "08e15a011623df8908f63b14e72538adece11caf54cdc26a146ab1207c7f6e64",
+   "id": "B2",
+   "decided": "2026-11-09"
   }
  },
  "licence": {
@@ -77,7 +88,9 @@
   "definition": "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）",
   "jr_east": "JR東日本の値は乗車人員を2倍した値（原典資料による）",
   "jr_east_evidence": "JR東日本「各駅の乗車人員」2024年度 (https://www.jreast.co.jp/company/data/passenger/) と 2023年度 (https://www.jreast.co.jp/company/data/passenger/2023.html) の1日平均乗車人員（新宿・東京・池袋・渋谷・小岩）に対し、S12 の乗降客数2024 / 乗降客数2023 の東日本旅客鉄道の行はいずれもその2倍に一致（2026-11-02 確認）。",
-  "position": "駅の位置は S12 の線形（国土数値情報（鉄道）駅データと同じ位置）の中点；区は N03 の区ポリゴンがその中点を含むもの"
+  "position": "駅の位置は S12 の線形（国土数値情報（鉄道）駅データと同じ位置）の中点；区は N03 の区ポリゴンがその中点を含むもの",
+  "source_notice": "各事業者から提供された駅別乗降客数は、各社で独自に算出したものであり、統一的な基準に基づいたものではありませんので、その旨を認識した上でご利用ください。",
+  "source_notice_at": "国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」（https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html）"
  },
  "straddlingRows": [
   {
@@ -540,6 +553,859 @@
    "figureRows": 11
   }
  ],
+ "trend": {
+  "panel": {
+   "id": "B2",
+   "decided": "2026-11-09",
+   "units": 583,
+   "unitsIn": 458,
+   "excludedByFirstReason": {
+    "repeat_or_lag": 41,
+    "definition_change": 16,
+    "opened_or_closed": 2,
+    "entry_error": 8,
+    "unexplained": 58
+   }
+  },
+  "years": [
+   2018,
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "gaps": [
+   {
+    "year": 2019,
+    "repeating": [
+     {
+      "operator": "東日本旅客鉄道",
+      "rows": 73
+     }
+    ],
+    "text": "2019年度は表示しません：国土数値情報の2019年度の値が、パネルの東日本旅客鉄道73行すべてで前年度（2018年度）と同じ値のため"
+   }
+  ],
+  "views": [
+   {
+    "code": "13100",
+    "name": "東京23区",
+    "units": 583,
+    "panelUnits": 458,
+    "passengers": 43538060,
+    "panelPassengers": 34561088,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 38851287
+     },
+     {
+      "year": 2020,
+      "passengers": 25539168
+     },
+     {
+      "year": 2021,
+      "passengers": 26963792
+     },
+     {
+      "year": 2022,
+      "passengers": 30566467
+     },
+     {
+      "year": 2023,
+      "passengers": 33178126
+     },
+     {
+      "year": 2024,
+      "passengers": 34561088
+     }
+    ]
+   },
+   {
+    "code": "13101",
+    "name": "千代田区",
+    "units": 37,
+    "panelUnits": 29,
+    "passengers": 5162535,
+    "panelPassengers": 4429259,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 5104699
+     },
+     {
+      "year": 2020,
+      "passengers": 3145047
+     },
+     {
+      "year": 2021,
+      "passengers": 3255552
+     },
+     {
+      "year": 2022,
+      "passengers": 3806152
+     },
+     {
+      "year": 2023,
+      "passengers": 4218793
+     },
+     {
+      "year": 2024,
+      "passengers": 4429259
+     }
+    ]
+   },
+   {
+    "code": "13102",
+    "name": "中央区",
+    "units": 27,
+    "panelUnits": 21,
+    "passengers": 1805990,
+    "panelPassengers": 1569868,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1789197
+     },
+     {
+      "year": 2020,
+      "passengers": 1166387
+     },
+     {
+      "year": 2021,
+      "passengers": 1181054
+     },
+     {
+      "year": 2022,
+      "passengers": 1339993
+     },
+     {
+      "year": 2023,
+      "passengers": 1484360
+     },
+     {
+      "year": 2024,
+      "passengers": 1569868
+     }
+    ]
+   },
+   {
+    "code": "13103",
+    "name": "港区",
+    "units": 44,
+    "panelUnits": 30,
+    "passengers": 4126521,
+    "panelPassengers": 3406643,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 4173520
+     },
+     {
+      "year": 2020,
+      "passengers": 2450066
+     },
+     {
+      "year": 2021,
+      "passengers": 2451223
+     },
+     {
+      "year": 2022,
+      "passengers": 2872333
+     },
+     {
+      "year": 2023,
+      "passengers": 3227830
+     },
+     {
+      "year": 2024,
+      "passengers": 3406643
+     }
+    ]
+   },
+   {
+    "code": "13104",
+    "name": "新宿区",
+    "units": 37,
+    "panelUnits": 25,
+    "passengers": 5036759,
+    "panelPassengers": 4002737,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 4610309
+     },
+     {
+      "year": 2020,
+      "passengers": 2897754
+     },
+     {
+      "year": 2021,
+      "passengers": 3153901
+     },
+     {
+      "year": 2022,
+      "passengers": 3597320
+     },
+     {
+      "year": 2023,
+      "passengers": 3870033
+     },
+     {
+      "year": 2024,
+      "passengers": 4002737
+     }
+    ]
+   },
+   {
+    "code": "13105",
+    "name": "文京区",
+    "units": 17,
+    "panelUnits": 13,
+    "passengers": 744471,
+    "panelPassengers": 602160,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 634758
+     },
+     {
+      "year": 2020,
+      "passengers": 401553
+     },
+     {
+      "year": 2021,
+      "passengers": 446971
+     },
+     {
+      "year": 2022,
+      "passengers": 525844
+     },
+     {
+      "year": 2023,
+      "passengers": 577080
+     },
+     {
+      "year": 2024,
+      "passengers": 602160
+     }
+    ]
+   },
+   {
+    "code": "13106",
+    "name": "台東区",
+    "units": 22,
+    "panelUnits": 16,
+    "passengers": 1502701,
+    "panelPassengers": 1281377,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1370310
+     },
+     {
+      "year": 2020,
+      "passengers": 866905
+     },
+     {
+      "year": 2021,
+      "passengers": 918638
+     },
+     {
+      "year": 2022,
+      "passengers": 1087599
+     },
+     {
+      "year": 2023,
+      "passengers": 1214741
+     },
+     {
+      "year": 2024,
+      "passengers": 1281377
+     }
+    ]
+   },
+   {
+    "code": "13107",
+    "name": "墨田区",
+    "units": 16,
+    "panelUnits": 11,
+    "passengers": 1091418,
+    "panelPassengers": 697187,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 720911
+     },
+     {
+      "year": 2020,
+      "passengers": 510843
+     },
+     {
+      "year": 2021,
+      "passengers": 542957
+     },
+     {
+      "year": 2022,
+      "passengers": 613290
+     },
+     {
+      "year": 2023,
+      "passengers": 665895
+     },
+     {
+      "year": 2024,
+      "passengers": 697187
+     }
+    ]
+   },
+   {
+    "code": "13108",
+    "name": "江東区",
+    "units": 35,
+    "panelUnits": 29,
+    "passengers": 1672022,
+    "panelPassengers": 1490952,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1594826
+     },
+     {
+      "year": 2020,
+      "passengers": 1051250
+     },
+     {
+      "year": 2021,
+      "passengers": 1114254
+     },
+     {
+      "year": 2022,
+      "passengers": 1275937
+     },
+     {
+      "year": 2023,
+      "passengers": 1424381
+     },
+     {
+      "year": 2024,
+      "passengers": 1490952
+     }
+    ]
+   },
+   {
+    "code": "13109",
+    "name": "品川区",
+    "units": 32,
+    "panelUnits": 30,
+    "passengers": 2134944,
+    "panelPassengers": 1465500,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1741808
+     },
+     {
+      "year": 2020,
+      "passengers": 1157328
+     },
+     {
+      "year": 2021,
+      "passengers": 1191949
+     },
+     {
+      "year": 2022,
+      "passengers": 1305521
+     },
+     {
+      "year": 2023,
+      "passengers": 1405361
+     },
+     {
+      "year": 2024,
+      "passengers": 1465500
+     }
+    ]
+   },
+   {
+    "code": "13110",
+    "name": "目黒区",
+    "units": 10,
+    "panelUnits": 8,
+    "passengers": 837467,
+    "panelPassengers": 392538,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 434060
+     },
+     {
+      "year": 2020,
+      "passengers": 287460
+     },
+     {
+      "year": 2021,
+      "passengers": 327078
+     },
+     {
+      "year": 2022,
+      "passengers": 360733
+     },
+     {
+      "year": 2023,
+      "passengers": 380565
+     },
+     {
+      "year": 2024,
+      "passengers": 392538
+     }
+    ]
+   },
+   {
+    "code": "13111",
+    "name": "大田区",
+    "units": 42,
+    "panelUnits": 39,
+    "passengers": 1515375,
+    "panelPassengers": 1305462,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1413572
+     },
+     {
+      "year": 2020,
+      "passengers": 957730
+     },
+     {
+      "year": 2021,
+      "passengers": 1004782
+     },
+     {
+      "year": 2022,
+      "passengers": 1135724
+     },
+     {
+      "year": 2023,
+      "passengers": 1244778
+     },
+     {
+      "year": 2024,
+      "passengers": 1305462
+     }
+    ]
+   },
+   {
+    "code": "13112",
+    "name": "世田谷区",
+    "units": 40,
+    "panelUnits": 28,
+    "passengers": 1615157,
+    "panelPassengers": 1291029,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1383577
+     },
+     {
+      "year": 2020,
+      "passengers": 933455
+     },
+     {
+      "year": 2021,
+      "passengers": 1066926
+     },
+     {
+      "year": 2022,
+      "passengers": 1197173
+     },
+     {
+      "year": 2023,
+      "passengers": 1257373
+     },
+     {
+      "year": 2024,
+      "passengers": 1291029
+     }
+    ]
+   },
+   {
+    "code": "13113",
+    "name": "渋谷区",
+    "units": 23,
+    "panelUnits": 21,
+    "passengers": 4284773,
+    "panelPassengers": 2490605,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 2837129
+     },
+     {
+      "year": 2020,
+      "passengers": 1750537
+     },
+     {
+      "year": 2021,
+      "passengers": 1917987
+     },
+     {
+      "year": 2022,
+      "passengers": 2214427
+     },
+     {
+      "year": 2023,
+      "passengers": 2394914
+     },
+     {
+      "year": 2024,
+      "passengers": 2490605
+     }
+    ]
+   },
+   {
+    "code": "13114",
+    "name": "中野区",
+    "units": 14,
+    "panelUnits": 11,
+    "passengers": 805536,
+    "panelPassengers": 356571,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 384909
+     },
+     {
+      "year": 2020,
+      "passengers": 284189
+     },
+     {
+      "year": 2021,
+      "passengers": 299526
+     },
+     {
+      "year": 2022,
+      "passengers": 325090
+     },
+     {
+      "year": 2023,
+      "passengers": 343771
+     },
+     {
+      "year": 2024,
+      "passengers": 356571
+     }
+    ]
+   },
+   {
+    "code": "13115",
+    "name": "杉並区",
+    "units": 19,
+    "panelUnits": 19,
+    "passengers": 913069,
+    "panelPassengers": 913069,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 994245
+     },
+     {
+      "year": 2020,
+      "passengers": 729277
+     },
+     {
+      "year": 2021,
+      "passengers": 769580
+     },
+     {
+      "year": 2022,
+      "passengers": 836827
+     },
+     {
+      "year": 2023,
+      "passengers": 883983
+     },
+     {
+      "year": 2024,
+      "passengers": 913069
+     }
+    ]
+   },
+   {
+    "code": "13116",
+    "name": "豊島区",
+    "units": 30,
+    "panelUnits": 20,
+    "passengers": 3215617,
+    "panelPassengers": 3136799,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 3517348
+     },
+     {
+      "year": 2020,
+      "passengers": 2382430
+     },
+     {
+      "year": 2021,
+      "passengers": 2558711
+     },
+     {
+      "year": 2022,
+      "passengers": 2869336
+     },
+     {
+      "year": 2023,
+      "passengers": 3055593
+     },
+     {
+      "year": 2024,
+      "passengers": 3136799
+     }
+    ]
+   },
+   {
+    "code": "13117",
+    "name": "北区",
+    "units": 20,
+    "panelUnits": 14,
+    "passengers": 848623,
+    "panelPassengers": 830849,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 880901
+     },
+     {
+      "year": 2020,
+      "passengers": 653712
+     },
+     {
+      "year": 2021,
+      "passengers": 688313
+     },
+     {
+      "year": 2022,
+      "passengers": 756550
+     },
+     {
+      "year": 2023,
+      "passengers": 803857
+     },
+     {
+      "year": 2024,
+      "passengers": 830849
+     }
+    ]
+   },
+   {
+    "code": "13118",
+    "name": "荒川区",
+    "units": 28,
+    "panelUnits": 13,
+    "passengers": 940022,
+    "panelPassengers": 853993,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 913066
+     },
+     {
+      "year": 2020,
+      "passengers": 645704
+     },
+     {
+      "year": 2021,
+      "passengers": 686247
+     },
+     {
+      "year": 2022,
+      "passengers": 766101
+     },
+     {
+      "year": 2023,
+      "passengers": 824319
+     },
+     {
+      "year": 2024,
+      "passengers": 853993
+     }
+    ]
+   },
+   {
+    "code": "13119",
+    "name": "板橋区",
+    "units": 19,
+    "panelUnits": 17,
+    "passengers": 623367,
+    "panelPassengers": 564086,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 599559
+     },
+     {
+      "year": 2020,
+      "passengers": 456829
+     },
+     {
+      "year": 2021,
+      "passengers": 478448
+     },
+     {
+      "year": 2022,
+      "passengers": 512779
+     },
+     {
+      "year": 2023,
+      "passengers": 540763
+     },
+     {
+      "year": 2024,
+      "passengers": 564086
+     }
+    ]
+   },
+   {
+    "code": "13120",
+    "name": "練馬区",
+    "units": 21,
+    "panelUnits": 15,
+    "passengers": 1128448,
+    "panelPassengers": 635424,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 674577
+     },
+     {
+      "year": 2020,
+      "passengers": 498052
+     },
+     {
+      "year": 2021,
+      "passengers": 530588
+     },
+     {
+      "year": 2022,
+      "passengers": 580599
+     },
+     {
+      "year": 2023,
+      "passengers": 614525
+     },
+     {
+      "year": 2024,
+      "passengers": 635424
+     }
+    ]
+   },
+   {
+    "code": "13121",
+    "name": "足立区",
+    "units": 27,
+    "panelUnits": 26,
+    "passengers": 2283755,
+    "panelPassengers": 1595490,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 1749673
+     },
+     {
+      "year": 2020,
+      "passengers": 1306919
+     },
+     {
+      "year": 2021,
+      "passengers": 1331286
+     },
+     {
+      "year": 2022,
+      "passengers": 1448274
+     },
+     {
+      "year": 2023,
+      "passengers": 1538358
+     },
+     {
+      "year": 2024,
+      "passengers": 1595490
+     }
+    ]
+   },
+   {
+    "code": "13122",
+    "name": "葛飾区",
+    "units": 12,
+    "panelUnits": 12,
+    "passengers": 622115,
+    "panelPassengers": 622115,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 653744
+     },
+     {
+      "year": 2020,
+      "passengers": 497880
+     },
+     {
+      "year": 2021,
+      "passengers": 516723
+     },
+     {
+      "year": 2022,
+      "passengers": 565449
+     },
+     {
+      "year": 2023,
+      "passengers": 599727
+     },
+     {
+      "year": 2024,
+      "passengers": 622115
+     }
+    ]
+   },
+   {
+    "code": "13123",
+    "name": "江戸川区",
+    "units": 11,
+    "panelUnits": 11,
+    "passengers": 627375,
+    "panelPassengers": 627375,
+    "series": [
+     {
+      "year": 2018,
+      "passengers": 674589
+     },
+     {
+      "year": 2020,
+      "passengers": 507861
+     },
+     {
+      "year": 2021,
+      "passengers": 531098
+     },
+     {
+      "year": 2022,
+      "passengers": 573416
+     },
+     {
+      "year": 2023,
+      "passengers": 607126
+     },
+     {
+      "year": 2024,
+      "passengers": 627375
+     }
+    ]
+   }
+  ]
+ },
  "stations": [
   {
    "code": "003766",
@@ -581,6 +1447,13 @@
      "figureRows": 1,
      "passengers": 194244
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "東海道線",
+     "text": "東北線・総武線・京葉線・東北新幹線を含む"
+    }
    ]
   },
   {
@@ -620,6 +1493,13 @@
      "figureRows": 1,
      "passengers": 111781
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "総武線",
+     "text": "東北線を含む"
+    }
    ]
   },
   {
@@ -651,6 +1531,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 61653
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "4号線丸ノ内線",
+     "text": "5号線東西線・9号線千代田線・11号線半蔵門線を含む"
     }
    ]
   },
@@ -710,6 +1597,13 @@
      "figureRows": 1,
      "passengers": 136818
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "5号線東西線",
+     "text": "7号線南北線・8号線有楽町線を含む"
+    }
    ]
   },
   {
@@ -739,6 +1633,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 56241
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "中央線",
+     "text": "東北線を含む"
     }
    ]
   },
@@ -770,6 +1671,13 @@
      "figureRows": 1,
      "passengers": 85815
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "text": "10号線新宿線を含む"
+    }
    ]
   },
   {
@@ -799,6 +1707,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "5号線東西線",
+     "text": "11号線半蔵門線、東京都・10号線新宿線を含む"
     }
    ]
   },
@@ -921,6 +1836,13 @@
      "figureRows": 1,
      "passengers": 132884
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "2号線日比谷線",
+     "text": "4号線丸ノ内線・9号線千代田線を含む"
+    }
    ]
   },
   {
@@ -950,6 +1872,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 38566
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "2号線日比谷線",
+     "text": "9号線千代田線を含む"
     }
    ]
   },
@@ -992,6 +1921,13 @@
      "rows": 3,
      "figureRows": 1,
      "passengers": 75272
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "7号線南北線",
+     "text": "8号線有楽町線・11号線半蔵門線を含む"
     }
    ]
   },
@@ -1093,6 +2029,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 40907
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "9号線千代田線",
+     "text": "4号線丸ノ内線を含む"
     }
    ]
   },
@@ -1215,7 +2158,20 @@
      "passengers": null
     }
    ],
-   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+   "countedElsewhere": {
+    "label": "他の行に計上",
+    "targets": [
+     {
+      "ward": "港区",
+      "wardCode": "13103",
+      "station": "溜池山王",
+      "operator": "東京地下鉄",
+      "line": "3号線銀座線",
+      "remark": "7号線南北線を含む"
+     }
+    ]
+   },
+   "note": "乗降客数は港区の溜池山王駅（東京メトロ銀座線）に含まれます"
   },
   {
    "code": "003823",
@@ -1236,6 +2192,13 @@
      "rows": 3,
      "figureRows": 1,
      "passengers": 230271
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "2号線日比谷線",
+     "text": "3号線銀座線・4号線丸ノ内線を含む"
     }
    ]
   },
@@ -1266,6 +2229,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 41410
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "5号線東西線",
+     "text": "3号線銀座線を含む"
     }
    ]
   },
@@ -1346,6 +2316,13 @@
      "figureRows": 1,
      "passengers": 117531
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "11号線半蔵門線",
+     "text": "3号線銀座線を含む"
+    }
    ]
   },
   {
@@ -1366,6 +2343,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 112343
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "5号線東西線",
+     "text": "2号線日比谷線を含む"
     }
    ]
   },
@@ -1744,6 +2728,13 @@
      "figureRows": 1,
      "passengers": 75403
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "山手線",
+     "text": "東海道線を含む"
+    }
    ]
   },
   {
@@ -1882,6 +2873,13 @@
      "figureRows": 1,
      "passengers": 176901
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "3号線銀座線",
+     "text": "9号線千代田線・11号線半蔵門線を含む"
+    }
    ]
   },
   {
@@ -1911,6 +2909,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 24493
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "3号線銀座線",
+     "text": "11号線半蔵門線を含む"
     }
    ]
   },
@@ -1953,6 +2958,13 @@
      "figureRows": 1,
      "passengers": 107560
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "text": "6号線三田線を含む"
+    }
    ]
   },
   {
@@ -1973,6 +2985,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 101853
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "text": "12号線大江戸線を含む"
     }
    ]
   },
@@ -2035,6 +3054,13 @@
      "figureRows": 1,
      "passengers": 89214
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "3号線銀座線",
+     "text": "4号線丸ノ内線を含む"
+    }
    ]
   },
   {
@@ -2054,6 +3080,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 82631
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "3号線銀座線",
+     "text": "7号線南北線を含む"
     }
    ]
   },
@@ -2302,6 +3335,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "7号線南北線",
+     "text": "東京都・6号線三田線を含む"
+    }
    ]
   },
   {
@@ -2330,6 +3370,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "text": "京浜急行電鉄・本線を含む"
     }
    ]
   },
@@ -2419,6 +3466,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "7号線南北線",
+     "text": "東京都、6号線三田線を含む"
     }
    ]
   },
@@ -2577,6 +3631,18 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "京王電鉄",
+     "line": "京王線",
+     "text": "京王新線、東京都・10号線新宿線・12号線大江戸線を含む"
+    },
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "中央線",
+     "text": "山手線を含む"
+    }
    ]
   },
   {
@@ -2645,6 +3711,13 @@
      "figureRows": 1,
      "passengers": 46711
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "4号線丸ノ内線",
+     "text": "13号線副都心線を含む"
+    }
    ]
   },
   {
@@ -2685,6 +3758,13 @@
      "figureRows": 1,
      "passengers": 133367
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "7号線南北線",
+     "text": "8号線有楽町線を含む"
+    }
    ]
   },
   {
@@ -2705,6 +3785,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 117584
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "4号線丸ノ内線",
+     "text": "7号線南北線を含む"
     }
    ]
   },
@@ -3206,7 +4293,20 @@
      "passengers": null
     }
    ],
-   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+   "countedElsewhere": {
+    "label": "他の行に計上",
+    "targets": [
+     {
+      "ward": "千代田区",
+      "wardCode": "13101",
+      "station": "飯田橋",
+      "operator": "東京地下鉄",
+      "line": "5号線東西線",
+      "remark": "7号線南北線・8号線有楽町線を含む"
+     }
+    ]
+   },
+   "note": "乗降客数は千代田区の飯田橋駅（東京メトロ東西線）に含まれます"
   },
   {
    "code": "003542",
@@ -3226,6 +4326,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 104894
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "4号線丸ノ内線",
+     "text": "7号線南北線を含む"
     }
    ]
   },
@@ -3296,6 +4403,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 65361
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "text": "12号線大江戸線を含む"
     }
    ]
   },
@@ -3567,6 +4681,18 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 189373
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "2号線日比谷線",
+     "text": "3号線銀座線を含む"
+    },
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "東北線",
+     "text": "東北新幹線を含む"
     }
    ]
   },
@@ -3926,7 +5052,20 @@
      "passengers": null
     }
    ],
-   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+   "countedElsewhere": {
+    "label": "他の行に計上",
+    "targets": [
+     {
+      "ward": "荒川区",
+      "wardCode": "13118",
+      "station": "日暮里",
+      "operator": "東日本旅客鉄道",
+      "line": "常磐線",
+      "remark": "東北線を含む"
+     }
+    ]
+   },
+   "note": "乗降客数は荒川区の日暮里駅（JR常磐線）に含まれます"
   },
   {
    "code": "003526",
@@ -3972,6 +5111,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "京成電鉄",
+     "line": "押上線",
+     "text": "東京都・1号線浅草線を含む"
     }
    ]
   },
@@ -4062,6 +5208,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 29890
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東武鉄道",
+     "line": "伊勢崎線",
+     "text": "亀戸線を含む"
     }
    ]
   },
@@ -4244,7 +5397,10 @@
      "passengers": null
     }
    ],
-   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+   "countedElsewhere": {
+    "label": "他の行に計上（国土数値情報に記載先の明示なし）",
+    "targets": []
+   }
   },
   {
    "code": "003997",
@@ -4467,6 +5623,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 74094
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "text": "12号線大江戸線を含む"
     }
    ]
   },
@@ -4915,6 +6078,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "目黒線",
+     "text": "東京地下鉄・7号線南北線、東京都・6号線三田線を含む"
+    }
    ]
   },
   {
@@ -5020,6 +6190,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "山手線",
+     "text": "東京臨海高速鉄道・臨海副都心線を含む"
+    }
    ]
   },
   {
@@ -5118,6 +6295,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 39338
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "池上線",
+     "text": "大井町線を含む"
     }
    ]
   },
@@ -5488,6 +6672,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "東横線",
+     "text": "東京地下鉄・2号線日比谷線を含む"
+    }
    ]
   },
   {
@@ -5508,6 +6699,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 136588
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "東横線",
+     "text": "大井町線を含む"
     }
    ]
   },
@@ -5569,6 +6767,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 47370
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "目黒線",
+     "text": "大井町線を含む"
     }
    ]
   },
@@ -5700,6 +6905,13 @@
      "figureRows": 1,
      "passengers": 156965
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "池上線",
+     "text": "東急多摩川線を含む"
+    }
    ]
   },
   {
@@ -5760,6 +6972,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 61303
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "京浜急行電鉄",
+     "line": "本線",
+     "text": "空港線を含む"
     }
    ]
   },
@@ -5960,6 +7179,13 @@
      "figureRows": 1,
      "passengers": 30210
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "東横線",
+     "text": "目黒線を含む"
+    }
    ]
   },
   {
@@ -6140,6 +7366,13 @@
      "rows": 3,
      "figureRows": 1,
      "passengers": 21510
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "東横線",
+     "text": "東急多摩川線を含む"
     }
    ]
   },
@@ -6552,6 +7785,13 @@
      "figureRows": 1,
      "passengers": 140353
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "田園都市線",
+     "text": "大井町線を含む"
+    }
    ]
   },
   {
@@ -6572,6 +7812,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 91172
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "京王電鉄",
+     "line": "京王線",
+     "text": "井の頭線を含む"
     }
    ]
   },
@@ -7312,6 +8559,13 @@
      "figureRows": 1,
      "passengers": 191505
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東急電鉄",
+     "line": "東横線",
+     "text": "田園都市線、東京地下鉄・11号線半蔵門線、東京地下鉄・13号線副都心線を含む"
+    }
    ]
   },
   {
@@ -7370,6 +8624,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "小田急電鉄",
+     "line": "小田原線",
+     "text": "東京地下鉄・9号線千代田線を含む"
+    }
    ]
   },
   {
@@ -7399,6 +8660,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 23738
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "中央線",
+     "text": "山手線を含む"
     }
    ]
   },
@@ -7440,6 +8708,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 105665
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "9号線千代田線",
+     "text": "13号線副都心線を含む"
     }
    ]
   },
@@ -7711,7 +8986,28 @@
      "passengers": null
     }
    ],
-   "note": "乗降客数2024は国土数値情報 S12 で他路線駅の行に記載（重複コード2）"
+   "countedElsewhere": {
+    "label": "他の行に計上",
+    "targets": [
+     {
+      "ward": "新宿区",
+      "wardCode": "13104",
+      "station": "新宿",
+      "operator": "京王電鉄",
+      "line": "京王線",
+      "remark": "京王新線、東京都・10号線新宿線・12号線大江戸線を含む"
+     },
+     {
+      "ward": "新宿区",
+      "wardCode": "13104",
+      "station": "新宿",
+      "operator": "東日本旅客鉄道",
+      "line": "中央線",
+      "remark": "山手線を含む"
+     }
+    ]
+   },
+   "note": "乗降客数は新宿区の新宿駅（京王電鉄京王線、JR中央線）に含まれます"
   },
   {
    "code": "003568",
@@ -7739,6 +9035,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "中央線",
+     "text": "東京地下鉄・5号線東西線を含む"
     }
    ]
   },
@@ -8398,6 +9701,18 @@
      "figureRows": 1,
      "passengers": 419499
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "4号線丸ノ内線",
+     "text": "8号線有楽町線・13号線副都心線を含む"
+    },
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "山手線",
+     "text": "赤羽線を含む"
+    }
    ]
   },
   {
@@ -8557,6 +9872,13 @@
      "figureRows": 1,
      "passengers": 40890
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "8号線有楽町線",
+     "text": "13号線副都心線を含む"
+    }
    ]
   },
   {
@@ -8577,6 +9899,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 39136
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "8号線有楽町線",
+     "text": "13号線副都心線を含む"
     }
    ]
   },
@@ -8919,6 +10248,13 @@
      "figureRows": 1,
      "passengers": 188334
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "東北線",
+     "text": "赤羽線を含む"
+    }
    ]
   },
   {
@@ -8977,6 +10313,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "7号線南北線",
+     "text": "埼玉高速鉄道・埼玉高速鉄道線を含む"
+    }
    ]
   },
   {
@@ -8997,6 +10340,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 80958
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "山手線",
+     "text": "東北線を含む"
     }
    ]
   },
@@ -9374,6 +10724,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 32438
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東日本旅客鉄道",
+     "line": "常磐線",
+     "text": "東北線を含む"
     }
    ]
   },
@@ -10173,6 +11530,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "8号線有楽町線",
+     "text": "13号線副都心線、西武鉄道・西武有楽町線を含む"
+    }
    ]
   },
   {
@@ -10203,6 +11567,13 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 52494
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "西武鉄道",
+     "line": "池袋線",
+     "text": "西武有楽町線・豊島線を含む"
     }
    ]
   },
@@ -10601,6 +11972,13 @@
      "figureRows": 1,
      "passengers": 108181
     }
+   ],
+   "remarks": [
+    {
+     "operator": "東武鉄道",
+     "line": "伊勢崎線",
+     "text": "東京地下鉄・2号線日比谷線を含む"
+    }
    ]
   },
   {
@@ -10629,6 +12007,13 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東京地下鉄",
+     "line": "9号線千代田線",
+     "text": "東日本旅客鉄道・常磐線を含む"
     }
    ]
   },
@@ -10670,6 +12055,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 62984
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "東武鉄道",
+     "line": "伊勢崎線",
+     "text": "大師線を含む"
     }
    ]
   },
@@ -11122,6 +12514,13 @@
      "figureRows": 0,
      "passengers": null
     }
+   ],
+   "remarks": [
+    {
+     "operator": "京成電鉄",
+     "line": "本線",
+     "text": "金町線、北総鉄道・北総線を含む"
+    }
    ]
   },
   {
@@ -11182,6 +12581,13 @@
      "rows": 2,
      "figureRows": 1,
      "passengers": 48727
+    }
+   ],
+   "remarks": [
+    {
+     "operator": "京成電鉄",
+     "line": "本線",
+     "text": "押上線を含む"
     }
    ]
   },

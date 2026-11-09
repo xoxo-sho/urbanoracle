@@ -42,9 +42,13 @@ interface SnapshotStation {
   dailyPassengers: number | null;
   operators: { name: string; lines: string[]; passengers: number | null }[];
   note?: string;
+  remarks?: unknown[];
+  countedElsewhere?: unknown;
 }
 const stationsSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "stations.json"), "utf8")) as {
   sources: Record<string, unknown>;
+  // 乗降客数推移 (real-data plan PR 4b): the panel series the route sends beside `data`.
+  trend: { panel: { id: string }; years: number[]; gaps: { year: number; text: string }[]; views: { name: string; units: number; panelUnits: number }[] };
   stations: SnapshotStation[];
 };
 const OPERATOR_PREFIX: Record<string, string> = { 東日本旅客鉄道: "JR", 東京地下鉄: "メトロ", 東京都: "都営" };
@@ -60,6 +64,8 @@ const stationRows = stationsSnapshot.stations.map((s) => ({
   ward: s.ward,
   wardCode: s.wardCode,
   operators: s.operators,
+  ...(s.remarks ? { remarks: s.remarks } : {}),
+  ...(s.countedElsewhere ? { countedElsewhere: s.countedElsewhere } : {}),
   ...(s.note ? { note: s.note } : {}),
 }));
 // The 人口推移 snapshot route (real-data plan PR 3) answers from the committed snapshot itself.
@@ -119,7 +125,23 @@ const API: Record<string, unknown> = {
   "/api/v1/zoning": { status: "ok", data: zoning.wards.map(zoningRecord), isLive: true, sources: zoning.sources, total: zoningRecord(zoning.total) },
   "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
   "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
-  "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },
+  "/api/v1/transport": {
+    status: "ok",
+    data: stationRows,
+    isLive: true,
+    sources: stationsSnapshot.sources,
+    // backend/services/transport.py total(): the 23区 record carrying the trend.
+    total: {
+      code: "13100",
+      name: "東京23区",
+      trend: {
+        panel: stationsSnapshot.trend.panel.id,
+        years: stationsSnapshot.trend.years,
+        gaps: stationsSnapshot.trend.gaps.map(({ year, text }) => ({ year, text })),
+        views: stationsSnapshot.trend.views,
+      },
+    },
+  },
   "/api/v1/disaster-risks": { status: "ok", data: disaster.wards.map(disasterRecord), isLive: true, sources: disaster.sources, total: disasterRecord(disaster.total) },
   "/api/v1/green-land-use": { status: "ok", data: green.wards.map(disasterRecord), isLive: true, sources: green.sources, total: disasterRecord(green.total) },
   "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
@@ -198,6 +220,79 @@ test.describe("light theme", () => {
     await expect(attrib).not.toHaveClass(/maplibregl-compact/);
     await expect(attrib.locator(`a[href="${GSI_TILE_LIST}"]`)).toHaveText("地理院タイル");
     await expect(attrib).not.toContainText(PROCESSED);
+  });
+
+  // Real-data plan PR 4b: in a real browser the chart is drawn — one dot per
+  // panel year and none at 2019 — and the longer notes fit the tab at both
+  // viewports this config runs.
+  test("交通 tab: 乗降客数推移 draws the panel with no point at 2019, states its coverage and S12's notice; no SAMPLE, nothing overflows sideways", async ({ page, context }) => {
+    await signedInDashboard(context);
+    await page.goto("/app");
+    await page.getByRole("tab", { name: "交通" }).click();
+    const trend = page.locator('[data-surface="ridership-trend"]');
+    const total = stationsSnapshot.trend.views[0];
+    await expect(trend).toContainText(`乗降客数推移（${total.name}）`, { timeout: 30_000 });
+    await expect(trend.locator("[data-trend-point]")).toHaveCount(stationsSnapshot.trend.years.length);
+    await expect(trend.locator(".recharts-area-dot")).toHaveCount(stationsSnapshot.trend.years.length);
+    for (const gap of stationsSnapshot.trend.gaps) {
+      await expect(trend.locator(`[data-trend-gap][data-year="${gap.year}"]`)).toHaveCount(1);
+      await expect(trend.locator("[data-trend-gap-reason]")).toContainText(gap.text);
+    }
+    await expect(trend.locator("[data-trend-coverage]")).toContainText(`${total.panelUnits}単位（全${total.units}単位中）`);
+    await expect(trend.locator('[data-notice="s12"]')).toBeVisible();
+    await expect(page.locator('[data-surface="stations"] [data-notice="s12"]')).toBeVisible();
+    await expect(page.locator('[data-surface="operators"] [data-notice="s12"]')).toBeVisible();
+    await expect(page.locator('[data-provenance="sample"]')).toHaveCount(0);
+    const overflow = await page.evaluate(() => {
+      const panel = document.querySelector('[role="tabpanel"]') as HTMLElement;
+      const root = document.documentElement;
+      return { panel: panel.scrollWidth - panel.clientWidth, document: root.scrollWidth - root.clientWidth };
+    });
+    expect(overflow.panel).toBeLessThanOrEqual(1);
+    expect(overflow.document).toBeLessThanOrEqual(1);
+  });
+
+  // Architect decision 2026-11-09 (layout): S12's notice stands once, full
+  // width, directly under the three key-metric tiles; the 日間乗降客 tile
+  // carries only a marker. Geometry is a browser matter, so it is checked here.
+  test("key metrics: the 日間乗降客 tile carries only the marker; S12's notice is one full-width line directly under the three tiles, which share one height; nothing overflows sideways", async ({ page, context }) => {
+    await signedInDashboard(context);
+    await page.goto("/app");
+    const tiles = page.locator(".key-metric");
+    await expect(tiles).toHaveCount(3);
+    const k3 = tiles.nth(2);
+    await expect(k3).toContainText("※ 下記の注記参照", { timeout: 30_000 });
+    await expect(k3).not.toContainText("統一的な基準");
+    const line = page.locator('[data-surface="ridership-notice"]');
+    await expect(line).toHaveCount(1);
+    await expect(line).toContainText("各社で独自に算出したものであり、統一的な基準に基づいたものではありません");
+    const g = await page.evaluate(() => {
+      const box = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, height: r.height };
+      };
+      const metric = [...document.querySelectorAll(".key-metric")];
+      const row = metric[0].parentElement as HTMLElement;
+      const notice = document.querySelector('[data-surface="ridership-notice"]') as HTMLElement;
+      const root = document.documentElement;
+      return {
+        tiles: metric.map(box),
+        row: { ...box(row), overflow: row.scrollWidth - row.clientWidth },
+        line: box(notice),
+        nextOfRow: row.nextElementSibling === notice,
+        document: root.scrollWidth - root.clientWidth,
+      };
+    });
+    const heights = g.tiles.map((t) => t.height);
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+    expect(g.nextOfRow).toBe(true);
+    // Full width: from the first tile's left edge to the last tile's right edge, below the row.
+    expect(Math.abs(g.line.left - g.tiles[0].left)).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.line.right - g.tiles[2].right)).toBeLessThanOrEqual(1);
+    expect(g.line.top).toBeGreaterThanOrEqual(g.row.bottom - 1);
+    expect(g.line.top - g.row.bottom).toBeLessThanOrEqual(24);
+    expect(g.row.overflow).toBeLessThanOrEqual(1);
+    expect(g.document).toBeLessThanOrEqual(1);
   });
 });
 

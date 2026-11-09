@@ -5,7 +5,6 @@ import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import {
   dataLayers,
-  sampleTransportTrends,
 } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
@@ -253,17 +252,18 @@ describe("census and ridership surfaces have no sample path (real-data plan PR 1
     expect(text).not.toContain(FAILED_TEXT);
   });
 
-  it("TransportPanel (unavailable) — 乗降客数推移 keeps its label; stations and 事業者別 say 取得失敗, name the source that failed and cite nothing", () => {
+  it("TransportPanel (unavailable) — stations, 事業者別 and 乗降客数推移 say 取得失敗, name the source that failed and cite nothing; no sample label (real-data plan PR 4b)", () => {
     const { container } = render(
       <TransportPanel
         stations={[]}
-        trends={sampleTransportTrends}
+        trend={null}
         selectedWard={null}
         status="unavailable"
       />
     );
     const text = container.textContent ?? "";
-    expect(occurrences(text, SAMPLE_LABEL)).toBe(1);
+    expect(occurrences(text, SAMPLE_LABEL)).toBe(0);
+    expect(container.querySelector('[data-provenance="sample"]')).toBeNull();
     expect(text).toContain(FAILED_TEXT);
     // The failed request names 国土数値情報 (a statement about the request); no 出典 citation.
     expect(text).toContain(SOURCES.ksj.label);

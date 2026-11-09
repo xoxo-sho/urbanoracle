@@ -13,7 +13,7 @@ import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
 import ZoningPanel from "@/components/dashboard/ZoningPanel";
-import { dataLayers, sampleTransportTrends } from "@/data/sample";
+import { dataLayers } from "@/data/sample";
 import type {
   DataLayer,
   DemographicsData,
@@ -23,6 +23,7 @@ import type {
   LandPriceWard,
   PopulationTrend,
   TransportStation,
+  TransportTotal,
   DataCategory,
   ZoningComposition,
 } from "@/types";
@@ -59,6 +60,9 @@ import {
   MENCHO_SOURCE,
   RIDERSHIP_DEFINITION_NOTE,
   RIDERSHIP_JR_NOTE,
+  RIDERSHIP_NOTICE_LEAD,
+  RIDERSHIP_NOTICE_MARKER,
+  RIDERSHIP_TREND_UNIT_NOTE,
   TOCHI_CREDIT,
   TOCHI_EDITED,
   WARD_BOUNDARY_CREDIT,
@@ -71,6 +75,7 @@ import {
   censusLine,
   landPriceLine,
   ridershipSource,
+  ridershipTrendLine,
   tileSourceLine,
   transportLine,
   transportTileLine,
@@ -83,7 +88,8 @@ import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
 import { buildMeasures } from "@/lib/comparison";
 import { densityStops } from "@/lib/census-map";
 import { useGatedData } from "@/lib/use-gated-data";
-import { A55Notices } from "@/components/dashboard/RequiredCredits";
+import { A55Notices, S12Notice } from "@/components/dashboard/RequiredCredits";
+import { trendView, trendYearsLabel } from "@/lib/ridership-trend";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
 import SignOutButton from "@/components/auth/SignOutButton";
@@ -111,6 +117,9 @@ const TAB_TO_LAYER: Record<string, DataCategory> = {
 };
 
 const RIDERSHIP_FIELD = "dailyPassengers";
+// The surfaces still fed from a sample set, listed in the footer's sample
+// group: none since real-data plan PR 4b. PR 9 deletes the group.
+const SAMPLE_SURFACES: string[] = [];
 const GROWTH_FIELD = "growthRate";
 
 export default function Home() {
@@ -125,7 +134,7 @@ export default function Home() {
   // the payload names, per hazard, the survey or edition and its 時点.
   const demographics = useGatedData<DemographicsData[]>("/api/v1/demographics");
   const disasterRisks = useGatedData<DisasterWard[], DisasterWard>("/api/v1/disaster-risks");
-  const transport = useGatedData<TransportStation[]>("/api/v1/transport");
+  const transport = useGatedData<TransportStation[], TransportTotal>("/api/v1/transport");
   // The 人口推移 snapshot (real-data plan PR 3): its own route, so a census-table
   // failure on /demographics never takes the chart down. Same hook, same states.
   const populationTrends = useGatedData<PopulationTrend[]>("/api/v1/population-trends");
@@ -171,6 +180,10 @@ export default function Home() {
   const transportSources = transport.sources ?? {};
   const transportSource = ridershipSource(transportSources);
   const transportProvenance = transportLine(transportSources);
+  // 乗降客数推移 (real-data plan PR 4b): the panel series the answer carries
+  // beside `data`, for the selected ward or for 東京23区.
+  const ridershipTrend = transport.total?.trend ?? null;
+  const ridershipTrendView = transport.status === "ok" ? trendView(ridershipTrend, selectedWard) : null;
   // The e-Stat growth table did not answer: population, density and age are
   // live, every growth figure is 取得失敗.
   const growthUnavailable = demographics.unavailable.includes(GROWTH_FIELD);
@@ -374,10 +387,23 @@ export default function Home() {
                     {transportTileLine(transportSource)}
                     <span className="block">{RIDERSHIP_DEFINITION_NOTE}</span>
                     <span className="block">{RIDERSHIP_JR_NOTE}</span>
+                    {/* S12's own notice is the full-width line under the three tiles;
+                        the tile only points to it (real-data plan PR 4b). */}
+                    <span className="block" data-notice-marker="s12">{RIDERSHIP_NOTICE_MARKER}</span>
                   </span>
                 )}
               </div>
             </div>
+
+            {/* S12's own notice on what the operators' figures are, once and whole,
+                directly under the three tiles: inside the 日間乗降客 tile it made
+                that tile tall and stretched the other two. Shown with the figure,
+                never while 読み込み中 or 取得失敗. */}
+            {transportSource && !isPending(transport.status) && (
+              <div className="shrink-0" data-surface="ridership-notice">
+                <S12Notice lead={RIDERSHIP_NOTICE_LEAD} className="source-note" />
+              </div>
+            )}
 
             {/* 23区の中での位置 (real-data plan PR 8): in place of the radar */}
             <div className="shrink-0 animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0 }}>
@@ -470,7 +496,7 @@ export default function Home() {
               <TabsContent value="transport" className="mt-4 flex-1 overflow-y-auto">
                 <TransportPanel
                   stations={selectedWard ? filteredStations : stations}
-                  trends={sampleTransportTrends}
+                  trend={ridershipTrend}
                   selectedWard={selectedWard}
                   status={transport.status}
                   sources={transportSources}
@@ -494,7 +520,7 @@ export default function Home() {
             legible size, never collapsed. */}
         <footer className="mt-4 border-t border-border/50 pt-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">
           <h2 className="mb-2 text-[11px] font-semibold tracking-widest text-foreground">データ出典 / Data sources</h2>
-          <div className="grid gap-x-8 gap-y-2 md:grid-cols-2">
+          <div className={SAMPLE_SURFACES.length > 0 ? "grid gap-x-8 gap-y-2 md:grid-cols-2" : "grid gap-y-2"}>
             <div data-provenance="live">
               <span className="font-medium text-foreground">実データ</span>
               <ul className="space-y-1">
@@ -544,6 +570,19 @@ export default function Home() {
                     {" ／ "}{KSJ_S12_EDITED}
                     {" ／ "}{KSJ_N03_EDITED}
                     <span className="block">{RIDERSHIP_DEFINITION_NOTE} ／ {RIDERSHIP_JR_NOTE}</span>
+                    <S12Notice inline withAddress />
+                  </li>
+                )}
+                {ridershipTrendView && (
+                  <li data-source="ridership-trend">
+                    乗降客数推移（交通タブ）: {KSJ_SOURCE}
+                    {" ／ "}{ridershipTrendLine(transportSources, trendYearsLabel(ridershipTrendView.series.map((p) => p.year)))}
+                    {" ／ "}{KSJ_S12_EDITED}
+                    {" ／ "}{KSJ_N03_EDITED}
+                    <span className="block">{RIDERSHIP_TREND_UNIT_NOTE}</span>
+                    {(ridershipTrend?.gaps ?? []).map((gap) => (
+                      <span key={gap.year} className="block">{gap.text}</span>
+                    ))}
                   </li>
                 )}
                 {disasterRisks.data !== null && (
@@ -571,12 +610,19 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div data-provenance="sample" className="sample-block">
-              <span className="font-semibold">{SAMPLE_NOTICE}</span>
-              <ul>
-                <li>乗降客数推移</li>
-              </ul>
-            </div>
+            {/* The sample group: no surface is sample since real-data plan PR 4b
+                (乗降客数推移 reads the S12 panel), so it renders nothing. The
+                group and SAMPLE_NOTICE are deleted in PR 9. */}
+            {SAMPLE_SURFACES.length > 0 && (
+              <div data-provenance="sample" className="sample-block">
+                <span className="font-semibold">{SAMPLE_NOTICE}</span>
+                <ul>
+                  {SAMPLE_SURFACES.map((surface) => (
+                    <li key={surface}>{surface}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </footer>
       </main>
