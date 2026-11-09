@@ -48,14 +48,28 @@ export function KsjCredits() {
  * S12's own notice on what the operators' figures are, verbatim, with where
  * it is (real-data plan PR 4b, Architect decision 2026-11-09): on every
  * transport surface that shows a figure — 日間乗降客, 駅一覧, 事業者別,
- * 乗降客数推移 — and in the footer, there with the page's address. `inline`
- * for a spot that may only hold phrasing content (the key-metric tile).
+ * 乗降客数推移 — and in the footer, there with the page's address. For
+ * 日間乗降客 it stands once as a full-width line under the three tiles, led
+ * by the mark the tile points with (`lead`). `inline` for a spot that may
+ * only hold phrasing content (a list item of the footer).
  */
-export function S12Notice({ inline = false, withAddress = false, className }: { inline?: boolean; withAddress?: boolean; className?: string }) {
+export function S12Notice({
+  inline = false,
+  withAddress = false,
+  lead,
+  className,
+}: {
+  inline?: boolean;
+  withAddress?: boolean;
+  /** Text set before the sentence, outside the quotation (e.g. the mark a tile refers to). */
+  lead?: string;
+  className?: string;
+}) {
   const from = withAddress ? RIDERSHIP_SOURCE_NOTICE_AT : RIDERSHIP_SOURCE_NOTICE_FROM;
   if (inline) {
     return (
       <span className={className ?? "block"} data-notice="s12">
+        {lead}
         {RIDERSHIP_SOURCE_NOTICE}
         <span className="block">— {from}</span>
       </span>
@@ -63,6 +77,7 @@ export function S12Notice({ inline = false, withAddress = false, className }: { 
   }
   return (
     <p className={className ?? "source-note mt-1"} data-notice="s12">
+      {lead}
       {RIDERSHIP_SOURCE_NOTICE}
       <span className="block">— {from}</span>
     </p>

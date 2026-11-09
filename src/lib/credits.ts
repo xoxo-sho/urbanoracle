@@ -120,8 +120,16 @@ export const KSJ_S12_PAGE_URL = "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTm
 export const RIDERSHIP_SOURCE_NOTICE =
   "各事業者から提供された駅別乗降客数は、各社で独自に算出したものであり、統一的な基準に基づいたものではありませんので、その旨を認識した上でご利用ください。";
 export const RIDERSHIP_SOURCE_NOTICE_AT = `国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」（${KSJ_S12_PAGE_URL}）`;
-/** The same, without the address, where the line must stay short (the key-metric tile, the panels). */
+/** The same, without the address, where the line must stay short (the panels, the line under the tiles). */
 export const RIDERSHIP_SOURCE_NOTICE_FROM = "国土数値情報 駅別乗降客数データ（国土交通省）「その他の情報」";
+/**
+ * The 日間乗降客 tile is too narrow for the sentence: it made the tile tall and
+ * stretched the two beside it. The tile carries this marker and the sentence
+ * stands once, full width, directly under the three tiles, led by the same
+ * mark (Architect decision 2026-11-09).
+ */
+export const RIDERSHIP_NOTICE_MARKER = "※ 下記の注記参照";
+export const RIDERSHIP_NOTICE_LEAD = "※ 日間乗降客：";
 
 /**
  * 事業者別 groups the figures by the operator S12 writes them under, and a row

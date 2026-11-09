@@ -60,6 +60,8 @@ import {
   MENCHO_SOURCE,
   RIDERSHIP_DEFINITION_NOTE,
   RIDERSHIP_JR_NOTE,
+  RIDERSHIP_NOTICE_LEAD,
+  RIDERSHIP_NOTICE_MARKER,
   RIDERSHIP_TREND_UNIT_NOTE,
   TOCHI_CREDIT,
   TOCHI_EDITED,
@@ -385,12 +387,23 @@ export default function Home() {
                     {transportTileLine(transportSource)}
                     <span className="block">{RIDERSHIP_DEFINITION_NOTE}</span>
                     <span className="block">{RIDERSHIP_JR_NOTE}</span>
-                    {/* S12's own notice on what the operators' figures are (real-data plan PR 4b). */}
-                    <S12Notice inline />
+                    {/* S12's own notice is the full-width line under the three tiles;
+                        the tile only points to it (real-data plan PR 4b). */}
+                    <span className="block" data-notice-marker="s12">{RIDERSHIP_NOTICE_MARKER}</span>
                   </span>
                 )}
               </div>
             </div>
+
+            {/* S12's own notice on what the operators' figures are, once and whole,
+                directly under the three tiles: inside the 日間乗降客 tile it made
+                that tile tall and stretched the other two. Shown with the figure,
+                never while 読み込み中 or 取得失敗. */}
+            {transportSource && !isPending(transport.status) && (
+              <div className="shrink-0" data-surface="ridership-notice">
+                <S12Notice lead={RIDERSHIP_NOTICE_LEAD} className="source-note" />
+              </div>
+            )}
 
             {/* 23区の中での位置 (real-data plan PR 8): in place of the radar */}
             <div className="shrink-0 animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0 }}>
