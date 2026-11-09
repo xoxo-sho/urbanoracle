@@ -179,6 +179,63 @@ for source in $RETIRED_SOURCES; do
 done
 
 # --------------------------------------------------------------------------
+# 4c. The sample layer
+# --------------------------------------------------------------------------
+# Real-data plan PR 9 (Architect decisions 2026-11-09, decision 10): every
+# surface reads a measured source, the sample layer is deleted, and `status`
+# is the only signal a response or the client carries. None of the layer's
+# wording may be in a shipped bundle, and none of its identifiers that survive
+# a build — object keys, class names, attribute values, the export names the
+# bundler keeps as strings. One of them present means a sample label, a sample
+# code path or the `isLive` flag came back.
+#
+# Arguments: the name printed in the result, grep's mode (F fixed string,
+# E regex, Ei regex ignoring case) and the pattern. File names are printed on
+# failure; file contents never are.
+check_absent() {
+  local name="$1" mode="$2" pattern="$3" files count first
+  case "$mode" in
+    F)  files=$(grep -rlF -- "$pattern" "$DIR" 2>/dev/null) ;;
+    E)  files=$(grep -rlE -- "$pattern" "$DIR" 2>/dev/null) ;;
+    Ei) files=$(grep -rliE -- "$pattern" "$DIR" 2>/dev/null) ;;
+    *)  fail "check_absent: unknown mode '${mode}' for ${name}"; return ;;
+  esac
+  if [ -n "$files" ]; then
+    count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
+    first=$(printf '%s\n' "$files" | sort | head -1)
+    fail "sample layer: ${name} is in the bundle (${count} file(s), first: ${first#"$DIR"/})"
+  else
+    pass "no sample layer: ${name}"
+  fi
+}
+
+# The wording. 「サンプル」 covers 「サンプルデータ」 and 「サンプルデータ（暫定）」; the
+# longer one is listed too so a failure names exactly what came back.
+check_absent '「サンプルデータ」' F 'サンプルデータ'
+check_absent '「サンプル」' F 'サンプル'
+check_absent '「固定の参考値」' F '固定の参考値'
+check_absent '「Sample data (provisional)」' F 'Sample data (provisional)'
+# 「SAMPLE」 as a label: the word on its own — a quoted string, a JSX child,
+# text between tags — and not a part of a longer name (the real bundle has
+# `sampler`, `sampleCurveX`, `validationSamples`; none of them is a label).
+check_absent '「SAMPLE」 as a label' E '(^|[^A-Za-z0-9_])SAMPLE([^A-Za-z0-9_]|$)'
+
+# The deleted identifiers, each as a whole name.
+for ident in SampleNote SampleTag SAMPLE_NOTICE SAMPLE_SURFACES SAMPLE_ROWS sampleNotice srcSample; do
+  check_absent "the identifier ${ident}" E "(^|[^A-Za-z0-9_\$])${ident}([^A-Za-z0-9_\$]|\$)"
+done
+# SOURCES.sample: minified, its one use is the read of its label.
+check_absent 'the identifier SOURCES.sample (a read of .sample.label)' E '\.sample\.label([^A-Za-z0-9_$]|$)'
+# The CSS of the sample note, tag, legend and block.
+for class in sample-note sample-tag sample-legend sample-block; do
+  check_absent "the class ${class}" F "$class"
+done
+# The sample group of the footer and of the LP's データ出典 table.
+check_absent 'the sample provenance group (data-provenance … sample)' E 'data-provenance.{1,4}sample'
+# Decision 10: `isLive` in a response reader, a state or a prop (transportIsLive).
+check_absent 'the identifier isLive (any casing, alone or inside a longer name)' Ei 'is_?live'
+
+# --------------------------------------------------------------------------
 # 5. The landing page
 # --------------------------------------------------------------------------
 LP_INDEX="$DIR/index.html"

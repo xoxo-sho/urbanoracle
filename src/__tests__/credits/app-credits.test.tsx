@@ -47,12 +47,10 @@ vi.mock("@/lib/use-gated-data", async () => {
   return {
     useGatedData: (endpoint: string) => {
       gate.requested.push(endpoint);
-      const live = endpoint !== "/api/v1/disaster-risks";
       return {
         status: "ok",
         data: answers[endpoint]?.data ?? null,
         unavailable: [],
-        isLive: live,
         fetchedAt: null,
         sources: answers[endpoint]?.sources ?? {},
         total: answers[endpoint]?.total ?? null,

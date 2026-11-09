@@ -32,9 +32,9 @@ import path from "node:path";
 
 vi.mock("next/dynamic", () => ({
   default: () =>
-    function MapStub(props: { stations?: unknown[]; transportIsLive?: boolean }) {
+    function MapStub(props: { stations?: unknown[]; transportStatus?: string }) {
       return (
-        <div data-testid="map-stub" data-stations={JSON.stringify(props.stations ?? null)} data-transport-live={String(props.transportIsLive)} />
+        <div data-testid="map-stub" data-stations={JSON.stringify(props.stations ?? null)} data-transport-status={String(props.transportStatus)} />
       );
     },
 }));
@@ -98,20 +98,20 @@ const json =
 const pending: Route = () => new Promise<Response>(() => {});
 
 const TOTAL = transportTotal(snapshot);
-const TRANSPORT: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES, total: TOTAL });
+const TRANSPORT: Route = json(200, { status: "ok", data: ROWS, sources: SOURCES, total: TOTAL });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
-const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
-const DISASTER: Route = json(200, { data: [], isLive: false });
-const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES });
+const DISASTER: Route = json(200, { status: "ok", data: [] });
+const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
 // The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
-const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES });
 // The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
-const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
+const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 /** The same payload with the ridership source moved to another year and table: what the page must then say. */
 function transportSaying(year: number, table: string): Route {
   const sources = { ...SOURCES, ridership: { ...SOURCES.ridership, year, table }, stations: { ...SOURCES.stations, year, table } };
-  return json(200, { status: "ok", data: ROWS, isLive: true, sources, total: TOTAL });
+  return json(200, { status: "ok", data: ROWS, sources, total: TOTAL });
 }
 
 function serve(routes: Record<string, Route>) {
@@ -320,7 +320,7 @@ describe("the year on K3, T1, T2 and M6 is read from the payload", () => {
 });
 
 describe("M6 — the station legend and what the map is handed", () => {
-  it("ok → the legend cites 国土数値情報 with the year, no SAMPLE; the map gets every station, live", async () => {
+  it("ok → the legend cites 国土数値情報 with the year, no SAMPLE; the map gets every station and the answer's status", async () => {
     const { container } = await renderSettled();
     openTab("交通");
     const legend = stationLegend(container);
@@ -329,7 +329,7 @@ describe("M6 — the station legend and what the map is handed", () => {
     expect(legend.querySelector(SAMPLE_NODE)).toBeNull();
     const stub = container.querySelector<HTMLElement>('[data-testid="map-stub"]')!;
     expect(JSON.parse(stub.dataset.stations ?? "[]")).toHaveLength(ROWS.length);
-    expect(stub.dataset.transportLive).toBe("true");
+    expect(stub.dataset.transportStatus).toBe("ok");
   });
 });
 

@@ -60,7 +60,11 @@ describe("LP dictionary", () => {
     expect(en.headerSignIn).toBe("Sign in");
     // The hero's SAMPLE tag left with real-data plan PR 7.
     expect("sampleTag" in en).toBe(false);
-    expect(en.sampleNotice).toBe("Sample data (provisional) — not real data");
+    // The sample group's notice and source label left with real-data plan PR 9.
+    for (const dictionary of [ja, en]) {
+      expect("sampleNotice" in dictionary).toBe(false);
+      expect("srcSample" in dictionary).toBe(false);
+    }
   });
 });
 

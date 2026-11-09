@@ -110,7 +110,7 @@ def test_missing_ward_entirely_still_appears():
 @pytest.mark.parametrize("suppressed", ["-", "***", "X"])
 def test_response_with_suppressed_cells_is_valid_json(suppressed):
     payload = json_safe(
-        {"data": _records([_population_row(CHIYODA, suppressed)], _shares(CHIYODA)), "isLive": True}
+        {"data": _records([_population_row(CHIYODA, suppressed)], _shares(CHIYODA)), "status": "ok"}
     )
     encoded = json.dumps(payload)
     assert "NaN" not in encoded

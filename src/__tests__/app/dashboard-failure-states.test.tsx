@@ -28,15 +28,15 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
  */
 
 // MapView cannot run in jsdom; the stub records what the page hands it, so
-// the map's own consumption of /transport (stations, live flag) is guarded.
+// the map's own consumption of /transport (stations, the answer's status) is guarded.
 vi.mock("next/dynamic", () => ({
   default: () =>
-    function MapStub(props: { stations?: unknown[]; transportIsLive?: boolean }) {
+    function MapStub(props: { stations?: unknown[]; transportStatus?: string }) {
       return (
         <div
           data-testid="map-stub"
           data-stations={JSON.stringify(props.stations ?? null)}
-          data-transport-live={String(props.transportIsLive)}
+          data-transport-status={String(props.transportStatus)}
         />
       );
     },
@@ -118,25 +118,24 @@ const STATIONS_OK = STATIONS_FIXTURE;
 // is 取得失敗; population, density and age are live.
 const DEMOGRAPHICS_NO_GROWTH = DEMOGRAPHICS_OK.map((d) => ({ ...d, growthRate: null }));
 
-const DEMOGRAPHICS = json(200, { status: "ok", data: DEMOGRAPHICS_OK, isLive: true });
+const DEMOGRAPHICS = json(200, { status: "ok", data: DEMOGRAPHICS_OK });
 const DEMOGRAPHICS_PARTIAL = json(200, {
   status: "partial",
   data: DEMOGRAPHICS_NO_GROWTH,
   unavailable: ["growthRate"],
-  isLive: true,
 });
-const TRANSPORT = json(200, { status: "ok", data: STATIONS_OK, isLive: true, sources: TRANSPORT_SOURCES });
+const TRANSPORT = json(200, { status: "ok", data: STATIONS_OK, sources: TRANSPORT_SOURCES });
 const UNAVAILABLE = json(503, { status: "unavailable" });
 // Outside PR 1; it answers so the page settles.
-const DISASTER = json(200, { data: [], isLive: false });
+const DISASTER = json(200, { status: "ok", data: [] });
 // The 人口推移 snapshot route (PR 3): answers so the page settles; its own
 // states are guarded in population-trends.test.tsx.
-const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
 // The 地価公示 snapshot route (PR 5): answers so the page settles; its own
 // states are guarded in land-prices.test.tsx.
-const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES });
 // The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
-const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
+const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -211,11 +210,11 @@ function selectWard(container: HTMLElement, name: string) {
   fireEvent.change(select, { target: { value: name } });
 }
 
-/** What the page handed MapView: the station list and whether ridership is live. */
-function mapProps(container: HTMLElement): { stations: unknown[] | null; live: string } {
+/** What the page handed MapView: the station list and the /transport answer's status (the only signal since real-data plan PR 9). */
+function mapProps(container: HTMLElement): { stations: unknown[] | null; status: string } {
   const stub = container.querySelector<HTMLElement>('[data-testid="map-stub"]');
   if (!stub) throw new Error("no map stub");
-  return { stations: JSON.parse(stub.dataset.stations ?? "null"), live: stub.dataset.transportLive ?? "" };
+  return { stations: JSON.parse(stub.dataset.stations ?? "null"), status: stub.dataset.transportStatus ?? "" };
 }
 
 function expectNoSample(root: HTMLElement, what: string) {
@@ -389,18 +388,24 @@ describe("data — a genuine zero is 0 (pins; green on main)", () => {
 });
 
 describe("M6: what the map is handed — a consumer of /transport PR 1 did not list", () => {
-  it("loading and unavailable → an empty station list and no live claim", async () => {
-    for (const transport of [pending, UNAVAILABLE]) {
+  // Real-data plan PR 9 (decision 10): the map is handed the answer's status,
+  // as the legend already was — there is no separate live flag.
+  it("loading and unavailable → an empty station list and the answer's own status", async () => {
+    const cases = [
+      { transport: pending, status: "loading" },
+      { transport: UNAVAILABLE, status: "unavailable" },
+    ];
+    for (const { transport, status } of cases) {
       const { container, unmount } = await renderSettled({ demographics: pending, transport });
-      expect(mapProps(container)).toEqual({ stations: [], live: "false" });
+      expect(mapProps(container)).toEqual({ stations: [], status });
       unmount();
     }
   });
 
-  it("ok → the real stations, live", async () => {
+  it("ok → the real stations and status ok", async () => {
     const ok = await renderSettled({ demographics: DEMOGRAPHICS, transport: TRANSPORT });
     expect(mapProps(ok.container).stations).toHaveLength(2);
-    expect(mapProps(ok.container).live).toBe("true");
+    expect(mapProps(ok.container).status).toBe("ok");
   });
 });
 

@@ -252,7 +252,7 @@ def test_route_serves_every_station_of_the_snapshot_live_and_complete(client, bu
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
     assert body["status"] == "ok"
-    assert body["isLive"] is True
+    assert "isLive" not in body
     assert "unavailable" not in body and "fetchedAt" not in body
     rows = body["data"]
     assert len(rows) == len(built["stations"])

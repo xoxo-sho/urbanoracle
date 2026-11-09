@@ -219,7 +219,7 @@ def test_growth_table_failure_is_partial_and_names_growth_rate(client, estat):
     body = resp.json()
     assert body.get("status") == "partial", f"status: {body.get('status')!r}, keys: {sorted(body)}"
     assert body.get("unavailable") == ["growthRate"], body.get("unavailable")
-    assert body["isLive"] is True
+    assert "isLive" not in body
     chiyoda = next(r for r in body["data"] if r["region"] == "千代田区")
     assert chiyoda["population"] == CHIYODA_POPULATION
     assert chiyoda["growthRate"] is None

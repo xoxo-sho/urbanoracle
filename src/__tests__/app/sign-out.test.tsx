@@ -45,7 +45,6 @@ vi.mock("@/lib/use-gated-data", () => ({
     status: "unavailable",
     data: null,
     unavailable: [],
-    isLive: false,
     fetchedAt: null,
   }),
 }));

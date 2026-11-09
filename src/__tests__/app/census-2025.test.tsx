@@ -103,23 +103,22 @@ const json =
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 const demographics = (year: number): Route =>
-  json(200, { status: "ok", data: DATA, isLive: true, sources: sourcesFor(year) });
+  json(200, { status: "ok", data: DATA, sources: sourcesFor(year) });
 // The growth table did not answer: the server names the field and claims no source for it.
 const demographicsPartial: Route = json(200, {
   status: "partial",
   data: DATA.map((d) => ({ ...d, growthRate: null })),
   unavailable: ["growthRate"],
-  isLive: true,
   sources: Object.fromEntries(Object.entries(sourcesFor(CENSUS_YEAR)).filter(([field]) => field !== "growthRate")),
 });
-const TRANSPORT = json(200, { status: "ok", data: [], isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
-const DISASTER = json(200, { data: [], isLive: false });
+const TRANSPORT = json(200, { status: "ok", data: [], fetchedAt: "2026-10-30T00:00:00+00:00" });
+const DISASTER = json(200, { status: "ok", data: [] });
 // The 人口推移 snapshot route (PR 3), served so the page settles.
-const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+const TRENDS = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
 // The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
-const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+const LAND_PRICES = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES });
 // The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
-const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
+const ZONING = json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 function serve(routes: Record<string, Route>) {
   const mock = vi.fn(async (input: RequestInfo | URL) => {
@@ -179,7 +178,7 @@ function selectWard(container: HTMLElement, name: string) {
 const TREND_SURFACE = '[data-surface="population-trend"]';
 
 function sourceLines(root: HTMLElement): string[] {
-  return [...root.querySelectorAll<HTMLElement>(".source-note, .sample-note-detail")]
+  return [...root.querySelectorAll<HTMLElement>(".source-note")]
     .filter((el) => !el.closest(TREND_SURFACE))
     .map((el) => el.textContent ?? "")
     .filter((text) => text.includes("出典") || text.includes("人口"));
@@ -208,12 +207,12 @@ afterEach(() => {
 describe("the hook passes `sources` through", () => {
   it("exposes the envelope's sources; {} when the body has none", async () => {
     const sources = sourcesFor(CENSUS_YEAR);
-    serve({ "/api/v1/x": json(200, { status: "ok", data: [], isLive: true, sources }) });
+    serve({ "/api/v1/x": json(200, { status: "ok", data: [], sources }) });
     const withSources = renderHook(() => useGatedData<unknown[]>("/api/v1/x"));
     await waitFor(() => expect(withSources.result.current.status).toBe("ok"));
     expect((withSources.result.current as { sources?: unknown }).sources).toEqual(sources);
 
-    serve({ "/api/v1/y": json(200, { status: "ok", data: [], isLive: true }) });
+    serve({ "/api/v1/y": json(200, { status: "ok", data: [] }) });
     const without = renderHook(() => useGatedData<unknown[]>("/api/v1/y"));
     await waitFor(() => expect(without.result.current.status).toBe("ok"));
     expect((without.result.current as { sources?: unknown }).sources).toEqual({});

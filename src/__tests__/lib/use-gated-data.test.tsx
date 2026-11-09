@@ -19,24 +19,23 @@ import TransportPanel from "@/components/dashboard/TransportPanel";
 import WardTable from "@/components/dashboard/WardTable";
 
 /**
- * isLive is a promise about provenance (truth fix, Stage 1b), carried beside
- * `status` since real-data plan PR 1 (use-gated-data-states.test.tsx pins the
- * states themselves). Two halves of the contract:
+ * `status` is the only signal (real-data plan PR 9, Architect decision 10;
+ * use-gated-data-states.test.tsx pins the states themselves). Two halves of
+ * the contract:
  *
- *   1. the hook reports isLive only when the envelope says so — the
- *      /disaster-risks sample set arrives as a 200 with isLive:false;
+ *   1. the hook's state has no provenance flag beside `status` — the flag the
+ *      envelope carried until PR 9 only ever meant "not the sample set", and
+ *      no sample set is left — and it ignores one if a body still sends it;
  *   2. a consumer handed status "unavailable" renders 取得失敗 and cites no
  *      source for figures it does not have; handed "ok" it renders the real
  *      attribution; handed "partial" it renders 取得失敗 for the field the
  *      server could not fill and cites nothing it did not get.
  *
- * Flipped in PR 1: the five "every fallback path reports isLive=false" cases
- * described the client-side sample fallback, which no longer exists, and the
- * consumer cases passed isLive=false to mean "sample", which no consumer of
- * the two live endpoints can be any more. Flipped again in PR 3: the
+ * Flipped in PR 1: the five fallback cases described the client-side sample
+ * fallback, which no longer exists. Flipped again in PR 3: the
  * DemographicsChart cases said "trend still sample"; the 人口推移 chart now
- * draws the committed census snapshot from its own route, so no state of the
- * census answer puts a sample label on the chart.
+ * draws the committed census snapshot from its own route. Flipped in PR 9:
+ * the three cases that read the flag off the hook now require its absence.
  */
 
 const TREND = {
@@ -62,37 +61,51 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("useGatedData — isLive follows the envelope", () => {
+describe("useGatedData — status is the only signal (real-data plan PR 9, decision 10)", () => {
+  // RED on main (d1eda4e): the state carried `isLive` in every status.
+  const FLAG = "isLive";
   const settled = async () => {
     const { result } = renderHook(() => useGatedData<{ region: string }[]>("/api/v1/x"));
     await waitFor(() => expect(result.current.status).not.toBe("loading"));
     return result;
   };
 
-  it("200 with isLive:false (the /disaster-risks sample set) is data, not live", async () => {
-    const served = [{ region: "server-sample" }];
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: served, isLive: false })));
+  it("loading: the state has no provenance flag", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+    const { result } = renderHook(() => useGatedData<{ region: string }[]>("/api/v1/x"));
+    expect(result.current.status).toBe("loading");
+    expect(Object.keys(result.current)).not.toContain(FLAG);
+  });
+
+  it("200 with the envelope the server sends (status, data): ok, the rows, no provenance flag", async () => {
+    const served = [{ region: "千代田区" }];
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: served })));
     const result = await settled();
     expect(result.current.status).toBe("ok");
     expect(result.current.data).toEqual(served);
-    expect(result.current.isLive).toBe(false);
+    expect(Object.keys(result.current)).not.toContain(FLAG);
   });
 
-  it("200 without an isLive field is not live", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { data: [{ region: "x" }] })));
-    const result = await settled();
-    expect(result.current.isLive).toBe(false);
+  it("a body that still sends the flag does not put it on the state, true or false", async () => {
+    for (const value of [true, false]) {
+      vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: [{ region: "x" }], [FLAG]: value })));
+      const result = await settled();
+      expect(result.current.status).toBe("ok");
+      expect(Object.keys(result.current)).not.toContain(FLAG);
+    }
   });
 
-  it("200 with isLive:true is live", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { data: [{ region: "x" }], isLive: true })));
+  it("503 unavailable: no provenance flag either", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json(503, { status: "unavailable" })));
     const result = await settled();
-    expect(result.current.isLive).toBe(true);
+    expect(result.current.status).toBe("unavailable");
+    expect(Object.keys(result.current)).not.toContain(FLAG);
   });
 });
 
 describe("consumers render by status", () => {
-  const SAMPLE = SOURCES.sample.label;
+  // The deleted sample label, written out: SOURCES has no sample entry since real-data plan PR 9.
+  const SAMPLE = "サンプルデータ";
   const KSJ_CITATION = `出典: ${SOURCES.ksj.label}`;
 
   it("DemographicsChart: unavailable → 取得失敗 on the census blocks, no e-Stat citation there; the trend keeps its own citation and no sample label", () => {

@@ -21,8 +21,9 @@ if (JSON.parse(readFileSync(resolve(REPO_ROOT, "package.json"), "utf-8")).name !
   throw new Error(`not the UrbanOracle root: ${REPO_ROOT}`);
 }
 const read = (rel: string) => readFileSync(resolve(REPO_ROOT, rel), "utf-8");
-// The backend sample copy and its generator left in real-data plan PR 7: a
-// guard that they carry no X holds a fortiori when they are gone.
+// The backend sample copy and its generator left in real-data plan PR 7, and
+// src/data/sample.ts itself in PR 9 (no-sample-layer.test.tsx requires its
+// absence): a guard that they carry no X holds a fortiori when they are gone.
 const readIfAny = (rel: string) => (existsSync(resolve(REPO_ROOT, rel)) ? read(rel) : "");
 
 describe("no client-side fallback to sample.ts on the two live surfaces", () => {
@@ -33,7 +34,7 @@ describe("no client-side fallback to sample.ts on the two live surfaces", () => 
   });
 
   it("sample.ts no longer exports the two live sets", () => {
-    const sample = read("src/data/sample.ts");
+    const sample = readIfAny("src/data/sample.ts");
     expect(sample).not.toMatch(/export const sampleDemographics\b/);
     expect(sample).not.toMatch(/export const sampleTransportStations\b/);
   });
@@ -47,7 +48,7 @@ describe("PR 3: 人口推移 is the committed census snapshot, not samplePopulat
   });
 
   it("sample.ts no longer exports samplePopulationTrends", () => {
-    expect(read("src/data/sample.ts")).not.toMatch(/export const samplePopulationTrends\b/);
+    expect(readIfAny("src/data/sample.ts")).not.toMatch(/export const samplePopulationTrends\b/);
   });
 
   it("the LP dictionary and provenance table have no sample row for 人口推移", () => {
@@ -82,7 +83,7 @@ describe("PR 5: the 地価 surfaces read the 地価公示 snapshot; the sample f
       .sort();
 
   it("sample.ts no longer exports sampleLandPrices, and no type for its points remains", () => {
-    expect(read("src/data/sample.ts")).not.toMatch(/export const sampleLandPrices\b/);
+    expect(readIfAny("src/data/sample.ts")).not.toMatch(/export const sampleLandPrices\b/);
     expect(read("src/types/index.ts")).not.toContain("LandPricePoint");
   });
 
@@ -114,7 +115,7 @@ describe("PR 6: the 用途地域 surfaces read the A55-24 snapshot; sampleZoning
   // /api/v1/zoning; the sample set, its type, its import and the LP's sample
   // row for it all leave.
   it("sample.ts no longer exports sampleZoning, and the ZoningArea type is gone", () => {
-    expect(read("src/data/sample.ts")).not.toMatch(/export const sampleZoning\b/);
+    expect(readIfAny("src/data/sample.ts")).not.toMatch(/export const sampleZoning\b/);
     expect(read("src/types/index.ts")).not.toContain("ZoningArea");
   });
 
@@ -155,7 +156,7 @@ describe("PR 7: 災害 and the LP hero read measured sources; the sample risk li
       .sort();
 
   it("sample.ts no longer exports sampleDisasterRisks or sampleLandPriceSummary, and nothing in src reads them", () => {
-    const sample = read("src/data/sample.ts");
+    const sample = readIfAny("src/data/sample.ts");
     expect(sample).not.toMatch(/export const sampleDisasterRisks\b/);
     expect(sample).not.toMatch(/export const sampleLandPriceSummary\b/);
     expect(readers("sampleDisasterRisks")).toEqual([]);
@@ -185,7 +186,7 @@ describe("PR 7: 災害 and the LP hero read measured sources; the sample risk li
   });
 
   it("the radar and sampleWardProfiles are gone (PR 8, decision 7)", () => {
-    expect(read("src/data/sample.ts")).not.toMatch(/\bsampleWardProfiles\b/);
+    expect(readIfAny("src/data/sample.ts")).not.toMatch(/\bsampleWardProfiles\b/);
     expect(existsSync(resolve(REPO_ROOT, "src/components/dashboard/WardRadar.tsx"))).toBe(false);
   });
 

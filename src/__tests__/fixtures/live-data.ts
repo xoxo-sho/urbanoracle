@@ -182,7 +182,7 @@ export function transportTotal(snapshot: StationsSnapshot) {
 
 /** The whole 200 body of /api/v1/transport, as the route makes it of the snapshot. */
 export function transportPayload(snapshot: StationsSnapshot = loadStationsSnapshot()) {
-  return { status: "ok", data: stationsSnapshotRows(snapshot), isLive: true, sources: snapshot.sources, total: transportTotal(snapshot) };
+  return { status: "ok", data: stationsSnapshotRows(snapshot), sources: snapshot.sources, total: transportTotal(snapshot) };
 }
 
 // ---- 乗降客数推移 (real-data plan PR 4b) ---------------------------------------
@@ -745,5 +745,5 @@ export function landPricesSnapshotTotal(snapshot: LandPricesSnapshot) {
 /** The /api/v1/green-land-use answer, from the committed snapshot: for the page harnesses that answer every route. */
 export function greenPayload() {
   const s = loadGreenSnapshot();
-  return { status: "ok", data: greenSnapshotRows(s), isLive: true, sources: s.sources, total: greenSnapshotTotal(s) };
+  return { status: "ok", data: greenSnapshotRows(s), sources: s.sources, total: greenSnapshotTotal(s) };
 }

@@ -287,7 +287,7 @@ def test_growth_table_failing_is_partial_and_drops_its_source(client, estat):
     body = resp.json()
     assert body.get("status") == "partial", body.get("status")
     assert body.get("unavailable") == ["growthRate"], body.get("unavailable")
-    assert body["isLive"] is True
+    assert "isLive" not in body
     records = _records(body)
     assert records["千代田区"]["population"] == WARDS[CHIYODA]["population"]
     assert all(r["growthRate"] is None for r in records.values())

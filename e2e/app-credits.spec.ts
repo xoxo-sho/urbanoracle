@@ -122,13 +122,12 @@ const zoningRecord = ({ name, asOf, ...rest }: SnapshotZoningComposition) => {
   return { ...rest, region: name, asOf: asOfRest };
 };
 const API: Record<string, unknown> = {
-  "/api/v1/zoning": { status: "ok", data: zoning.wards.map(zoningRecord), isLive: true, sources: zoning.sources, total: zoningRecord(zoning.total) },
-  "/api/v1/demographics": { status: "ok", data: live.demographics, isLive: true, sources: live.sources },
-  "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
+  "/api/v1/zoning": { status: "ok", data: zoning.wards.map(zoningRecord), sources: zoning.sources, total: zoningRecord(zoning.total) },
+  "/api/v1/demographics": { status: "ok", data: live.demographics, sources: live.sources },
+  "/api/v1/land-prices": { status: "ok", data: landPriceRows, sources: landPrices.sources },
   "/api/v1/transport": {
     status: "ok",
     data: stationRows,
-    isLive: true,
     sources: stationsSnapshot.sources,
     // backend/services/transport.py total(): the 23区 record carrying the trend.
     total: {
@@ -142,9 +141,9 @@ const API: Record<string, unknown> = {
       },
     },
   },
-  "/api/v1/disaster-risks": { status: "ok", data: disaster.wards.map(disasterRecord), isLive: true, sources: disaster.sources, total: disasterRecord(disaster.total) },
-  "/api/v1/green-land-use": { status: "ok", data: green.wards.map(disasterRecord), isLive: true, sources: green.sources, total: disasterRecord(green.total) },
-  "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
+  "/api/v1/disaster-risks": { status: "ok", data: disaster.wards.map(disasterRecord), sources: disaster.sources, total: disasterRecord(disaster.total) },
+  "/api/v1/green-land-use": { status: "ok", data: green.wards.map(disasterRecord), sources: green.sources, total: disasterRecord(green.total) },
+  "/api/v1/population-trends": { status: "ok", data: trendRows, sources: trends.sources },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },
 };
 

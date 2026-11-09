@@ -112,6 +112,25 @@ expect_fail() {
   fi
 }
 
+# A red verifier is not enough for the sample-layer checks: a fixture that
+# trips two of them would hide one that stopped firing. This requires the
+# verifier's own failure line for the named check, and — with the count — that
+# no other check failed.
+expect_fail_naming() {
+  local label="$1" dir="$2" needle="$3" out status failures
+  out=$(bash "$VERIFY" "$dir" 2>&1); status=$?
+  failures=$(printf '%s\n' "$out" | grep -c '^  FAIL ')
+  if [ "$status" -eq 0 ]; then
+    printf '  FAIL verifier stayed GREEN on a broken bundle: %s\n' "$label" >&2; FAILED=$((FAILED + 1))
+  elif ! printf '%s\n' "$out" | grep -qF -- "FAIL sample layer: ${needle} is in the bundle"; then
+    printf '  FAIL verifier went red without naming %s: %s\n' "$needle" "$label" >&2; FAILED=$((FAILED + 1))
+  elif [ "$failures" -ne "${4:-1}" ]; then
+    printf '  FAIL expected %s failure line(s), got %s: %s\n' "${4:-1}" "$failures" "$label" >&2; FAILED=$((FAILED + 1))
+  else
+    printf '  ok   RED as expected, naming %s: %s\n' "$needle" "$label"; PASSED=$((PASSED + 1))
+  fi
+}
+
 echo "verify-bundle self-test"
 
 # --- baseline: a well-formed bundle passes -------------------------------
@@ -179,6 +198,80 @@ expect_fail "the retired ridership source is still named in a chunk" "$WORK/f30"
 build_fixture "$WORK/f31"
 sedi 's#<h1>#<p>出典: 公共交通オープンデータセンター</p><h1>#' "$WORK/f31/index.html"
 expect_fail "the retired ridership source is still named on the landing page" "$WORK/f31"
+
+# --- the sample layer (real-data plan PR 9) ---------------------------------
+CHUNK="_next/static/chunks/config.js"
+
+# The wording. 「サンプルデータ（暫定）」 contains 「サンプル」 too, so two lines fail.
+build_fixture "$WORK/f32"
+printf 'const SOURCE_LABEL="サンプルデータ（暫定）";\n' >> "$WORK/f32/$CHUNK"
+expect_fail_naming "the sample label is back in a chunk" "$WORK/f32" '「サンプルデータ」' 2
+
+build_fixture "$WORK/f33"
+sedi 's#<h1>#<p>サンプル値</p><h1>#' "$WORK/f33/index.html"
+expect_fail_naming "a サンプル wording on the landing page" "$WORK/f33" '「サンプル」'
+
+build_fixture "$WORK/f34"
+sedi 's#<div id="dashboard"></div>#<div id="dashboard"><span>固定の参考値 — 実データではありません</span></div>#' "$WORK/f34/app.html"
+expect_fail_naming "the fixed-value note is back on the dashboard shell" "$WORK/f34" '「固定の参考値」'
+
+build_fixture "$WORK/f35"
+printf 'const en={notice:"Sample data (provisional) — not real data"};\n' >> "$WORK/f35/$CHUNK"
+expect_fail_naming "the English sample notice is back in a chunk" "$WORK/f35" '「Sample data (provisional)」'
+
+# 「SAMPLE」 as a label: a JSX child in a chunk, and text between tags.
+build_fixture "$WORK/f36"
+printf 'x.jsx("span",{"aria-hidden":!0,children:"SAMPLE"});\n' >> "$WORK/f36/$CHUNK"
+expect_fail_naming "a SAMPLE tag in a chunk" "$WORK/f36" '「SAMPLE」 as a label'
+
+build_fixture "$WORK/f37"
+sedi 's#<div id="dashboard"></div>#<div id="dashboard"><span>SAMPLE</span></div>#' "$WORK/f37/app.html"
+expect_fail_naming "a SAMPLE tag prerendered on the dashboard shell" "$WORK/f37" '「SAMPLE」 as a label'
+
+# The deleted identifiers, one at a time, as a build would carry them.
+n=0
+for ident in SampleNote SampleTag SAMPLE_NOTICE SAMPLE_SURFACES SAMPLE_ROWS sampleNotice srcSample; do
+  n=$((n + 1))
+  build_fixture "$WORK/f38-$n"
+  printf 'e.s(["%s",0,t]);\n' "$ident" >> "$WORK/f38-$n/$CHUNK"
+  expect_fail_naming "the deleted identifier ${ident} in a chunk" "$WORK/f38-$n" "the identifier ${ident}"
+done
+
+build_fixture "$WORK/f39"
+printf 'const l=u.SOURCES.sample.label;\n' >> "$WORK/f39/$CHUNK"
+expect_fail_naming "a read of SOURCES.sample's label" "$WORK/f39" 'the identifier SOURCES.sample (a read of .sample.label)'
+
+n=0
+for class in sample-note sample-tag sample-legend sample-block; do
+  n=$((n + 1))
+  build_fixture "$WORK/f40-$n"
+  mkdir -p "$WORK/f40-$n/_next/static/css"
+  printf '.%s{color:var(--down-text)}\n' "$class" > "$WORK/f40-$n/_next/static/css/app.css"
+  expect_fail_naming "the deleted class .${class} in the emitted CSS" "$WORK/f40-$n" "the class ${class}"
+done
+
+build_fixture "$WORK/f41"
+printf 'x.jsxs("div",{"data-provenance":"sample",children:[]});\n' >> "$WORK/f41/$CHUNK"
+expect_fail_naming "the footer's sample group in a chunk" "$WORK/f41" 'the sample provenance group (data-provenance … sample)'
+
+build_fixture "$WORK/f42"
+sedi 's#<h1>#<table><tbody data-provenance="sample"></tbody></table><h1>#' "$WORK/f42/index.html"
+expect_fail_naming "the LP table's sample group in the HTML" "$WORK/f42" 'the sample provenance group (data-provenance … sample)'
+
+build_fixture "$WORK/f43"
+printf 'return{status:"ok",data:e.data,isLive:!!e.isLive};\n' >> "$WORK/f43/$CHUNK"
+expect_fail_naming "isLive read from a response in a chunk" "$WORK/f43" 'the identifier isLive (any casing, alone or inside a longer name)'
+
+build_fixture "$WORK/f44"
+printf 'x.jsx(M,{stations:k,transportIsLive:"ok"===s.status});\n' >> "$WORK/f44/$CHUNK"
+expect_fail_naming "isLive inside a longer prop name" "$WORK/f44" 'the identifier isLive (any casing, alone or inside a longer name)'
+
+# False-positive guard: the names a real build does carry (measured on the
+# export of d1eda4e: maplibre's `sampler`, the easing curve's `sampleCurveX`,
+# Next's `validationSamples`) and WebGL's SAMPLES constants are not the label.
+build_fixture "$WORK/f45"
+printf 'uniform sampler2D u;this.sampleCurveX(t);r.validationSamples;gl.SAMPLES;gl.SAMPLE_COVERAGE;MULTISAMPLE;i.sampleCount;\n' >> "$WORK/f45/$CHUNK"
+expect_pass "third-party names containing 'sample' are not the sample layer" "$WORK/f45"
 
 # --- landing page ---------------------------------------------------------
 build_fixture "$WORK/f13"

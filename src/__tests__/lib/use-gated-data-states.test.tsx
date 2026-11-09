@@ -26,7 +26,6 @@ interface StateUnderTest<T> {
   data: T | null;
   /** Record fields the server could not fill (status partial); [] otherwise. */
   unavailable: string[];
-  isLive: boolean;
   fetchedAt: string | null;
 }
 
@@ -100,7 +99,7 @@ describe("useGatedData — every failure is 取得失敗 (status unavailable, da
   });
 
   it("200 whose body has no data field at all (F7)", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { isLive: true })));
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok" })));
     const { result } = renderHook(() => useStates<Row[]>("/api/v1/x"));
     await settled(result);
     expect(result.current.status).toBe("unavailable");
@@ -110,7 +109,7 @@ describe("useGatedData — every failure is 取得失敗 (status unavailable, da
 
 describe("useGatedData — data is data", () => {
   it("200 with rows → status ok, the rows", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: ROWS, isLive: true })));
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: ROWS })));
     const { result } = renderHook(() => useStates<Row[]>("/api/v1/x"));
     await settled(result);
     expect(result.current.status).toBe("ok");
@@ -118,7 +117,7 @@ describe("useGatedData — data is data", () => {
   });
 
   it("200 with an empty list → status ok, [] (empty is data, not a failure)", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: [], isLive: true })));
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: [] })));
     const { result } = renderHook(() => useStates<Row[]>("/api/v1/x"));
     await settled(result);
     expect(result.current.status).toBe("ok");
@@ -129,7 +128,7 @@ describe("useGatedData — data is data", () => {
   it("200 with status partial → status partial, the rows, and the fields the server could not fill", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => json(200, { status: "partial", data: ROWS, unavailable: ["dailyPassengers"], isLive: false }))
+      vi.fn(async () => json(200, { status: "partial", data: ROWS, unavailable: ["dailyPassengers"] }))
     );
     const { result } = renderHook(() => useStates<Row[]>("/api/v1/x"));
     await settled(result);

@@ -38,9 +38,9 @@ describe("classifyResponse — the three outcomes", () => {
   });
 
   it("200 carries the payload", async () => {
-    const outcome = await classifyResponse(json(200, { data: [1, 2], isLive: true }));
+    const outcome = await classifyResponse(json(200, { data: [1, 2] }));
     expect(outcome.kind).toBe("ok");
-    expect((outcome as { data: unknown }).data).toEqual({ data: [1, 2], isLive: true });
+    expect((outcome as { data: unknown }).data).toEqual({ data: [1, 2] });
   });
 
   it("a 403 that is NOT pending_activation is not reported as pending", async () => {
@@ -93,7 +93,7 @@ describe("fetchGated — end-to-end wiring against mocked responses", () => {
   });
 
   it("200 mock renders in place (no redirect)", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => json(200, { data: [], isLive: false })));
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { status: "ok", data: [] })));
     const outcome = await fetchGated("/api/v1/demographics", token);
     expect(outcome.kind).toBe("ok");
     expect(routeFor(outcome)).toBeNull();
@@ -104,7 +104,7 @@ describe("fetchGated — end-to-end wiring against mocked responses", () => {
     const cases: Array<[number, unknown, GateOutcome["kind"], string | null]> = [
       [401, {}, "unauthenticated", "/login"],
       [403, { status: PENDING_STATUS }, "pending", "/pending"],
-      [200, { data: [], isLive: true }, "ok", null],
+      [200, { data: [] }, "ok", null],
     ];
     const seen = new Set<string>();
     for (const [status, body, kind, route] of cases) {
@@ -120,7 +120,7 @@ describe("fetchGated — end-to-end wiring against mocked responses", () => {
 
   it("attaches the caller's bearer token", async () => {
     const spy = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
-      async () => json(200, { data: [], isLive: true })
+      async () => json(200, { data: [] })
     );
     vi.stubGlobal("fetch", spy);
     await fetchGated("/api/v1/transport", async () => "abc123");

@@ -363,7 +363,7 @@ def test_route_serves_every_ward_with_a_value_or_an_explained_out_of_scope_per_h
     resp = client.get(ROUTE, headers=ACTIVE)
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
-    assert body["status"] == "ok" and body["isLive"] is True
+    assert body["status"] == "ok" and "isLive" not in body
     rows = body["data"]
     assert [r["code"] for r in rows] == WARD_CODES
     by_code = {w["code"]: w for w in built["wards"]}

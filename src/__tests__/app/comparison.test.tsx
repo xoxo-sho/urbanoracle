@@ -50,7 +50,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 import Home from "@/app/app/page";
 import LandingPage from "@/app/page";
 import MapLegend from "@/components/map/MapLegend";
-import { dataLayers } from "@/data/sample";
+import { dataLayers } from "@/lib/layers";
 import {
   CENSUS_ROWS,
   DEMOGRAPHICS_SOURCES,
@@ -104,13 +104,13 @@ const pending: Route = () => new Promise<Response>(() => {});
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
 
 const ROUTES: Record<string, Route> = {
-  "/api/v1/demographics": json(200, { status: "ok", data: CENSUS_ROWS, isLive: true, sources: DEMOGRAPHICS_SOURCES }),
-  "/api/v1/transport": json(200, { status: "ok", data: STATION_ROWS, isLive: true, sources: stations.sources }),
-  "/api/v1/disaster-risks": json(200, { status: "ok", data: DIS_ROWS, isLive: true, sources: disaster.sources, total: DIS_TOTAL }),
-  "/api/v1/population-trends": json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES }),
-  "/api/v1/land-prices": json(200, { status: "ok", data: LAND_ROWS, isLive: true, sources: land.sources, total: LAND_TOTAL }),
-  "/api/v1/zoning": json(200, { status: "ok", data: zoningSnapshotRows(zoning), isLive: true, sources: zoning.sources, total: zoningSnapshotTotal(zoning) }),
-  "/api/v1/green-land-use": json(200, { status: "ok", data: GREEN_ROWS, isLive: true, sources: green.sources, total: GREEN_TOTAL }),
+  "/api/v1/demographics": json(200, { status: "ok", data: CENSUS_ROWS, sources: DEMOGRAPHICS_SOURCES }),
+  "/api/v1/transport": json(200, { status: "ok", data: STATION_ROWS, sources: stations.sources }),
+  "/api/v1/disaster-risks": json(200, { status: "ok", data: DIS_ROWS, sources: disaster.sources, total: DIS_TOTAL }),
+  "/api/v1/population-trends": json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES }),
+  "/api/v1/land-prices": json(200, { status: "ok", data: LAND_ROWS, sources: land.sources, total: LAND_TOTAL }),
+  "/api/v1/zoning": json(200, { status: "ok", data: zoningSnapshotRows(zoning), sources: zoning.sources, total: zoningSnapshotTotal(zoning) }),
+  "/api/v1/green-land-use": json(200, { status: "ok", data: GREEN_ROWS, sources: green.sources, total: GREEN_TOTAL }),
 };
 
 function serve(overrides: Record<string, Route> = {}) {
@@ -340,7 +340,6 @@ describe("the radar is gone; 「23区の中での位置」 takes its place", () 
       status: "partial",
       unavailable: ["growthRate"],
       data: CENSUS_ROWS.map((r) => ({ ...r, growthRate: null })),
-      isLive: true,
       sources: { ...DEMOGRAPHICS_SOURCES, growthRate: undefined },
     });
     const { container } = await renderSettled({ "/api/v1/demographics": partial });

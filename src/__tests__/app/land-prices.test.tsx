@@ -126,25 +126,24 @@ const json =
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const pending: Route = () => new Promise<Response>(() => {});
 
-const LAND: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES });
+const LAND: Route = json(200, { status: "ok", data: ROWS, sources: SOURCES });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
-const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_23, isLive: true, sources: DEMOGRAPHICS_SOURCES });
+const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_23, sources: DEMOGRAPHICS_SOURCES });
 const DEMOGRAPHICS_22: Route = json(200, {
   status: "ok",
   data: DEMOGRAPHICS_23.filter((d) => d.region !== LOW_WARD),
-  isLive: true,
   sources: DEMOGRAPHICS_SOURCES,
 });
-const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true });
-const DISASTER: Route = json(200, { data: [], isLive: false });
-const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+const TRANSPORT: Route = json(200, { status: "ok", data: [] });
+const DISASTER: Route = json(200, { status: "ok", data: [] });
+const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
 // The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
-const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
+const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 /** The same payload with the sources moved to another year, table and label: what the page must then say. */
 function landSaying(year: number, table: string, label: string): Route {
   const sources = { price: { year, table, label }, change: { year, table, label: `${label}（変動率）` } };
-  return json(200, { status: "ok", data: ROWS, isLive: true, sources });
+  return json(200, { status: "ok", data: ROWS, sources });
 }
 
 function serve(routes: Record<string, Route>) {
