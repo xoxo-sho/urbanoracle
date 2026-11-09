@@ -189,6 +189,23 @@ export const HAZARD_PORTAL_URL = "https://disaportal.gsi.go.jp/";
 export const HAZARD_PORTAL_SOURCE = "出典：ハザードマップポータルサイト";
 export const HAZARD_PORTAL_SOURCE_EN = "Translation: Source: Hazard Map Portal Site";
 
+/**
+ * 公園等・農用地・森林・原野 (real-data plan PR 8, Architect decision 6).
+ *
+ * 東京都都市整備局「東京の土地利用 令和３年東京都区部」（表－１）令和３年土地面積
+ * （区部・区別）, tochi_r3_01.csv. Its dataset page on the 東京都オープンデータAPI
+ * カタログ licenses it CC BY (read 2026-11-09), so the credit takes the same
+ * 東京都オープンデータ利用規約 2(1)ア form as 地域危険度, and the 2(1)イ sentence:
+ * the dashboard computes a share from four of the table's classes. The same two
+ * sentences are the snapshot's `credit.tokyo` / `credit.tokyo_edited`
+ * (backend/data/green_land_use.json).
+ */
+export const TOCHI_TITLE = "東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）";
+export const TOCHI_CREDIT = `${TOCHI_TITLE}、東京都、${TOKYO_CC_BY}`;
+export const TOCHI_EDITED = `このサービスは、以下の著作物を改変して利用しています。${TOCHI_CREDIT}`;
+export const TOCHI_CREDIT_EN =
+  "Translation: Land use in Tokyo, 2021, ward area (Table 1): land area by ward and for the ward area, 2021, Tokyo Metropolitan Government, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja). This service modifies the work above.";
+
 /** dataofjapan/land README: name the upstream, 地球地図日本. */
 export const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
 export const WARD_BOUNDARY_CREDIT = `区境界: ${BOUNDARY_SOURCE}`;

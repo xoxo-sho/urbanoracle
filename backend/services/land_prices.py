@@ -225,6 +225,20 @@ def rows(snapshot: dict) -> list[dict]:
     ]
 
 
+def total(snapshot: dict) -> dict:
+    """The 23区 figures over every point of the 23 wards (real-data plan PR 8:
+    the comparison table's 23区 column) — the snapshot's own ``total``, not a
+    mean of the ward means."""
+    t = snapshot["total"]
+    return {
+        "region": snapshot["region"],
+        "n": t["n"],
+        "residential": deepcopy(t["residential"]),
+        "commercial": deepcopy(t["commercial"]),
+        "industrial": {"n": t["industrial"]["n"]},
+    }
+
+
 def sources(snapshot: dict) -> dict[str, dict]:
     """Per field (price, change): the year, table and label — the /demographics ``sources`` shape."""
     return deepcopy(snapshot["sources"])

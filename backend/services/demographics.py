@@ -289,6 +289,10 @@ def transform_census(
                 "region": name,
                 "population": finite_or_none(total) if has_total else None,
                 "density": round(total / area_km2) if has_total else None,
+                # The 面積調 area the density divides by (real-data plan PR 8:
+                # the comparison table's 乗降客 per km² and the 23区 density use the
+                # same denominator). A constant of the edition, present for every ward.
+                "areaKm2": area_km2,
                 # None (not 0) when unavailable: "no data" and "no change"
                 # are different facts.
                 GROWTH_FIELD: finite_or_none(growth_rates.get(code)),

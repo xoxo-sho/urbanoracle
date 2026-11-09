@@ -2,13 +2,14 @@
 
 import type { DataLayer, FieldSources } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
-import { CHOROPLETH_NOTE, SOURCES } from "@/lib/sources";
+import { SOURCES } from "@/lib/sources";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import { landPriceYearLabel, ridershipYearLabel } from "@/lib/census-sources";
 import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
 import { CHOROPLETH_LABEL, pct1, quakeShortLine } from "@/lib/disaster";
 import { HAZARD_PORTAL_SOURCE } from "@/lib/credits";
 import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
+import { densityLegendSource } from "@/lib/census-map";
 
 interface MapLegendProps {
   layers: DataLayer[];
@@ -33,15 +34,20 @@ interface MapLegendProps {
   disasterSources?: FieldSources;
   /** The three stops of the 災害 ramp (share of 町丁目 at 総合危険度 rank 5), from the data; null while pending. */
   disasterStops?: number[] | null;
+  /** State of the /demographics answer that colours the 人口 choropleth (real-data plan PR 8). */
+  censusStatus?: DataStatus;
+  /** The /demographics payload's `sources`: the census year the fill shows. */
+  censusSources?: FieldSources;
+  /** The three stops of the 人口 ramp (人/km²), from the census densities; null while pending. */
+  densityStops?: number[] | null;
 }
 
-// The ward fill under this layer is coloured from WARD_META in
-// ward-boundaries.ts — a hardcoded table, neither the live feed nor the
-// sample set. The legend says so under the ramp. The 地価 layer left that
-// table in real-data plan PR 5 and the 災害 layer in PR 7: each fill is its
-// snapshot's.
-const CHOROPLETH_LAYERS = new Set<string>(["demographics"]);
+// Every ward fill is its payload's: 地価 since real-data plan PR 5, 災害 since
+// PR 7 and 人口 since PR 8 (the 2025 census density). No fill reads a
+// hardcoded table any more, so no legend carries 「固定の参考値」.
 
+// The 人口 ramp's three colours, low to high; the stops themselves come from the data.
+const DENSITY_COLORS = ["var(--chart-5)", "var(--chart-4)", "var(--chart-3)"];
 // The 地価 ramp's three colours, low to high; the stops themselves come from the data.
 const LAND_PRICE_COLORS = ["var(--up-fill)", "var(--up-strong)", "var(--up-text)"];
 // The 災害 ramp's three colours (MapView's downFill / downStrong / downText), low to high.
@@ -50,15 +56,6 @@ const DISASTER_COLORS = ["var(--down-fill)", "var(--down-strong)", "var(--down-t
 // Legend swatches mirror the map ramps, which are single-hue intensity
 // scales per semantic axis (design-spec-v1 §2).
 const LEGEND_CONFIG: Record<string, { label: string; stops: { color: string; label: string }[] }> = {
-  demographics: {
-    label: "人口密度（人/km²）",
-    stops: [
-      { color: "var(--chart-5)", label: "5k" },
-      { color: "var(--chart-4)", label: "15k" },
-      { color: "var(--chart-3)", label: "23k" },
-    ],
-  },
-
   transportation: {
     label: "乗降客数",
     stops: [
@@ -124,6 +121,29 @@ function DisasterNote({ status, sources }: { status: DataStatus; sources?: Field
 }
 
 /**
+ * Under the 人口 ramp (real-data plan PR 8): the census year the fill shows when
+ * the answer arrived, else the state the fill is in.
+ */
+function CensusNote({ status, sources }: { status: DataStatus; sources?: FieldSources }) {
+  const line = densityLegendSource(sources);
+  if (status === "loading") {
+    return (
+      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+        人口密度: {LOADING_TEXT}
+      </p>
+    );
+  }
+  if (status === "unavailable") {
+    return (
+      <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+        人口密度: {FAILED_TEXT}
+      </p>
+    );
+  }
+  return line ? <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">出典: {line}</p> : null;
+}
+
+/**
  * Under the 地価 ramp: the 国土数値情報 citation with the payload's year when the
  * answer arrived, else the state the fill is in (real-data plan PR 5).
  */
@@ -162,6 +182,9 @@ export default function MapLegend({
   disasterStatus,
   disasterSources,
   disasterStops = null,
+  censusStatus = "loading",
+  censusSources,
+  densityStops = null,
 }: MapLegendProps) {
   const stops = landPriceStatus === "ok" && landPriceStops && landPriceStops.length === LAND_PRICE_COLORS.length ? landPriceStops : null;
   const landPriceConfig = {
@@ -173,8 +196,16 @@ export default function MapLegend({
     label: CHOROPLETH_LABEL,
     stops: DISASTER_COLORS.map((color, i) => ({ color, label: quakeStops ? pct1(quakeStops[i]) : "" })),
   };
-  const configFor = (id: string) => (id === "land-price" ? landPriceConfig : id === "disaster-risk" ? disasterConfig : LEGEND_CONFIG[id]);
-  const stopsFor = (id: string) => (id === "land-price" ? stops : id === "disaster-risk" ? quakeStops : undefined);
+  const popStops =
+    (censusStatus === "ok" || censusStatus === "partial") && densityStops && densityStops.length === DENSITY_COLORS.length ? densityStops : null;
+  const densityConfig = {
+    label: "人口密度（人/km²）",
+    stops: DENSITY_COLORS.map((color, i) => ({ color, label: popStops ? popStops[i].toLocaleString("ja-JP") : "" })),
+  };
+  const configFor = (id: string) =>
+    id === "land-price" ? landPriceConfig : id === "disaster-risk" ? disasterConfig : id === "demographics" ? densityConfig : LEGEND_CONFIG[id];
+  const stopsFor = (id: string) =>
+    id === "land-price" ? stops : id === "disaster-risk" ? quakeStops : id === "demographics" ? popStops : undefined;
   const activeLayers = layers.filter((l) => l.enabled && configFor(l.id));
   if (activeLayers.length === 0) return null;
 
@@ -204,11 +235,7 @@ export default function MapLegend({
                 ))}
               </div>
             )}
-            {CHOROPLETH_LAYERS.has(layer.id) && (
-              <p className="sample-legend mt-1 text-[8px] leading-snug" data-provenance="fixed">
-                塗り分け: {CHOROPLETH_NOTE}
-              </p>
-            )}
+            {layer.id === "demographics" && <CensusNote status={censusStatus} sources={censusSources} />}
             {layer.id === "land-price" && <LandPriceNote status={landPriceStatus} sources={landPriceSources} />}
             {layer.id === "disaster-risk" && <DisasterNote status={disasterStatus} sources={disasterSources} />}
             {layer.id === "transportation" && (

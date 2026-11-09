@@ -75,6 +75,7 @@ import {
   ZONING_TOTAL,
   landPricesSnapshotRows,
   loadLandPricesSnapshot,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const LAND_ROUTE = "/api/v1/land-prices";
@@ -165,9 +166,10 @@ async function renderSettled(routes: { land?: Route; demographics?: Route } = {}
     "/api/v1/population-trends": TRENDS,
     [LAND_ROUTE]: routes.land ?? LAND,
     "/api/v1/zoning": ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -555,10 +557,9 @@ describe("credits — the 加工 form with no editor name, beside the figures an
     expect(sample).not.toContain("区別平均地価");
     expect(sample).not.toContain("地価列");
     expect(sample).not.toContain("密度 vs 地価");
-    // The fixed-value choropleth note now covers only the layers still on WARD_META.
-    // Real-data plan PR 7: the 災害 fill left WARD_META; only 人口 stays on the fixed table.
-    expect(sample).toContain("地図の塗り分け（人口）");
-    expect(sample).not.toContain("地図の塗り分け:");
+    // Real-data plan PR 8: the 人口 fill left WARD_META, the last layer on the
+    // fixed table, so no map fill is listed as sample any more.
+    expect(sample).not.toContain("塗り分け");
   });
 });
 

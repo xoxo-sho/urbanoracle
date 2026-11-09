@@ -34,11 +34,15 @@ export function quakeShortLine(sources: FieldSources | null | undefined): string
   return s ? `東京都 ${s.table}（${s.year}年）` : null;
 }
 
-/** 「出典: …（A31a-25）」 — the label and table of one hazard's source, from the payload. */
+/**
+ * 「出典: …（A31a-25）」 — the label and table of one hazard's source, from the
+ * payload. The table is printed once: a label that already names it is not
+ * followed by it again (the 津波 line read 「…（A40-23）（A40-23）」 until PR 8).
+ */
 export function hazardLine(sources: FieldSources | null | undefined, key: string): string | null {
   const s = sources?.[key];
   if (!s || !Number.isFinite(s.year)) return null;
-  return `${s.label}（${s.table}）`;
+  return s.label.includes(s.table) ? s.label : `${s.label}（${s.table}）`;
 }
 
 /** The record in view: the selected ward's, or the 23区's (`total`). */

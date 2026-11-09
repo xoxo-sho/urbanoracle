@@ -26,6 +26,8 @@ DATA_ROUTES = [
     "/api/v1/land-prices",
     # The committed 用途地域 snapshot (real-data plan PR 6): gated like the rest.
     "/api/v1/zoning",
+    # The committed 公園等・農用地・森林・原野 snapshot (real-data plan PR 8): gated like the rest.
+    "/api/v1/green-land-use",
 ]
 
 ACTIVE_CLAIMS = {

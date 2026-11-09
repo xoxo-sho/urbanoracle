@@ -66,6 +66,7 @@ import {
   loadZoningSnapshot,
   zoningSnapshotRows,
   zoningSnapshotTotal,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const ZONING_ROUTE = "/api/v1/zoning";
@@ -143,9 +144,10 @@ async function renderSettled(routes: { zoning?: Route } = {}) {
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
     [ZONING_ROUTE]: routes.zoning ?? ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -484,8 +486,8 @@ describe("credits and 注意事項 — the 加工 form with no editor name, the 
     for (const n of NOTICES) expect(live).toContain(n);
     const sample = footerSample(container);
     expect(sample).not.toContain("用途地域");
-    // Real-data plan PR 7: the 災害 fill left WARD_META; only 人口 stays on the fixed table.
-    expect(sample).toContain("地図の塗り分け（人口）");
+    // Real-data plan PR 8: the 人口 fill left WARD_META; no map fill is sample any more.
+    expect(sample).not.toContain("塗り分け");
   });
 
   it("the LP lists 用途地域 as live with the edition, not as sample, and carries the 加工 statement and the 注意事項 among the notices", () => {

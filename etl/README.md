@@ -29,6 +29,8 @@ python -I etl/disaster.py extract            # raw 地域危険度 CSV + KSJ A31
 python -I etl/disaster.py build              # committed excerpts → backend/data/disaster_risks.json (stdlib only)
 python -I etl/disaster.py hero               # land_prices.json + disaster_risks.json → src/data/hero-spread.json (stdlib only)
 python -I etl/disaster.py verify             # the 千代田区 GeoJSON re-derives its 洪水 / 高潮 rows (stdlib only)
+python -I etl/green.py extract               # raw tochi_r3_01.csv → committed copy + meta.json (stdlib only)
+python -I etl/green.py build                 # committed CSV → backend/data/green_land_use.json (stdlib only)
 ```
 
 `etl/stations.py` (real-data plan PR 4) expects the raw zips unzipped under
@@ -66,3 +68,13 @@ N03 ward polygons of PR 4 and writes one row per (ward, class) with its area on
 the full set; `extract <part>` reruns one of kikendo, flood, hightide, landslide,
 tsunami. `build`, `hero`, `verify` and the drift tests need only the standard
 library.
+
+`etl/green.py` (real-data plan PR 8, Architect decision 6) expects
+`tochi_r3_01.csv` under `etl/_downloads/tokyo_tochi_r3/` — 東京都都市整備局
+「東京の土地利用 令和３年東京都区部」（表－１）令和３年土地面積（区部・区別）,
+CC BY on the 東京都オープンデータAPIカタログ. `extract` copies it to
+`backend/tests/fixtures/green/` after checking its sha256 and writes
+`meta.json` (URL, served-at URL, catalog page, licence evidence). `build` takes
+per ward 公園等 + 農用地 + 森林 + 原野 over the survey's own 合計（ha）, and the
+23区 figure over the 23 ward rows summed (the CSV's 区部 row also counts
+中央防波堤, 287.7 ha). Both, and the drift test, need only the standard library.

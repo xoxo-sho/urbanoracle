@@ -21,6 +21,8 @@ import {
   KSJ_A49_EDITED_EN,
   HAZARD_PORTAL_SOURCE,
   HAZARD_PORTAL_SOURCE_EN,
+  TOCHI_EDITED,
+  TOCHI_CREDIT_EN,
   KSJ_L01_EDITED,
   KSJ_L01_EDITED_EN,
   KSJ_N03_EDITED,
@@ -111,6 +113,8 @@ const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [KSJ_A40_EDITED, KSJ_A40_EDITED_EN],
   [KSJ_A49_EDITED, KSJ_A49_EDITED_EN],
   [HAZARD_PORTAL_SOURCE, HAZARD_PORTAL_SOURCE_EN],
+  // Real-data plan PR 8: the 都市整備局 土地利用現況調査 table in the same 東京都 CC BY form.
+  [TOCHI_EDITED, TOCHI_CREDIT_EN],
   [A55_NOTICES_LABEL, A55_NOTICES_LABEL_EN],
   ...A55_NOTICES.map((ja, i): [string, string] => [ja, A55_NOTICES_EN[i]]),
 ];

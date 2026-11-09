@@ -129,5 +129,18 @@ class Settings:
             return Path(explicit)
         return Path(__file__).resolve().parents[1] / "data" / "disaster_risks.json"
 
+    @property
+    def GREEN_LAND_USE_PATH(self) -> Path:
+        """The committed 公園等・農用地・森林・原野 snapshot (real-data plan PR 8), validated at startup.
+
+        Ships with backend/ in the image, like the other snapshots. The
+        override exists so a test can point the app at a broken file and prove
+        that it refuses to start.
+        """
+        explicit = os.environ.get("GREEN_LAND_USE_PATH")
+        if explicit:
+            return Path(explicit)
+        return Path(__file__).resolve().parents[1] / "data" / "green_land_use.json"
+
 
 settings = Settings()

@@ -1,0 +1,772 @@
+{
+ "region": "東京23区",
+ "year": 2021,
+ "sources": {
+  "green": {
+   "year": 2021,
+   "table": "土地利用現況調査 令和3年 表－1",
+   "label": "東京都都市整備局「東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）」公園等・農用地・森林・原野（令和3年）"
+  }
+ },
+ "label": "公園等・農用地・森林・原野の面積割合",
+ "classes": [
+  {
+   "key": "park",
+   "column": "L-3／公園等（ha）",
+   "name": "公園等"
+  },
+  {
+   "key": "farm",
+   "column": "L-6／農用地（ha）",
+   "name": "農用地"
+  },
+  {
+   "key": "forest",
+   "column": "L-8／森林（ha）",
+   "name": "森林"
+  },
+  {
+   "key": "wild",
+   "column": "L-9／原野（ha）",
+   "name": "原野"
+  }
+ ],
+ "totalColumn": "合計（ha）",
+ "inputs": {
+  "tochi_r3_01.csv": {
+   "path": "backend/tests/fixtures/green/tochi_r3_01.csv",
+   "sha256": "dc807361a6613a514d1c0384ad89146d1fb990d55e27440f0877e0b762b114b7",
+   "cut_from": {
+    "fetched": "2026-11-09",
+    "title": "東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）",
+    "url": "https://www.toshiseibi.metro.tokyo.lg.jp/seisaku/tochi_c/pdf/tochi_r3/tochi_r3_01.csv",
+    "served_at": "https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/csv_seisaku_tochi_c_pdf_tochi_r3_tochi_r3_01",
+    "index": "https://www.toshiseibi.metro.tokyo.lg.jp/about/chousa/tochi_c/tochi_kekka_r3/list",
+    "api_page": "https://spec.api.metro.tokyo.lg.jp/spec/t000008d2000000016-d6caababf14359878916424ed55bc222-0?lang=ja",
+    "catalog": "https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d2000000016",
+    "file": "tochi_r3_01.csv",
+    "bytes": 2506,
+    "sha256": "dc807361a6613a514d1c0384ad89146d1fb990d55e27440f0877e0b762b114b7",
+    "encoding": "cp932",
+    "committed": "whole, byte for byte",
+    "licence_evidence": {
+     "api_page_licence": "クリエイティブ・コモンズ 表示（CC BY）",
+     "api_page_created": "2023/09/27 02:34:00",
+     "catalog_status": 403
+    }
+   }
+  }
+ },
+ "licence": {
+  "name": "クリエイティブ・コモンズ・ライセンス 表示4.0国際（CC BY 4.0）— 東京都オープンデータ利用規約",
+  "url": "https://portal.data.metro.tokyo.lg.jp/terms/",
+  "basis": "東京都オープンデータAPIカタログの当該データセットのページ（https://spec.api.metro.tokyo.lg.jp/spec/t000008d2000000016-d6caababf14359878916424ed55bc222-0?lang=ja）が「ライセンス クリエイティブ・コモンズ 表示（CC BY）」と記し、「実データ」として https://www.toshiseibi.metro.tokyo.lg.jp/seisaku/tochi_c/pdf/tochi_r3/tochi_r3_01.csv を指す（2026-11-05 直接読了。この URL は https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/csv_seisaku_tochi_c_pdf_tochi_r3_tochi_r3_01 へ 301 で転送され、同じ sha256 のファイル）。東京都オープンデータ利用規約（https://portal.data.metro.tokyo.lg.jp/terms/）第3項により、同局サイトポリシーの「無断で複製・転用することはできません」よりこの規約が優先する。カタログ本体（https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d2000000016）はこの環境から HTTP 403（地域制限）で読めず、API カタログのページで読んだ。"
+ },
+ "credit": {
+  "tokyo": "東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）",
+  "tokyo_edited": "このサービスは、以下の著作物を改変して利用しています。東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）"
+ },
+ "notes": {
+  "share": "区ごとに（公園等＋農用地＋森林＋原野）÷ 合計（ha）。合計は調査の区別土地面積",
+  "total": "23区の値は23区の行の合計から計算（CSV の「区部（R3）」行は中央防波堤 287.7 ha を含むため使わない）",
+  "definition": "土地利用現況調査の土地利用区分による面積。緑被（樹木・草地の被覆）ではなく、街路樹や庭は含まない"
+ },
+ "total": {
+  "code": "13100",
+  "name": "東京23区",
+  "totalHa": 62588.3,
+  "greenHa": 5142.0,
+  "share": 8.2156,
+  "classes": [
+   {
+    "key": "park",
+    "name": "公園等",
+    "ha": 4135.8
+   },
+   {
+    "key": "farm",
+    "name": "農用地",
+    "ha": 484.3
+   },
+   {
+    "key": "forest",
+    "name": "森林",
+    "ha": 32.3
+   },
+   {
+    "key": "wild",
+    "name": "原野",
+    "ha": 489.6
+   }
+  ]
+ },
+ "wards": [
+  {
+   "code": "13101",
+   "name": "千代田区",
+   "totalHa": 1136.2,
+   "greenHa": 78.0,
+   "share": 6.865,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 78.0
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13102",
+   "name": "中央区",
+   "totalHa": 1045.4,
+   "greenHa": 62.5,
+   "share": 5.9786,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 62.5
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13103",
+   "name": "港区",
+   "totalHa": 2098.5,
+   "greenHa": 157.1,
+   "share": 7.4863,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 157.0
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.1
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13104",
+   "name": "新宿区",
+   "totalHa": 1828.5,
+   "greenHa": 114.4,
+   "share": 6.2565,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 113.7
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.1
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.4
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.2
+    }
+   ]
+  },
+  {
+   "code": "13105",
+   "name": "文京区",
+   "totalHa": 1138.3,
+   "greenHa": 82.9,
+   "share": 7.2828,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 82.9
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13106",
+   "name": "台東区",
+   "totalHa": 1007.8,
+   "greenHa": 80.3,
+   "share": 7.9679,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 80.3
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13107",
+   "name": "墨田区",
+   "totalHa": 1371.1,
+   "greenHa": 97.6,
+   "share": 7.1184,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 91.9
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 5.7
+    }
+   ]
+  },
+  {
+   "code": "13108",
+   "name": "江東区",
+   "totalHa": 4482.5,
+   "greenHa": 504.7,
+   "share": 11.2593,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 503.7
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 1.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13109",
+   "name": "品川区",
+   "totalHa": 2344.0,
+   "greenHa": 145.3,
+   "share": 6.1988,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 140.8
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 4.5
+    }
+   ]
+  },
+  {
+   "code": "13110",
+   "name": "目黒区",
+   "totalHa": 1475.9,
+   "greenHa": 49.6,
+   "share": 3.3607,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 47.5
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 1.7
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.4
+    }
+   ]
+  },
+  {
+   "code": "13111",
+   "name": "大田区",
+   "totalHa": 6315.6,
+   "greenHa": 360.8,
+   "share": 5.7128,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 293.3
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 3.2
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 1.7
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 62.6
+    }
+   ]
+  },
+  {
+   "code": "13112",
+   "name": "世田谷区",
+   "totalHa": 5808.0,
+   "greenHa": 477.2,
+   "share": 8.2163,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 325.9
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 94.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 18.4
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 38.9
+    }
+   ]
+  },
+  {
+   "code": "13113",
+   "name": "渋谷区",
+   "totalHa": 1511.5,
+   "greenHa": 93.3,
+   "share": 6.1727,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 93.3
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13114",
+   "name": "中野区",
+   "totalHa": 1557.5,
+   "greenHa": 61.1,
+   "share": 3.923,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 58.7
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 2.4
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13115",
+   "name": "杉並区",
+   "totalHa": 3390.0,
+   "greenHa": 205.4,
+   "share": 6.059,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 161.8
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 40.3
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 3.3
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13116",
+   "name": "豊島区",
+   "totalHa": 1298.4,
+   "greenHa": 53.2,
+   "share": 4.0974,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 53.0
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.2
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13117",
+   "name": "北区",
+   "totalHa": 2056.6,
+   "greenHa": 196.4,
+   "share": 9.5497,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 171.1
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.6
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 3.3
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 21.4
+    }
+   ]
+  },
+  {
+   "code": "13118",
+   "name": "荒川区",
+   "totalHa": 1024.2,
+   "greenHa": 60.2,
+   "share": 5.8778,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 60.2
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 0.0
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.0
+    }
+   ]
+  },
+  {
+   "code": "13119",
+   "name": "板橋区",
+   "totalHa": 3213.9,
+   "greenHa": 274.9,
+   "share": 8.5535,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 231.4
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 19.2
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.5
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 23.8
+    }
+   ]
+  },
+  {
+   "code": "13120",
+   "name": "練馬区",
+   "totalHa": 4818.5,
+   "greenHa": 461.1,
+   "share": 9.5694,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 261.3
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 195.7
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 3.7
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 0.4
+    }
+   ]
+  },
+  {
+   "code": "13121",
+   "name": "足立区",
+   "totalHa": 5320.1,
+   "greenHa": 543.5,
+   "share": 10.216,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 391.7
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 46.2
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.7
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 104.9
+    }
+   ]
+  },
+  {
+   "code": "13122",
+   "name": "葛飾区",
+   "totalHa": 3480.8,
+   "greenHa": 403.4,
+   "share": 11.5893,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 277.6
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 32.9
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.0
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 92.9
+    }
+   ]
+  },
+  {
+   "code": "13123",
+   "name": "江戸川区",
+   "totalHa": 4865.0,
+   "greenHa": 579.1,
+   "share": 11.9034,
+   "classes": [
+    {
+     "key": "park",
+     "name": "公園等",
+     "ha": 398.2
+    },
+    {
+     "key": "farm",
+     "name": "農用地",
+     "ha": 46.8
+    },
+    {
+     "key": "forest",
+     "name": "森林",
+     "ha": 0.2
+    },
+    {
+     "key": "wild",
+     "name": "原野",
+     "ha": 133.9
+    }
+   ]
+  }
+ ]
+}

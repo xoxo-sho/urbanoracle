@@ -69,6 +69,7 @@ import {
   loadZoningSnapshot,
   zoningSnapshotRows,
   zoningSnapshotTotal,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const ROUTE = "/api/v1/disaster-risks";
@@ -145,9 +146,10 @@ async function renderSettled(routes: { disaster?: Route } = {}) {
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
     "/api/v1/zoning": ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -494,15 +496,15 @@ describe("credits and lists — the 災害 sources under 実データ, nothing �
     const sample = footerSample(container);
     expect(sample).not.toContain("災害");
     expect(sample).not.toContain("高リスク");
-    expect(sample).toContain("区別総合比較");
+    expect(sample).not.toContain("区別総合比較");
   });
 
-  it("LP: the hero and 災害 are listed under 実データ; the sample group keeps only the radar (and the ridership trend)", () => {
+  it("LP: the hero and 災害 are listed under 実データ; the sample group keeps only the ridership trend (the radar left in PR 8)", () => {
     const { container } = render(<LandingPage />);
     const sample = container.querySelector('tbody[data-provenance="sample"]')?.textContent ?? "";
     expect(sample).not.toContain("ヒーロー");
     expect(sample).not.toContain("災害");
-    expect(sample).toContain("区別総合比較");
+    expect(sample).not.toContain("区別総合比較");
     const live = container.querySelector('tbody[data-provenance="live"]')?.textContent ?? "";
     expect(live).toContain("地域危険度");
     expect(live).toContain("ヒーロー");
@@ -512,9 +514,11 @@ describe("credits and lists — the 災害 sources under 実データ, nothing �
     expect(required).toContain(HAZARD_PORTAL);
   });
 
-  it("the radar's 安全性 axis stays sample (PR 8)", async () => {
+  it("the radar and its sample 安全性 axis are gone; the comparison table's 災害 rows read /disaster-risks (PR 8)", async () => {
     const { container } = await renderSettled();
-    const radar = surface(container, "ward-radar");
-    expect(radar.textContent).toContain(SAMPLE_LABEL);
+    expect(container.querySelector('[data-surface="ward-radar"]')).toBeNull();
+    const table = surface(container, "ward-comparison");
+    expect(table.querySelector('[data-measure="rank5"]')?.getAttribute("data-state")).toBe("ok");
+    expect(table.textContent).not.toContain(SAMPLE_LABEL);
   });
 });

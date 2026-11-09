@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { DataLayer, DisasterWard, LandPriceWard, TransportStation } from "@/types";
+import type { DataLayer, DemographicsData, DisasterWard, FieldSources, LandPriceWard, TransportStation } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { loadWardGeoJSON, getWardCenter, buildStationGeoJSON } from "@/data/ward-boundaries";
 import { mapPalette } from "@/lib/palette";
@@ -15,6 +15,7 @@ import { LAND_USE_LABEL, manPrice, type LandUse } from "@/lib/land-price";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
 import { HAZARD_RASTERS } from "@/components/map/hazard-rasters";
+import { censusTooltip } from "@/lib/census-map";
 
 interface MapViewProps {
   selectedWard: string | null;
@@ -41,6 +42,16 @@ interface MapViewProps {
   disaster?: DisasterWard[];
   disasterStatus?: DataStatus;
   disasterStops?: number[] | null;
+  /**
+   * The 人口 choropleth and the tooltip's 人口 / 密度 (real-data plan PR 8): the
+   * /demographics payload, its state and `sources` (the census year the
+   * tooltip names), and the three density stops derived from the data (the
+   * legend prints the same array).
+   */
+  census?: DemographicsData[];
+  censusStatus?: DataStatus;
+  censusSources?: FieldSources;
+  censusStops?: number[] | null;
 }
 
 function isDarkMode(): boolean {
@@ -75,6 +86,10 @@ export default function MapView({
   disaster = [],
   disasterStatus = "loading",
   disasterStops = null,
+  census = [],
+  censusStatus = "loading",
+  censusSources = {},
+  censusStops = null,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -109,6 +124,9 @@ export default function MapView({
     // 総合危険度 rank 5, merged as `rank5Share`; a ward the payload does not
     // cover keeps the empty fill.
     const rank5 = new Map(disaster.map((w) => [w.region, w.earthquake.rank5Share]));
+    // The census record of each ward (real-data plan PR 8): its density for the
+    // fill, and the tooltip's two lines with unit and year (or the answer's state).
+    const censusRows = new Map(census.map((w) => [w.region, w]));
     const landPriceText = (name: string): string => {
       const f = figures.get(name);
       if (f) return `${manPrice(f.meanPrice)}/m²（${LAND_USE_LABEL[landUse]} n=${f.n}）`;
@@ -120,12 +138,17 @@ export default function MapView({
       ...wardGeoJSON.current,
       features: wardGeoJSON.current.features.map((f) => {
         const figure = figures.get(f.properties.name);
+        const row = censusRows.get(f.properties.name);
+        const tip = censusTooltip(row, censusSources, censusStatus);
         return {
           ...f,
           properties: {
             ...f.properties,
             ...(figure ? { landPrice: figure.meanPrice } : {}),
             ...(rank5.has(f.properties.name) ? { rank5Share: rank5.get(f.properties.name) } : {}),
+            ...(row && typeof row.density === "number" ? { density: row.density } : {}),
+            populationText: tip.population,
+            densityText: tip.density,
             landPriceText: landPriceText(f.properties.name),
           },
         };
@@ -157,11 +180,20 @@ export default function MapView({
           ] as maplibregl.ExpressionSpecification)
         : c.emptyFill;
     } else if (demoEnabled) {
-      fillColor = ["interpolate", ["linear"], ["get", "density"],
-        5000, c.neutral3,
-        12000, c.neutral2,
-        23000, c.neutral1,
-      ] as maplibregl.ExpressionSpecification;
+      // Stops from the census densities (the legend prints the same three); no
+      // fill until the census payload is on screen.
+      const stops = (censusStatus === "ok" || censusStatus === "partial") && censusStops && censusStops.length === 3 ? censusStops : null;
+      fillColor = stops
+        ? (["case",
+            ["has", "density"],
+            ["interpolate", ["linear"], ["get", "density"],
+              stops[0], c.neutral3,
+              stops[1], c.neutral2,
+              stops[2], c.neutral1,
+            ],
+            c.emptyFill,
+          ] as maplibregl.ExpressionSpecification)
+        : c.emptyFill;
     } else if (riskEnabled) {
       // Stops from the data (the legend prints the same three); no fill until
       // the 災害 payload is on screen.
@@ -289,7 +321,7 @@ export default function MapView({
         });
       }
     }
-  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus, disaster, disasterStatus, disasterStops]);
+  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus, disaster, disasterStatus, disasterStops, census, censusStatus, censusSources, censusStops]);
 
   // Initialize map
   useEffect(() => {
@@ -349,9 +381,11 @@ export default function MapView({
       // Show tooltip
       const props = feature.properties;
       if (props && popup.current) {
-        const density = props.density ? Number(props.density).toLocaleString() : "—";
-        const price = typeof props.landPriceText === "string" && props.landPriceText ? props.landPriceText : NO_DATA;
-        const pop = props.population ? `${(Number(props.population) / 10000).toFixed(1)}万` : "—";
+        // Each line was built from its payload at layer time, with unit and year.
+        const text = (v: unknown) => (typeof v === "string" && v ? v : NO_DATA);
+        const pop = text(props.populationText);
+        const density = text(props.densityText);
+        const price = text(props.landPriceText);
 
         // dxa-ui: the tooltip font is the CSS token directly — this is DOM (a
         // MapLibre popup html string → element), not canvas, so var() resolves.
@@ -363,8 +397,8 @@ export default function MapView({
             <div style="font-family:var(--dxa-font-sans);line-height:1.5;">
               <div style="font-size:13px;font-weight:700;color:var(--foreground);margin-bottom:4px;">${name}</div>
               <div style="font-size:11px;color:var(--muted-foreground);display:grid;grid-template-columns:auto 1fr;gap:2px 8px;">
-                <span>人口</span><span style="text-align:right;color:var(--foreground);">${pop}人</span>
-                <span>密度</span><span style="text-align:right;color:var(--foreground);">${density}/km²</span>
+                <span>人口</span><span style="text-align:right;color:var(--foreground);">${pop}</span>
+                <span>密度</span><span style="text-align:right;color:var(--foreground);">${density}</span>
                 <span>地価</span><span style="text-align:right;color:var(--foreground);">${price}</span>
               </div>
             </div>

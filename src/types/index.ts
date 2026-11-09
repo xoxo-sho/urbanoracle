@@ -32,6 +32,8 @@ export interface DemographicsData {
   region: string;
   population: number | null;
   density: number | null; // 人/km²
+  /** The 面積調 area the density divides by (real-data plan PR 8); absent from older payloads. */
+  areaKm2?: number | null;
   growthRate: number | null; // % — null when e-Stat has no figure
   ageGroups: {
     young: number | null; // 0-14
@@ -215,11 +217,25 @@ export interface TransportTrend {
   station: string;
 }
 
-export interface WardProfile {
+/** The /land-prices `total` (real-data plan PR 8): the 23区 figures over every point. */
+export interface LandPriceTotal {
   region: string;
-  population: number; // normalized 0-100
-  landPrice: number;
-  accessibility: number; // 交通利便性
-  safety: number; // 安全性 (災害リスク逆数)
-  greenRatio: number; // 緑地率
+  n: number;
+  residential: LandUseFigures;
+  commercial: LandUseFigures;
+  industrial: { n: number };
+}
+
+/**
+ * One ward (or the 23区, as `total`) of /api/v1/green-land-use (real-data plan
+ * PR 8, decision 6): 東京都 土地利用現況調査 令和3年 表－1 — the hectares of 公園等,
+ * 農用地, 森林 and 原野, their sum, the survey's own ward total and the share.
+ */
+export interface GreenWard {
+  region: string;
+  code: string;
+  totalHa: number;
+  greenHa: number;
+  share: number; // %
+  classes: { key: string; name: string; ha: number }[];
 }

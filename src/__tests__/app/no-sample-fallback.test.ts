@@ -137,8 +137,8 @@ describe("PR 6: the 用途地域 surfaces read the A55-24 snapshot; sampleZoning
 describe("PR 7: 災害 and the LP hero read measured sources; the sample risk list and the hero's sample fields are gone", () => {
   // RED on main (deeb49d). The 災害 tab, K2, the 災害 choropleth and the LP
   // hero read the committed snapshots (東京都 地域危険度 第9回, 国土数値情報
-  // A31a / A33 / A40 / A49, L01 for the hero's upside); the radar's 安全性
-  // axis stays sample until PR 8.
+  // A31a / A33 / A40 / A49, L01 for the hero's upside); the radar and its
+  // sample 安全性 axis left in PR 8.
   function walk(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
@@ -175,17 +175,23 @@ describe("PR 7: 災害 and the LP hero read measured sources; the sample risk li
     expect(readers("riskStep")).toEqual([]);
   });
 
-  it("the LP dictionary and provenance table have no sample row for the hero or 災害; the radar row stays sample", () => {
+  it("the LP dictionary and provenance table have no sample row for the hero, 災害, the radar or the 人口 fill (PR 8)", () => {
     for (const file of ["src/i18n/lp.ts", "src/components/landing/LandingContent.tsx"]) {
       expect(read(file), file).not.toMatch(/\bsampleHero\b/);
       expect(read(file), file).not.toMatch(/\bsampleDisaster\b/);
-      expect(read(file), file).toMatch(/\bsampleRadar\b/);
+      expect(read(file), file).not.toMatch(/\bsampleRadar(Scale)?\b/);
+      expect(read(file), file).not.toMatch(/\bsampleChoropleth\b/);
     }
   });
 
-  it("the radar's 安全性 axis still reads sampleWardProfiles and says SAMPLE (PR 8)", () => {
-    expect(read("src/data/sample.ts")).toMatch(/export const sampleWardProfiles\b/);
-    expect(read("src/components/dashboard/WardRadar.tsx")).toContain("SampleNote");
+  it("the radar and sampleWardProfiles are gone (PR 8, decision 7)", () => {
+    expect(read("src/data/sample.ts")).not.toMatch(/\bsampleWardProfiles\b/);
+    expect(existsSync(resolve(REPO_ROOT, "src/components/dashboard/WardRadar.tsx"))).toBe(false);
+  });
+
+  it("WARD_META carries no 人口 field and the fixed-value note is gone (PR 8)", () => {
+    expect(read("src/data/ward-boundaries.ts")).not.toMatch(/\b(population|density|growthRate|elderly):\s*\d/);
+    expect(readers("CHOROPLETH_NOTE")).toEqual([]);
   });
 
   it("the backend sample copy, its reader and its generator are gone", () => {

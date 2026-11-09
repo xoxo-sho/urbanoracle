@@ -42,7 +42,7 @@ from fastapi.responses import JSONResponse
 from core import cache
 from core.boundary import json_safe
 from core.config import settings
-from services import demographics, disaster_risks, land_prices, population_trends, transport, zoning
+from services import demographics, disaster_risks, green_land_use, land_prices, population_trends, transport, zoning
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +169,9 @@ async def get_land_prices() -> JSONResponse:
         land_prices.rows(snapshot),
         is_live=True,
         sources=land_prices.sources(snapshot),
+        # Real-data plan PR 8: the 23区 figures over every point, for the
+        # comparison table's 23区 column (additive; the records are unchanged).
+        total=land_prices.total(snapshot),
     )
 
 
@@ -216,6 +219,25 @@ async def get_disaster_risks() -> JSONResponse:
         is_live=True,
         sources=disaster_risks.sources(snapshot),
         total=disaster_risks.total(snapshot),
+    )
+
+
+@router.get("/green-land-use")
+async def get_green_land_use() -> JSONResponse:
+    """The committed 公園等・農用地・森林・原野 snapshot (real-data plan PR 8,
+    Architect decision 6): per ward the share of the 東京都 土地利用現況調査
+    令和3年 ward total that is 公園等, 農用地, 森林 or 原野, with each class's
+    hectares; the 23区 figure over the 23 ward rows as ``total``.
+
+    No upstream and no cache: the file was validated when the app started.
+    ``sources`` names the survey and its year (2021).
+    """
+    snapshot = green_land_use.get(settings.GREEN_LAND_USE_PATH)
+    return _envelope(
+        green_land_use.rows(snapshot),
+        is_live=True,
+        sources=green_land_use.sources(snapshot),
+        total=green_land_use.total(snapshot),
     )
 
 

@@ -43,10 +43,5 @@ export type SourceKey = keyof typeof SOURCES;
  */
 export const SAMPLE_NOTICE = `${SOURCES.sample.label}— 実データではありません`;
 
-/**
- * The map's 人口 ward fill is coloured from WARD_META (ward-boundaries.ts), a
- * hardcoded table that is neither the live feed nor the sample set. The 地価
- * fill left that table in real-data plan PR 5 and the 災害 fill in PR 7: each
- * is its snapshot's, and its legend cites it.
- */
-export const CHOROPLETH_NOTE = "固定の参考値 — 実データではありません";
+// The 「固定の参考値」 note left with real-data plan PR 8: the last fill on the
+// hardcoded ward table, 人口, reads the 2025 census payload; every fill is its snapshot's.
