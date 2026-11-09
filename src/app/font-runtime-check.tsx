@@ -52,9 +52,10 @@ const LATIN_PROBE = "UrbanOracle";
 type Face = { label: string; cssVar: string; probe: string };
 
 // Next form with THIS product's faces: Latin = Geist (--font-geist-sans),
-// JA = Noto Sans JP under --font-noto-sans-jp — the loader added by the dxa-ui
+// JA = Noto Sans JP under --font-noto-sans-jp — the face added by the dxa-ui
 // work, because before it the body chain was `Geist, "Geist Fallback"` and
-// nothing else. The heading faces (Source Serif / Zen Old Mincho subsets) are
+// nothing else. Both are vendored (public/fonts, styles/fonts.css). The
+// heading faces (Source Serif / Zen Old Mincho subsets) are
 // the product's own and not probed: they have a JA face and a serif
 // terminator, verified per glyph on production.
 const FACES: Face[] = [
@@ -118,13 +119,13 @@ export function FontRuntimeCheck() {
         const family = root.getPropertyValue(face.cssVar).trim();
         if (!family) {
           failures.push(
-            `${face.label}: ${face.cssVar} is not defined — next/font did not run, ` +
-              `or the .variable class is missing from <html>`,
+            `${face.label}: ${face.cssVar} is not defined — styles/fonts.css ` +
+              `(imported by the root layout) is missing from the page`,
           );
           continue;
         }
 
-        // Primary family only; the second entry is next/font's generic fallback,
+        // Primary family only; the second entry is the size-adjusted local() fallback,
         // which is always "available" and would mask a real miss.
         const primary = family.split(",")[0].trim();
 
@@ -153,7 +154,7 @@ export function FontRuntimeCheck() {
         // DELIVERY GUARD. document.fonts.check() returns TRUE when NO
         // @font-face for the family exists at all, so a variable that names a
         // face nothing declares passes the check above. Also require a loaded
-        // FontFace with this family in document.fonts (next/font declares one
+        // FontFace with this family in document.fonts (styles/fonts.css declares one
         // per delivered face; system fonts never appear there).
         if (!delivered(primary)) {
           failures.push(

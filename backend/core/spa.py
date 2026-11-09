@@ -6,6 +6,7 @@ One Next app produces every page, and this module puts it on the domain:
     /login, /pending,
     /forgot-password     public shells
     /app                 dashboard shell ("use client", still prerendered)
+    /fonts/*             the vendored web fonts (public/fonts)
     /api/v1/*            the API (registered before this catch-all)
 
 Because it is the same origin, the client uses relative /api/v1 paths and no
@@ -89,6 +90,22 @@ class HashedAssets(StaticFiles):
         return response
 
 
+class VendoredFonts(StaticFiles):
+    """/fonts — the vendored web fonts (public/fonts, scripts/vendor-fonts.mjs).
+
+    A .woff2 name carries a hash of its content (asserted by
+    src/__tests__/fonts/vendored-fonts.test.ts), so those cache forever — as
+    they did while next/font served them from /_next/static/media. The
+    OFL.txt beside them has no hash in its name and keeps the default.
+    """
+
+    async def get_response(self, path: str, scope):  # type: ignore[override]
+        response = await super().get_response(path, scope)
+        if path.endswith(".woff2"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
 def _resolve_within(root: Path, relative: str) -> Path | None:
     """Resolve ``relative`` to a real file inside ``root``.
 
@@ -137,6 +154,10 @@ def mount_static_site(app: FastAPI, static_dir: str | Path) -> bool:
     next_static = static_dir / "_next" / "static"
     if next_static.is_dir():
         app.mount("/_next/static", HashedAssets(directory=next_static), name="next-static")
+
+    fonts_dir = static_dir / "fonts"
+    if fonts_dir.is_dir():
+        app.mount("/fonts", VendoredFonts(directory=fonts_dir), name="fonts")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def static_site(full_path: str) -> FileResponse:

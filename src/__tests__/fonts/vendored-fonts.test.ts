@@ -219,7 +219,8 @@ describe("src/app/_og-fonts — the fonts of the OG card", () => {
   it("the fonts cover every character the card renders, so next/og has nothing to fetch", () => {
     const route = readFileSync(OG_ROUTE, "utf8");
     const rendered = jsxText(route);
-    expect(rendered).toContain("都市の資産価値を、"); // non-vacuity: the card's text was found
+    // Non-vacuity: the card's Japanese was found.
+    expect([...rendered].filter((ch) => /[\u3040-\u30ff\u4e00-\u9fff]/.test(ch)).length).toBeGreaterThan(20);
     expect(jsxComputedChildren(route), "a computed JSX child is text this check cannot see").toEqual([]);
 
     const covered = new Set<number>();

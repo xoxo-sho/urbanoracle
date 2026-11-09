@@ -17,6 +17,8 @@ import { describe, expect, it } from "vitest";
  *     place allowed to fetch from Google, and its record of what it fetched
  *     (upstream URL and sha256 of every file). Neither is read by the build.
  *   - this file: it has to name what it looks for.
+ *   - src/__tests__/fonts/vendored-fonts.test.ts: it checks that every
+ *     upstream URL in the lock is on these hosts. It fetches nothing.
  *   - e2e/: Playwright specs assert that no request goes to these hosts.
  *   - *.md: documentation (docs/vendored-fonts.md lists the source URLs).
  *   - comments: a host named in a comment fetches nothing. The vendored
@@ -40,6 +42,7 @@ const SKIP_DIRS = new Set(["node_modules", ".next", "out"]);
 const EXCLUDED = new Set([
   join(ROOT, "scripts", "vendor-fonts.mjs"),
   join(ROOT, "scripts", "vendor-fonts.lock.json"),
+  join(ROOT, "src", "__tests__", "fonts", "vendored-fonts.test.ts"),
   SELF,
 ]);
 

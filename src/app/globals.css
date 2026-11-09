@@ -8,9 +8,10 @@
 @import "shadcn/tailwind.css";
 
 /* dxa-ui bridge — Next form (dxa-ui/docs/FONT-LOADING.md §3.1): the product's
-   own faces via the next/font variables layout.tsx puts on <html>. Latin =
-   Geist, mono = Geist Mono (the product's choices, untouched), JA = Noto Sans
-   JP — a NEW loader; no JA webfont existed on this surface before. Outside
+   own faces via the --font-* variables that styles/fonts.css (vendored,
+   imported by layout.tsx ahead of this file) defines on the root element.
+   Latin = Geist, mono = Geist Mono (the product's choices, untouched), JA =
+   Noto Sans JP — no JA webfont existed on this surface before it. Outside
    @theme so the values are real runtime variables. Declared on `html`, NOT
    as a second root-pseudo-class block: src/__tests__/lib/palette.test.ts (the
    measured contrast gate) parses the FIRST root block in this file — found by

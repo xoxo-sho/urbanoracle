@@ -39,9 +39,14 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY tsconfig.json next.config.ts postcss.config.mjs eslint.config.mjs ./
+# Every font the site uses is committed, so this build downloads none (CI
+# builds with no network at all: scripts/build-offline.sh):
+#   public/fonts/       Geist, Geist Mono, Noto Sans JP (scripts/vendor-fonts.mjs)
+#   styles/fonts.css    their @font-face rules, imported by src/app/layout.tsx
+#   src/app/fonts/      the Zen Old Mincho and Source Serif 4 heading subsets
+#   src/app/_og-fonts/  the fonts of the OG card
 COPY public ./public
-# Includes src/app/fonts/*.woff2 — the Zen Old Mincho and Source Serif 4
-# heading subsets are committed, so the image needs no font download.
+COPY styles ./styles
 COPY src ./src
 
 # Client-side Firebase config, inlined into the bundle at compile time. These
