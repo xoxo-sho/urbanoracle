@@ -18,7 +18,9 @@ import path from "node:path";
  *   T2 事業者別     per-operator sums whose total equals K3, for a ward and
  *                  for the 23-ward view;
  *   M6            the station legend cites 国土数値情報 and the year;
- *   T3 乗降客数推移 OUT of this PR: still the sample set with its SAMPLE label;
+ *   T3 乗降客数推移 was out of PR 4 (the sample set); real-data plan PR 4b
+ *                  (row 4b) took it from the panel — ridership-trend.test.tsx
+ *                  guards it, and the label of a station counted on another row;
  *   credits       the 加工 form with no editor name, on the tab and in the
  *                  footer; nothing names ODPT anywhere.
  *
@@ -48,7 +50,6 @@ const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import Home from "@/app/app/page";
-import { sampleTransportTrends } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
   DEMOGRAPHICS_SOURCES,
@@ -61,6 +62,7 @@ import {
   ZONING_TOTAL,
   loadStationsSnapshot,
   stationsSnapshotRows,
+  transportTotal,
   greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
@@ -95,7 +97,8 @@ const json =
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const pending: Route = () => new Promise<Response>(() => {});
 
-const TRANSPORT: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES });
+const TOTAL = transportTotal(snapshot);
+const TRANSPORT: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES, total: TOTAL });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
 const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
 const DISASTER: Route = json(200, { data: [], isLive: false });
@@ -108,7 +111,7 @@ const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: tr
 /** The same payload with the ridership source moved to another year and table: what the page must then say. */
 function transportSaying(year: number, table: string): Route {
   const sources = { ...SOURCES, ridership: { ...SOURCES.ridership, year, table }, stations: { ...SOURCES.stations, year, table } };
-  return json(200, { status: "ok", data: ROWS, isLive: true, sources });
+  return json(200, { status: "ok", data: ROWS, isLive: true, sources, total: TOTAL });
 }
 
 function serve(routes: Record<string, Route>) {
@@ -330,16 +333,14 @@ describe("M6 — the station legend and what the map is handed", () => {
   });
 });
 
-describe("T3 乗降客数推移 stays the sample set (out of this PR)", () => {
-  it("keeps its SAMPLE label and takes no S12 value", async () => {
+describe("T3 乗降客数推移 is no longer the sample set (real-data plan PR 4b)", () => {
+  it("carries no SAMPLE label and cites 国土数値情報; nothing on the tab is sample", async () => {
     await renderSettled();
     const panel = openTab("交通");
     const trend = surface(panel, "ridership-trend");
-    expect(trend.querySelector(SAMPLE_NODE)).not.toBeNull();
-    expect(trend.textContent).not.toContain(KSJ);
-    // The only SAMPLE node on the tab is the trend's.
-    expect(panel.querySelectorAll(SAMPLE_NODE)).toHaveLength(1);
-    expect(sampleTransportTrends.length).toBeGreaterThan(0);
+    expect(trend.querySelector(SAMPLE_NODE)).toBeNull();
+    expect(trend.textContent).toContain(KSJ);
+    expect(panel.querySelectorAll(SAMPLE_NODE)).toHaveLength(0);
   });
 });
 
@@ -370,7 +371,8 @@ describe("credits — the 加工 form with no editor name; nothing names the ret
     expect(live).not.toContain(RETIRED);
     expect(live).not.toContain(RETIRED_JA);
     expect(footerSample(container)).not.toContain("駅別乗降客数");
-    expect(footerSample(container)).toContain("乗降客数推移");
+    // Real-data plan PR 4b: 乗降客数推移 left the sample group, and the group with it.
+    expect(container.querySelector('footer [data-provenance="sample"]')).toBeNull();
     expect(container.textContent).not.toContain(BUNDLED_NOTE);
   });
 });
@@ -385,7 +387,7 @@ describe("states — 読み込み中 / 取得失敗 / data, no partial path", ()
     expect(stationLegend(container).textContent).toContain(LOADING);
   });
 
-  it("503: K3, T1, T2 and the legend say 取得失敗 and name 国土数値情報; T3 keeps its sample label", async () => {
+  it("503: K3, T1, T2, T3 and the legend say 取得失敗 and name 国土数値情報; no sample label", async () => {
     const { container } = await renderSettled(UNAVAILABLE);
     expect(keyMetric(container, "乗降客").textContent).toContain(FAILED);
     const panel = openTab("交通");
@@ -394,19 +396,20 @@ describe("states — 読み込み中 / 取得失敗 / data, no partial path", ()
     expect(surface(panel, "stations").textContent).toContain(KSJ);
     expect(surface(panel, "operators").textContent).toContain(FAILED);
     expect(stationLegend(container).textContent).toContain(FAILED);
-    expect(panel.querySelectorAll(SAMPLE_NODE)).toHaveLength(1);
+    expect(surface(panel, "ridership-trend").textContent).toContain(FAILED);
+    expect(panel.querySelectorAll(SAMPLE_NODE)).toHaveLength(0);
     expect(panel.textContent).not.toContain(NO_DATA);
   });
 
-  it("a station the source counts on another row reads データなし with its note, never 0", async () => {
+  it("a station the source counts on another row reads 他の行に計上 — not データなし, never 0 (row 4b; ridership-trend.test.tsx has the five)", async () => {
     const { container } = await renderSettled();
-    const withNote = ROWS.find((r) => r.note);
-    expect(withNote).toBeDefined();
-    selectWard(container, withNote!.ward!);
+    const elsewhere = snapshot.stations.find((s) => s.dailyPassengers === null);
+    expect(elsewhere).toBeDefined();
+    selectWard(container, elsewhere!.ward);
     const panel = openTab("交通");
-    const row = [...surface(panel, "stations").querySelectorAll<HTMLElement>("[data-station]")].find((el) => el.dataset.name === withNote!.name)!;
-    expect(row.textContent).toContain(NO_DATA);
-    expect(row.textContent).toContain("他路線駅の行に記載");
+    const row = [...surface(panel, "stations").querySelectorAll<HTMLElement>("[data-station]")].find((el) => el.dataset.name === `${elsewhere!.name}駅`)!;
+    expect(row.textContent).toContain("他の行に計上");
+    expect(row.textContent).not.toContain(NO_DATA);
     expect(row.textContent).not.toContain("0.0万");
   });
 });

@@ -24,7 +24,7 @@ import { join, relative, resolve } from "node:path";
  * census payload (stops from the data, legend labels equal to them) and its
  * tooltip prints the census population and density with unit and year; the
  * 津波 source line prints 「A40-23」 once; sampleWardProfiles is gone;
- * 乗降客数推移 stays SAMPLE.
+ * 乗降客数推移 stayed SAMPLE until real-data plan PR 4b, which took it from the S12 panel.
  *
  * Every expected figure is recomputed below from the committed snapshots and
  * PR 2's committed e-Stat expected values. RED on main (56bdbf6).
@@ -431,21 +431,16 @@ describe("what is deleted and what stays sample", () => {
     expect(readers.map((f) => relative(ROOT, f))).toEqual([]);
   });
 
-  it("乗降客数推移 stays SAMPLE; the footer's and the LP's sample groups list only it", async () => {
+  it("乗降客数推移 is no longer SAMPLE (real-data plan PR 4b); the footer and the LP have no sample group", async () => {
     const { container } = await renderSettled();
     fireEvent.click(screen.getByRole("tab", { name: "交通" }));
     const panel = screen.getByRole("tabpanel");
     expect(panel.textContent).toContain("乗降客数推移");
-    expect(panel.textContent).toContain(SAMPLE_LABEL);
-    const footer = container.querySelector('footer [data-provenance="sample"]')?.textContent ?? "";
-    expect(footer).toContain("乗降客数推移");
-    expect(footer).not.toContain("区別総合比較");
-    expect(footer).not.toContain("塗り分け");
+    expect(panel.textContent).not.toContain(SAMPLE_LABEL);
+    expect(container.querySelector('footer [data-provenance="sample"]')).toBeNull();
     const lp = render(<LandingPage />).container;
-    const sample = lp.querySelector('tbody[data-provenance="sample"]')?.textContent ?? "";
-    expect(sample).toContain("乗降客数推移");
-    expect(sample).not.toContain("レーダー");
-    expect(sample).not.toContain("塗り分け");
+    expect(lp.querySelector('tbody[data-provenance="sample"]')).toBeNull();
+    expect(lp.textContent).not.toContain("レーダー");
     const live = lp.querySelector('tbody[data-provenance="live"]')?.textContent ?? "";
     expect(live).toContain("土地利用");
   });

@@ -92,13 +92,32 @@ export const TRANSPORT_SOURCES: FieldSources = {
   },
 };
 
+/** One view of 乗降客数推移 (real-data plan PR 4b): 東京23区 or a ward. */
+export interface SnapshotTrendView {
+  code: string;
+  name: string;
+  /** Units with a figure in the snapshot's year, and how many of them the panel holds. */
+  units: number;
+  panelUnits: number;
+  /** The view's 日間乗降客 and the panel's sum in the same year. */
+  passengers: number;
+  panelPassengers: number;
+  series: { year: number; passengers: number }[];
+}
+
 /** The committed snapshot the route serves (backend/data/stations.json), as the builder writes it. */
 export interface StationsSnapshot {
   year: number;
   sources: FieldSources;
   credit: { source: string; edited_s12: string; edited_n03: string };
-  notes: { definition: string; jr_east: string };
+  notes: { definition: string; jr_east: string; source_notice: string; source_notice_at: string };
   wards: { code: string; name: string; stations: number; passengers: number }[];
+  trend: {
+    panel: { id: string; decided: string; units: number; unitsIn: number };
+    years: number[];
+    gaps: { year: number; text: string; repeating: { operator: string; rows: number }[] }[];
+    views: SnapshotTrendView[];
+  };
   stations: {
     code: string;
     name: string;
@@ -109,6 +128,8 @@ export interface StationsSnapshot {
     dailyPassengers: number | null;
     operators: { name: string; lines: string[]; passengers: number | null }[];
     note?: string;
+    remarks?: { operator: string; line: string; text: string }[];
+    countedElsewhere?: { label: string; targets: { ward: string; wardCode: string; station: string; operator: string; line: string; remark: string }[] };
   }[];
 }
 
@@ -139,8 +160,98 @@ export function stationsSnapshotRows(snapshot: StationsSnapshot): TransportStati
     ward: s.ward,
     wardCode: s.wardCode,
     operators: s.operators.map((o) => ({ name: o.name, lines: o.lines, passengers: o.passengers })),
+    ...(s.remarks ? { remarks: s.remarks } : {}),
+    ...(s.countedElsewhere ? { countedElsewhere: s.countedElsewhere } : {}),
     ...(s.note ? { note: s.note } : {}),
   }));
+}
+
+/** The 23区 record the route sends beside `data` (backend/services/transport.py total): 乗降客数推移. */
+export function transportTotal(snapshot: StationsSnapshot) {
+  return {
+    code: "13100",
+    name: "東京23区",
+    trend: {
+      panel: snapshot.trend.panel.id,
+      years: snapshot.trend.years,
+      gaps: snapshot.trend.gaps.map(({ year, text }) => ({ year, text })),
+      views: snapshot.trend.views,
+    },
+  };
+}
+
+/** The whole 200 body of /api/v1/transport, as the route makes it of the snapshot. */
+export function transportPayload(snapshot: StationsSnapshot = loadStationsSnapshot()) {
+  return { status: "ok", data: stationsSnapshotRows(snapshot), isLive: true, sources: snapshot.sources, total: transportTotal(snapshot) };
+}
+
+// ---- 乗降客数推移 (real-data plan PR 4b) ---------------------------------------
+//
+// The committed panel and the committed S12 excerpt, read here so the guards
+// can sum the panel themselves — independently of the snapshot the route
+// serves and of the builder that wrote it.
+
+const STATIONS_FIXTURES = path.join(process.cwd(), "backend", "tests", "fixtures", "stations");
+
+export interface RidershipPanel {
+  id: string;
+  years: number[];
+  gapYears: number[];
+  units: {
+    ward: string;
+    wardCode: string;
+    rows: { feature: number; code: string; operator: string; line: string; station: string }[];
+    in: boolean;
+    reasons?: { class: string; years: number[] }[];
+  }[];
+}
+
+export function loadRidershipPanel(): RidershipPanel {
+  return JSON.parse(readFileSync(path.join(STATIONS_FIXTURES, "ridership_panel.json"), "utf8")) as RidershipPanel;
+}
+
+type S12Properties = Record<string, string | number | null>;
+
+/** S12's four columns per year from 2011: 重複コード, データ有無コード, 備考, 乗降客数. */
+const s12Column = (year: number, kind: 0 | 1 | 2 | 3) => `S12_${String(6 + 4 * (year - 2011) + kind).padStart(3, "0")}`;
+
+/** The row's figure for the year when the row carries it (重複コード 1, データ有無コード 1), else null. */
+function s12Figure(p: S12Properties, year: number): number | null {
+  return p[s12Column(year, 0)] === 1 && p[s12Column(year, 1)] === 1 ? (p[s12Column(year, 3)] as number) : null;
+}
+
+export interface PanelView {
+  units: number;
+  panelUnits: number;
+  /** Σ of every unit's figure in the last panel year: the view's 日間乗降客. */
+  passengers: number;
+  series: { year: number; passengers: number }[];
+}
+
+/**
+ * Per view (東京23区 and each ward): the panel summed over the excerpt, year
+ * by year — nothing but the two committed files and addition.
+ */
+export function panelViews(panel: RidershipPanel = loadRidershipPanel()): Record<string, PanelView> {
+  const excerpt = JSON.parse(readFileSync(path.join(STATIONS_FIXTURES, "ksj_S12-25_tokyo23.geojson"), "utf8")) as {
+    features: { properties: S12Properties }[];
+  };
+  const last = panel.years[panel.years.length - 1];
+  const out: Record<string, PanelView> = {};
+  for (const unit of panel.units) {
+    const props = unit.rows.map((r) => excerpt.features[r.feature - 1].properties);
+    const sum = (year: number) => props.reduce((total, p) => total + (s12Figure(p, year) ?? 0), 0);
+    for (const name of ["東京23区", unit.ward]) {
+      const view = (out[name] ??= { units: 0, panelUnits: 0, passengers: 0, series: panel.years.map((year) => ({ year, passengers: 0 })) });
+      view.units += 1;
+      view.passengers += sum(last);
+      if (unit.in) {
+        view.panelUnits += 1;
+        view.series.forEach((point) => (point.passengers += sum(point.year)));
+      }
+    }
+  }
+  return out;
 }
 
 // ---- 人口推移 (real-data plan PR 3) -------------------------------------------

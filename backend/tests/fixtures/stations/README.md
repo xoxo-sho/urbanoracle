@@ -40,6 +40,43 @@ for the 23 特別区, geometry verbatim (江東区 alone is 75 polygons).
 | edition | 2026年（令和8年）1月1日時点, 更新履歴「2026年4月：2026年（令和8年）版に更新しました。」 |
 | licence | 「このデータの使用許諾条件 オープンデータ（CC_BY_4.0）」 |
 
+## `ridership_panel.json` — the panel 乗降客数推移 sums (real-data plan PR 4b)
+
+S12's fourteen 乗降客数 columns are not one time series: checked row by row
+against the operators' own published figures (2026-11-09), some years repeat
+or lag another, what a row contains changes at interchange stations while its
+備考 does not, and a few values are entry errors. The Architect's decision
+(2026-11-09): 乗降客数推移 sums a **fixed panel** of units over 2018 and
+2020–2024 and leaves 2019 a gap; values are S12's as published — nothing is
+adjusted or re-dated.
+
+The file lists every unit that has a 2024 figure (583; a unit is one S12 row,
+or the rows of one station whose figures S12 moves between each other inside
+one ward), says `in` true or false (458 in), and for every excluded unit the
+reason **class** and the panel years it concerns — `repeat_or_lag`,
+`definition_change`, `opened_or_closed`, `entry_error`, `unexplained`. Rows
+are named by their position in `ksj_S12-25_tokyo23.geojson` (whose sha256 the
+file records) together with 駅コード, 運営会社, 路線名 and 駅名, and the builder
+refuses a panel whose rows no longer match the excerpt, that leaves a 2024
+figure row out, or that admits a unit lacking a figure in a panel year.
+
+This file is a decision record, not something the builder can re-derive: the
+checks behind each class compare S12 with the operators' own pages, and those
+figures are not open data. They stay outside the repository, in the real-data
+plan's evidence folder (`ridership-trend/`: the report, the per-row table of
+flagged cases, the scripts and the pages as read). No operator figure is
+committed here. The 2019 gap needs none of them: on every 東日本旅客鉄道 row of
+the panel, S12's 乗降客数2019 equals its 乗降客数2018 — the builder checks it
+and writes the count into the snapshot.
+
+## S12's own notice
+
+The dataset page (`KsjTmplt-S12-2024.html`, 「その他の情報」, second bullet,
+read 2026-11-09) says: 「各事業者から提供された駅別乗降客数は、各社で独自に算出した
+ものであり、統一的な基準に基づいたものではありませんので、その旨を認識した上でご利用
+ください。」 The builder carries the sentence, as one line, in the snapshot's
+`notes.source_notice`, and every transport surface shows it.
+
 ## How the builder reads them
 
 A row's ward is the polygon containing the midpoint of its line (even-odd
@@ -55,6 +92,17 @@ of 池袋), else it stays with no figure. Per operator, the figure is the sum of
 乗降客数2024 over the rows with 重複コード 1 and データ有無コード 1; the station's
 figure is the sum over operators; a ward's 日間乗降客 (K3) is the sum over its
 rows — 乗換客 are counted once per operator, as the source counts them.
+
+Since PR 4b each figure row's 備考2024 goes to its station as S12 writes it
+(`remarks`). No line a 備考 names carries a 2024 figure on its own row (98
+named rows, all 重複コード 2 with value 0), so nothing enters a sum twice. A
+station every row of which says 他路線駅に記載 gets `countedElsewhere`: the
+figure row of the same group whose 備考 names the station's line — its ward,
+station, operator and line, and the sentence the screen prints
+(「乗降客数は千代田区の飯田橋駅（東京メトロ東西線）に含まれます」) — or, where no
+備考 names it (とうきょうスカイツリー in 2024), an empty target list and no
+sentence. 乗降客数推移 (`trend`) is the panel summed per ward and for the 23
+wards with the same rule, year by year.
 
 Licence for both: 国土数値情報 利用規約 (https://nlftp.mlit.go.jp/ksj/other/agreement.html),
 credit per Architect decision 12 in the 加工 form with no editor name:
