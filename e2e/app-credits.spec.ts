@@ -251,6 +251,49 @@ test.describe("light theme", () => {
     expect(overflow.panel).toBeLessThanOrEqual(1);
     expect(overflow.document).toBeLessThanOrEqual(1);
   });
+
+  // Architect decision 2026-11-09 (layout): S12's notice stands once, full
+  // width, directly under the three key-metric tiles; the 日間乗降客 tile
+  // carries only a marker. Geometry is a browser matter, so it is checked here.
+  test("key metrics: the 日間乗降客 tile carries only the marker; S12's notice is one full-width line directly under the three tiles, which share one height; nothing overflows sideways", async ({ page, context }) => {
+    await signedInDashboard(context);
+    await page.goto("/app");
+    const tiles = page.locator(".key-metric");
+    await expect(tiles).toHaveCount(3);
+    const k3 = tiles.nth(2);
+    await expect(k3).toContainText("※ 下記の注記参照", { timeout: 30_000 });
+    await expect(k3).not.toContainText("統一的な基準");
+    const line = page.locator('[data-surface="ridership-notice"]');
+    await expect(line).toHaveCount(1);
+    await expect(line).toContainText("各社で独自に算出したものであり、統一的な基準に基づいたものではありません");
+    const g = await page.evaluate(() => {
+      const box = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, height: r.height };
+      };
+      const metric = [...document.querySelectorAll(".key-metric")];
+      const row = metric[0].parentElement as HTMLElement;
+      const notice = document.querySelector('[data-surface="ridership-notice"]') as HTMLElement;
+      const root = document.documentElement;
+      return {
+        tiles: metric.map(box),
+        row: { ...box(row), overflow: row.scrollWidth - row.clientWidth },
+        line: box(notice),
+        nextOfRow: row.nextElementSibling === notice,
+        document: root.scrollWidth - root.clientWidth,
+      };
+    });
+    const heights = g.tiles.map((t) => t.height);
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+    expect(g.nextOfRow).toBe(true);
+    // Full width: from the first tile's left edge to the last tile's right edge, below the row.
+    expect(Math.abs(g.line.left - g.tiles[0].left)).toBeLessThanOrEqual(1);
+    expect(Math.abs(g.line.right - g.tiles[2].right)).toBeLessThanOrEqual(1);
+    expect(g.line.top).toBeGreaterThanOrEqual(g.row.bottom - 1);
+    expect(g.line.top - g.row.bottom).toBeLessThanOrEqual(24);
+    expect(g.row.overflow).toBeLessThanOrEqual(1);
+    expect(g.document).toBeLessThanOrEqual(1);
+  });
 });
 
 test.describe("dark theme", () => {

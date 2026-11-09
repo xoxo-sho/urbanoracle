@@ -16,8 +16,10 @@ import path from "node:path";
  *                  and the panel's share of the 2024 日間乗降客 — and that the
  *                  sum is not every station's; 読み込み中 / 取得失敗 like the
  *                  rest of the tab; no SAMPLE label;
- *   the notice     S12's own sentence, verbatim with its source, on K3, 駅一覧,
- *                  事業者別 and T3;
+ *   the notice     S12's own sentence, verbatim with its source: once as a
+ *                  full-width line directly under the three key-metric tiles —
+ *                  the 日間乗降客 tile carries only a marker pointing to it —
+ *                  and on 駅一覧, 事業者別 and T3;
  *   T2             titled 「国土数値情報の記載事業者別（他社線を含む行あり）」;
  *   T1 備考         each figure row's 2024 備考 as S12 writes it;
  *   T1 labels      the five stations no row of which carries a figure read
@@ -84,6 +86,8 @@ const NOTICE = "各事業者から提供された駅別乗降客数は、各社�
 const NOTICE_CORE = "各社で独自に算出したものであり、統一的な基準に基づいたものではありません";
 const S12_PAGE = "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html";
 const T2_TITLE = "国土数値情報の記載事業者別（他社線を含む行あり）";
+// What the 日間乗降客 tile says instead of the sentence: the notice is the line under the tiles.
+const K3_MARKER = "※ 下記の注記参照";
 const COUNTED = "他の行に計上";
 const COUNTED_UNNAMED = "他の行に計上（国土数値情報に記載先の明示なし）";
 
@@ -376,11 +380,10 @@ describe("S12's own notice — verbatim, with its source, on every transport sur
     expect(snapshot.notes.source_notice_at).toContain(S12_PAGE);
   });
 
-  it("K3, 駅一覧, 事業者別 and 乗降客数推移 each show it whole, naming 国土数値情報 駅別乗降客数データ", async () => {
-    const { container } = await renderSettled();
+  it("駅一覧, 事業者別 and 乗降客数推移 each show it whole, naming 国土数値情報 駅別乗降客数データ", async () => {
+    await renderSettled();
     const tab = openTab("交通");
     const surfaces: [string, HTMLElement][] = [
-      ["K3", keyMetric(container, "乗降客")],
       ["駅一覧", surface(tab, "stations")],
       ["事業者別", surface(tab, "operators")],
       ["乗降客数推移", surface(tab, "ridership-trend")],
@@ -394,21 +397,51 @@ describe("S12's own notice — verbatim, with its source, on every transport sur
     }
   });
 
+  // Architect decision 2026-11-09 (layout): inside the tile the sentence made
+  // it tall and stretched the other two. The tile keeps a marker; the
+  // sentence stands once, full width, directly under the three tiles.
+  it("日間乗降客: the tile carries only the marker; the sentence stands once as the line directly under the three tiles", async () => {
+    const { container } = await renderSettled();
+    const tile = keyMetric(container, "乗降客");
+    expect(tile.textContent).toContain(K3_MARKER);
+    expect(tile.textContent).not.toContain(NOTICE);
+    expect(tile.textContent).not.toContain(NOTICE_CORE);
+    for (const t of container.querySelectorAll(".key-metric")) expect(t.querySelector('[data-notice="s12"]')).toBeNull();
+
+    const row = tile.parentElement!;
+    expect([...row.children].filter((c) => c.classList.contains("key-metric"))).toHaveLength(3);
+    const line = row.nextElementSibling as HTMLElement | null;
+    expect(line?.dataset.surface).toBe("ridership-notice");
+    const notice = line!.querySelector<HTMLElement>('[data-notice="s12"]');
+    expect(notice).not.toBeNull();
+    expect(notice!.textContent).toContain(NOTICE);
+    expect(notice!.textContent).toContain("国土数値情報 駅別乗降客数データ");
+    // The line answers the tile's marker, and it is the only one outside the tab panel and the footer.
+    expect(line!.textContent?.trimStart().startsWith("※")).toBe(true);
+    const outside = [...container.querySelectorAll<HTMLElement>('[data-notice="s12"]')].filter((el) => !el.closest('[role="tabpanel"]') && !el.closest("footer"));
+    expect(outside).toHaveLength(1);
+  });
+
   it("holds with a ward selected, and the footer's stations entry carries it with the page it is on", async () => {
     const { container } = await renderSettled();
     selectWard(container, "江戸川区");
     const tab = openTab("交通");
-    expect(keyMetric(container, "乗降客").querySelector('[data-notice="s12"]')?.textContent).toContain(NOTICE);
+    const tile = keyMetric(container, "乗降客");
+    expect(tile.textContent).toContain(K3_MARKER);
+    expect(tile.textContent).not.toContain(NOTICE_CORE);
+    expect(container.querySelector('[data-surface="ridership-notice"] [data-notice="s12"]')?.textContent).toContain(NOTICE);
     expect(surface(tab, "ridership-trend").querySelector('[data-notice="s12"]')?.textContent).toContain(NOTICE);
     const footer = container.querySelector('footer [data-provenance="live"]')?.textContent ?? "";
     expect(footer).toContain(NOTICE);
     expect(footer).toContain(S12_PAGE);
   });
 
-  it("is not shown while there is nothing to qualify: 読み込み中 and 取得失敗 carry no notice", async () => {
+  it("is not shown while there is nothing to qualify: 読み込み中 and 取得失敗 carry no notice, no line and no marker", async () => {
     const { container } = await renderSettled(UNAVAILABLE);
     openTab("交通");
     expect(container.querySelector('[data-notice="s12"]')).toBeNull();
+    expect(container.querySelector('[data-surface="ridership-notice"]')).toBeNull();
+    expect(keyMetric(container, "乗降客").textContent).not.toContain(K3_MARKER);
   });
 });
 
