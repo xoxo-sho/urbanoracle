@@ -12,8 +12,9 @@ upstream genuinely has no figure for. A /demographics answer carries
 ``sources``: per census field, the year and the e-Stat table the figure came
 from, so the screen can say which vintage every figure is (real-data plan
 PR 2). The /population-trends answer carries the same shape keyed by year;
-the /transport answer carries it per field (ridership, stations, wards): the
-国土数値情報 edition each came from; the /land-prices answer per field (price,
+the /transport answer carries it per field (ridership, stations, wards,
+trend): the 国土数値情報 edition each came from — and, beside ``data``, the
+23区 record with 乗降客数推移 as ``total`` (PR 4b); the /land-prices answer per field (price,
 change): the 地価公示 edition; the /zoning answer per field (zoning, wards,
 asOf): the 都市計画決定情報 edition, the ward polygons and the data list the
 時点 is read from — and, beside ``data``, the 23区 composition as ``total``.
@@ -251,10 +252,17 @@ async def get_transport() -> JSONResponse:
     (main.py), so this route has no partial or failed answer of its own.
     ``isLive`` is True: the figures are the source's own, not a sample.
     ``sources`` names, per field, the 国土数値情報 edition and its year.
+
+    Real-data plan PR 4b: beside ``data``, ``total`` carries 乗降客数推移 — a
+    fixed panel of S12 rows summed for 東京23区 and for each ward over 2018
+    and 2020–2024, each view with its coverage, and 2019 as a gap with its
+    reason. A station record may carry ``remarks`` (its figure rows' 備考) and
+    ``countedElsewhere`` (S12 counts it on another row, named or not).
     """
     snapshot = transport.get(settings.STATIONS_PATH)
     return _envelope(
         transport.rows(snapshot),
         is_live=True,
         sources=transport.sources(snapshot),
+        total=transport.total(snapshot),
     )

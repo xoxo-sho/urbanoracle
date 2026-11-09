@@ -119,8 +119,58 @@ export interface TransportStation {
   ward?: string;
   wardCode?: string;
   operators?: StationOperator[];
-  /** Why the figure is null, when the source says (e.g. counted on another row). */
+  /** Each figure row's 備考 of the year, as the source writes it (what else the row's figure contains). */
+  remarks?: StationRemark[];
+  /**
+   * The source counts this station on another row (国土数値情報 S12 重複コード 2
+   * on every row of it): the cell's label, and the rows whose 備考 name it —
+   * none when the source names no row (real-data plan PR 4b).
+   */
+  countedElsewhere?: CountedElsewhere;
+  /** Where the figure is counted, as a sentence — present when the source names the row. */
   note?: string;
+}
+
+export interface StationRemark {
+  operator: string;
+  line: string;
+  text: string;
+}
+
+export interface CountedElsewhere {
+  label: string;
+  targets: { ward: string; wardCode: string; station: string; operator: string; line: string; remark: string }[];
+}
+
+/**
+ * One view of 乗降客数推移 (real-data plan PR 4b): 東京23区 or a ward. The
+ * series sums a fixed panel of units — not every station — so each view says
+ * how many of its units the panel holds and what the panel's sum is beside
+ * the view's 日間乗降客 in the last year.
+ */
+export interface RidershipTrendView {
+  code: string;
+  name: string;
+  units: number;
+  panelUnits: number;
+  passengers: number;
+  panelPassengers: number;
+  series: { year: number; passengers: number }[];
+}
+
+/** 乗降客数推移 as /api/v1/transport sends it: the years drawn, each year left out with its reason, the views. */
+export interface RidershipTrend {
+  panel: string;
+  years: number[];
+  gaps: { year: number; text: string }[];
+  views: RidershipTrendView[];
+}
+
+/** The /transport `total`: the 23区 record carrying 乗降客数推移. */
+export interface TransportTotal {
+  code: string;
+  name: string;
+  trend?: RidershipTrend;
 }
 
 /** An attribute's area-weighted mean and the min–max of the polygon values (%). */
@@ -209,12 +259,6 @@ export interface PopulationTrend {
   year: number;
   population: number;
   region: string;
-}
-
-export interface TransportTrend {
-  year: number;
-  passengers: number;
-  station: string;
 }
 
 /** The /land-prices `total` (real-data plan PR 8): the 23区 figures over every point. */

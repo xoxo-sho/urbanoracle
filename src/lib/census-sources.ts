@@ -109,6 +109,16 @@ export function transportLine(sources: FieldSources | null | undefined): string 
     .join(" ／ ");
 }
 
+/**
+ * The provenance line of 乗降客数推移 (real-data plan PR 4b):
+ * 「2018年度・2020〜2024年度 国土数値情報 駅別乗降客数データ（S12-25）」 — the years
+ * as the payload's trend names them, the table from its `sources.trend`.
+ */
+export function ridershipTrendLine(sources: FieldSources | null | undefined, yearsLabel: string): string {
+  const t = sources?.trend;
+  return `${yearsLabel} 国土数値情報 駅別乗降客数データ${t ? `（${t.table}）` : ""}`;
+}
+
 /** The compact line a key-metric tile shows under its figure: the year and the table. */
 export function transportTileLine(source: FieldSource): string {
   return `${source.year}年度 国土数値情報 ${source.table}`;

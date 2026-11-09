@@ -146,8 +146,10 @@ describe("key metrics consume status", () => {
   });
 });
 
-describe("dashboard footer — per-surface truth, two groups", () => {
-  it("has a live group and a sample group, and no source that is not fetched", () => {
+describe("dashboard footer — per-surface truth", () => {
+  // Real-data plan PR 4b: the last sample surface (乗降客数推移) reads the S12
+  // panel, so the footer's sample group renders nothing; PR 9 deletes it.
+  it("has a live group and no sample group, and no source that is not fetched", () => {
     gate.state = LIVE;
     const { container } = render(<Home />);
     const footer = container.querySelector("footer");
@@ -157,8 +159,8 @@ describe("dashboard footer — per-surface truth, two groups", () => {
     const live = footer!.querySelector('[data-provenance="live"]');
     const sample = footer!.querySelector('[data-provenance="sample"]');
     expect(live).not.toBeNull();
-    expect(sample).not.toBeNull();
-    expect(sample!.textContent).toContain(SAMPLE);
+    expect(sample).toBeNull();
+    expect(text).not.toContain(SAMPLE);
 
     for (const label of NOT_LIVE_SOURCES) expect(text).not.toContain(label);
     expect(text).not.toContain(OLD_BLANKET_FOOTER);
