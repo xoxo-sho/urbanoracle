@@ -6,7 +6,6 @@ import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
 import {
   dataLayers,
   sampleTransportTrends,
-  sampleWardProfiles,
 } from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
@@ -29,7 +28,6 @@ import WardTable from "@/components/dashboard/WardTable";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import DisasterRiskPanel from "@/components/dashboard/DisasterRiskPanel";
 import TransportPanel from "@/components/dashboard/TransportPanel";
-import WardRadar from "@/components/dashboard/WardRadar";
 import MapLegend from "@/components/map/MapLegend";
 
 /**
@@ -63,9 +61,9 @@ const REAL_SOURCE_STRINGS = [
   "ハザードマップポータル",
 ];
 
-// The 人口 and 災害 choropleths (WARD_META in ward-boundaries.ts) are neither
-// live nor the sample set — a hardcoded table, and their legend says so in
-// these words. The 地価 choropleth left WARD_META in real-data plan PR 5.
+// The words the hardcoded-table choropleths (WARD_META) used to carry. The 地価
+// fill left WARD_META in real-data plan PR 5, 災害 in PR 7 and 人口 in PR 8 (it
+// reads the 2025 census payload), so no legend may say them any more.
 const CHOROPLETH_NOTE = "固定の参考値 — 実データではありません";
 
 function occurrences(haystack: string, needle: string): number {
@@ -86,19 +84,17 @@ function expectSampleLabelled(root: HTMLElement, surfaces: number) {
 describe("sample surfaces carry the sample label and no real-source attribution", () => {
 
 
-  it("WardRadar — profiles are sample", () => {
-    const { container } = render(<WardRadar profiles={sampleWardProfiles} selectedWard={null} />);
-    expectSampleLabelled(container, 1);
-  });
-
-  describe("MapLegend — the 人口 choropleth is a hardcoded table (WARD_META); 災害 left it in real-data plan PR 7", () => {
+  describe("MapLegend — no choropleth is a hardcoded table any more (人口 left WARD_META in real-data plan PR 8)", () => {
     const withOnly = (id: string) => dataLayers.map((l) => ({ ...l, enabled: l.id === id }));
 
-    it("demographics layer legend says 固定の参考値", () => {
-      const { container } = render(<MapLegend layers={withOnly("demographics")} transportStatus="ok" landPriceStatus="ok" disasterStatus="ok" />);
+    it("demographics layer legend: no 固定の参考値, no sample label; it cites the 2025 census", () => {
+      const { container } = render(
+        <MapLegend layers={withOnly("demographics")} transportStatus="ok" landPriceStatus="ok" disasterStatus="ok" censusStatus="ok" censusSources={DEMOGRAPHICS_SOURCES} densityStops={[1, 2, 3]} />
+      );
       const text = container.textContent ?? "";
-      expect(text).toContain(CHOROPLETH_NOTE);
-      for (const real of REAL_SOURCE_STRINGS) expect(text).not.toContain(real);
+      expect(text).not.toContain(CHOROPLETH_NOTE);
+      expect(text).not.toContain(SAMPLE_LABEL);
+      expect(text).toContain("2025年国勢調査");
     });
 
     it("disaster-risk legend: no 固定の参考値 and no 「ハザードマップ（実データ）」; the tiles' 出典 is named", () => {

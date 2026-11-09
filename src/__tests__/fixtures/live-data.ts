@@ -555,3 +555,78 @@ export function loadHeroSpread(): HeroSpreadFile {
   }
   return JSON.parse(text) as HeroSpreadFile;
 }
+
+// ---- 23区の中での位置 (real-data plan PR 8) ----------------------------------------
+//
+// The comparison table reads every endpoint. For the census it needs all 23
+// wards, so the /demographics answer is rebuilt here from PR 2's committed
+// expected values (backend/tests/fixtures/census_2025/expected.json) the way
+// backend/services/demographics.py transform_census shapes it — population,
+// density = round(population ÷ 面積調 area), the area itself (areaKm2, PR 8),
+// the growth rate and the age shares. Nothing is typed by hand.
+
+type CensusExpected = {
+  name: string;
+  population: number;
+  population_2020: number;
+  area_km2: number;
+  growth_rate: number;
+  age_share: { young: number; working: number; elderly: number };
+};
+
+export const CENSUS_EXPECTED: Record<string, CensusExpected> = expected.wards as Record<string, CensusExpected>;
+
+export const CENSUS_ROWS: (DemographicsData & { areaKm2: number })[] = Object.values(CENSUS_EXPECTED).map((w) => ({
+  region: w.name,
+  population: w.population,
+  density: Math.round(w.population / w.area_km2),
+  areaKm2: w.area_km2,
+  growthRate: w.growth_rate,
+  ageGroups: {
+    young: Math.max(0, Math.min(100, Math.round(w.age_share.young))),
+    working: Math.max(0, Math.min(100, Math.round(w.age_share.working))),
+    elderly: Math.max(0, Math.min(100, Math.round(w.age_share.elderly))),
+  },
+}));
+
+/** What /api/v1/green-land-use serves (backend/data/green_land_use.json, built by etl/green.py). */
+export interface GreenSnapshotRecord {
+  code: string;
+  name: string;
+  totalHa: number;
+  greenHa: number;
+  share: number;
+  classes: { key: string; name: string; ha: number }[];
+}
+
+export interface GreenSnapshot {
+  region: string;
+  year: number;
+  label: string;
+  sources: FieldSources;
+  credit: { tokyo: string; tokyo_edited: string };
+  total: GreenSnapshotRecord;
+  wards: GreenSnapshotRecord[];
+}
+
+export function loadGreenSnapshot(): GreenSnapshot {
+  const file = path.join(process.cwd(), "backend", "data", "green_land_use.json");
+  let text: string;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    throw new Error(`no green snapshot at ${file} — etl/green.py build has not been run`);
+  }
+  return JSON.parse(text) as GreenSnapshot;
+}
+
+export type GreenRecord = Omit<GreenSnapshotRecord, "name"> & { region: string };
+const greenRecord = ({ name, ...rest }: GreenSnapshotRecord): GreenRecord => ({ ...rest, region: name });
+export const greenSnapshotRows = (s: GreenSnapshot): GreenRecord[] => s.wards.map(greenRecord);
+export const greenSnapshotTotal = (s: GreenSnapshot): GreenRecord => greenRecord(s.total);
+
+/** The /land-prices 23区 figures over every point (the snapshot's `total`, PR 8's additive envelope key). */
+export function landPricesSnapshotTotal(snapshot: LandPricesSnapshot) {
+  const t = (snapshot as unknown as { region: string; total: { n: number; residential: unknown; commercial: unknown; industrial: { n: number } } });
+  return { region: t.region, n: t.total.n, residential: t.total.residential, commercial: t.total.commercial, industrial: { n: t.total.industrial.n } };
+}

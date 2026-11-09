@@ -32,7 +32,7 @@ const REMOVED_SOURCE = "不動産情報ライブラリ";
 describe("landing page hero", () => {
   // Real-data plan PR 7 (Architect decision 11): the hero's rows are measured —
   // L01 住宅地 変動率 with the ward's 地域危険度 and 洪水 figures — so it carries
-  // no sample label; the sample group of the table below still exists (radar).
+  // no sample label; the sample group of the table below still exists (乗降客数推移).
   it("carries no sample label", () => {
     const { container } = render(<LandingPage />);
     const hero = container.querySelector("[data-hero-spread]");

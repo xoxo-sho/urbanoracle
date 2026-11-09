@@ -22,12 +22,14 @@ const SERVES_EXPORT = !process.env.APP_CREDITS_BASE_URL;
 // /demographics answers with a real-shaped fixture (the sample set it used
 // to fall back to left in real-data plan PR 1); /transport answers from the
 // committed 国土数値情報 station snapshot itself (PR 4); /disaster-risks from the
-// committed 災害 snapshot (PR 7) — the sample list it used to serve is gone.
+// committed 災害 snapshot (PR 7) — the sample list it used to serve is gone;
+// /green-land-use from the committed 土地利用 snapshot (PR 8).
 const disaster = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "disaster_risks.json"), "utf8")) as {
   sources: Record<string, unknown>;
   total: { name: string } & Record<string, unknown>;
   wards: ({ name: string } & Record<string, unknown>)[];
 };
+const green = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "green_land_use.json"), "utf8")) as typeof disaster;
 const disasterRecord = ({ name, ...rest }: { name: string } & Record<string, unknown>) => ({ ...rest, region: name });
 const live = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "live-api.json"), "utf8"));
 interface SnapshotStation {
@@ -119,6 +121,7 @@ const API: Record<string, unknown> = {
   "/api/v1/land-prices": { status: "ok", data: landPriceRows, isLive: true, sources: landPrices.sources },
   "/api/v1/transport": { status: "ok", data: stationRows, isLive: true, sources: stationsSnapshot.sources },
   "/api/v1/disaster-risks": { status: "ok", data: disaster.wards.map(disasterRecord), isLive: true, sources: disaster.sources, total: disasterRecord(disaster.total) },
+  "/api/v1/green-land-use": { status: "ok", data: green.wards.map(disasterRecord), isLive: true, sources: green.sources, total: disasterRecord(green.total) },
   "/api/v1/population-trends": { status: "ok", data: trendRows, isLive: true, sources: trends.sources },
   "/api/v1/auth/me": { status: "active", email_verified: true, role: "user" },
 };

@@ -1,0 +1,19 @@
+{
+ "fetched": "2026-11-09",
+ "title": "東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）",
+ "url": "https://www.toshiseibi.metro.tokyo.lg.jp/seisaku/tochi_c/pdf/tochi_r3/tochi_r3_01.csv",
+ "served_at": "https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/csv_seisaku_tochi_c_pdf_tochi_r3_tochi_r3_01",
+ "index": "https://www.toshiseibi.metro.tokyo.lg.jp/about/chousa/tochi_c/tochi_kekka_r3/list",
+ "api_page": "https://spec.api.metro.tokyo.lg.jp/spec/t000008d2000000016-d6caababf14359878916424ed55bc222-0?lang=ja",
+ "catalog": "https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d2000000016",
+ "file": "tochi_r3_01.csv",
+ "bytes": 2506,
+ "sha256": "dc807361a6613a514d1c0384ad89146d1fb990d55e27440f0877e0b762b114b7",
+ "encoding": "cp932",
+ "committed": "whole, byte for byte",
+ "licence_evidence": {
+  "api_page_licence": "クリエイティブ・コモンズ 表示（CC BY）",
+  "api_page_created": "2023/09/27 02:34:00",
+  "catalog_status": 403
+ }
+}

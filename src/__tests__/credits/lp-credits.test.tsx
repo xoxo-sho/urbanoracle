@@ -34,6 +34,10 @@ const KSJ_A33_EDITED = "「国土数値情報（土砂災害警戒区域デー�
 const KSJ_A40_EDITED = "「国土数値情報（津波浸水想定データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_A49_EDITED = "「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const HAZARD_PORTAL_SOURCE = "出典：ハザードマップポータルサイト";
+// Real-data plan PR 8 (decision 6): the 都市整備局 土地利用現況調査 table, CC BY on the
+// 東京都オープンデータAPIカタログ, in the same 2(1)ア/イ form — the share is computed from it.
+const TOCHI_EDITED =
+  "このサービスは、以下の著作物を改変して利用しています。東京の土地利用 令和３年東京都区部（表－１）令和３年土地面積（区部・区別）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
 const RETIRED = "OD" + "PT";
 const RETIRED_JA = "公共交通オープン" + "データ";
 const BOUNDARY_SOURCE = "dataofjapan/land（出典：地球地図日本）";
@@ -74,7 +78,7 @@ describe("landing page データ出典 — Japanese", () => {
     expect(text).toContain(KSJ_N03_EDITED);
     expect(text).toContain(KSJ_L01_EDITED);
     expect(text).toContain(KSJ_A55_EDITED);
-    for (const line of [KIKENDO_EDITED, KSJ_A31_EDITED, KSJ_A33_EDITED, KSJ_A40_EDITED, KSJ_A49_EDITED, HAZARD_PORTAL_SOURCE]) expect(text).toContain(line);
+    for (const line of [KIKENDO_EDITED, KSJ_A31_EDITED, KSJ_A33_EDITED, KSJ_A40_EDITED, KSJ_A49_EDITED, HAZARD_PORTAL_SOURCE, TOCHI_EDITED]) expect(text).toContain(line);
     for (const notice of A55_NOTICES) expect(text).toContain(notice);
     expect(text).not.toMatch(/をもとに.*作成/);
     expect(container.textContent).not.toContain(RETIRED);
@@ -115,6 +119,7 @@ describe("landing page データ出典 — English", () => {
       [KSJ_A40_EDITED, "Translation: Created by processing the National Land Numerical Information (tsunami inundation data)"],
       [KSJ_A49_EDITED, "Translation: Created by processing the National Land Numerical Information (storm surge inundation area data)"],
       [HAZARD_PORTAL_SOURCE, "Translation: Source: Hazard Map Portal Site"],
+      [TOCHI_EDITED, "Translation: Land use in Tokyo, 2021, ward area (Table 1)"],
     ]) {
       expect(text).toContain(ja);
       expect(text).toContain(en);

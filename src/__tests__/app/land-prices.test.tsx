@@ -555,10 +555,9 @@ describe("credits — the 加工 form with no editor name, beside the figures an
     expect(sample).not.toContain("区別平均地価");
     expect(sample).not.toContain("地価列");
     expect(sample).not.toContain("密度 vs 地価");
-    // The fixed-value choropleth note now covers only the layers still on WARD_META.
-    // Real-data plan PR 7: the 災害 fill left WARD_META; only 人口 stays on the fixed table.
-    expect(sample).toContain("地図の塗り分け（人口）");
-    expect(sample).not.toContain("地図の塗り分け:");
+    // Real-data plan PR 8: the 人口 fill left WARD_META, the last layer on the
+    // fixed table, so no map fill is listed as sample any more.
+    expect(sample).not.toContain("塗り分け");
   });
 });
 
