@@ -19,6 +19,9 @@ PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"\x00" * 64
 GIF_BYTES = b"GIF89a" + b"\x00" * 64
 WEBP_BYTES = b"RIFF" + b"\x00\x00\x00\x00" + b"WEBP" + b"\x00" * 64
+WOFF2_BYTES = b"wOF2" + b"\x00" * 64
+# Named as scripts/vendor-fonts.mjs names them: <subset>-<first 16 hex of sha256>.woff2
+VENDORED_FONT = "latin-0123456789abcdef.woff2"
 
 
 @pytest.fixture()
@@ -37,6 +40,12 @@ def site(tmp_path):
 
     # The extensionless metadata route, exactly as Next emits it.
     (tmp_path / "opengraph-image").write_bytes(PNG_BYTES)
+
+    # The vendored web fonts (public/fonts → out/fonts): content-hashed woff2
+    # files beside their licence.
+    (tmp_path / "fonts" / "geist").mkdir(parents=True)
+    (tmp_path / "fonts" / "geist" / VENDORED_FONT).write_bytes(WOFF2_BYTES)
+    (tmp_path / "fonts" / "geist" / "OFL.txt").write_text("SIL OPEN FONT LICENSE Version 1.1")
     return tmp_path
 
 
@@ -194,6 +203,32 @@ def test_hashed_assets_are_immutable(client):
     assert resp.status_code == 200
     assert "immutable" in resp.headers["cache-control"]
     assert "max-age=31536000" in resp.headers["cache-control"]
+
+
+def test_vendored_fonts_are_immutable_like_next_static(client):
+    """next/font served these from /_next/static/media with a one-year
+    immutable cache; the vendored copies carry a content hash in their name
+    and keep it. Without the header a browser revalidates every font file on
+    every visit."""
+    resp = client.get(f"/fonts/geist/{VENDORED_FONT}")
+    assert resp.status_code == 200
+    assert resp.content == WOFF2_BYTES
+    assert resp.headers["content-type"] == "font/woff2"
+    assert resp.headers.get("cache-control") == "public, max-age=31536000, immutable"
+
+
+def test_the_font_licence_is_served_but_not_cached_forever(client):
+    # OFL.txt has no content hash in its name, so it must stay replaceable.
+    resp = client.get("/fonts/geist/OFL.txt")
+    assert resp.status_code == 200
+    assert "SIL OPEN FONT LICENSE" in resp.text
+    assert "immutable" not in resp.headers.get("cache-control", "")
+
+
+def test_a_missing_font_is_a_404_not_the_landing_page(client):
+    resp = client.get("/fonts/geist/latin-ffffffffffffffff.woff2")
+    assert resp.status_code == 404
+    assert "UrbanOracle" not in resp.text
 
 
 @pytest.mark.parametrize(("header", "value"), SECURITY_HEADERS.items())
