@@ -249,7 +249,7 @@ def test_route_serves_the_23_wards_with_both_uses_and_their_counts(client, built
     resp = client.get(ROUTE, headers=ACTIVE)
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
-    assert body["status"] == "ok" and body["isLive"] is True
+    assert body["status"] == "ok" and "isLive" not in body
     assert "unavailable" not in body and "fetchedAt" not in body
     rows = body["data"]
     assert [r["code"] for r in rows] == WARD_CODES

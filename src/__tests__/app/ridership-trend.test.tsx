@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -53,7 +53,6 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import Home from "@/app/app/page";
 import LandingPage from "@/app/page";
-import * as sampleModule from "@/data/sample";
 import {
   DEMOGRAPHICS_FIXTURE,
   DEMOGRAPHICS_SOURCES,
@@ -134,12 +133,12 @@ function serve(routes: Record<string, Route>) {
 
 async function renderSettled(transport: Route = TRANSPORT) {
   const mock = serve({
-    "/api/v1/demographics": json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES }),
+    "/api/v1/demographics": json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES }),
     [TRANSPORT_ROUTE]: transport,
-    "/api/v1/disaster-risks": json(200, { data: [], isLive: false }),
-    "/api/v1/population-trends": json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES }),
-    "/api/v1/land-prices": json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES }),
-    "/api/v1/zoning": json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL }),
+    "/api/v1/disaster-risks": json(200, { status: "ok", data: [] }),
+    "/api/v1/population-trends": json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES }),
+    "/api/v1/land-prices": json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES }),
+    "/api/v1/zoning": json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL }),
     "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
@@ -363,7 +362,7 @@ describe("T3 — the states of the tab, never a sample", () => {
 
   it("an answer without the trend says データなし for it — no point, no sample — and keeps the stations", async () => {
     const body = transportPayload(snapshot);
-    await renderSettled(json(200, { status: body.status, data: body.data, isLive: true, sources: body.sources }));
+    await renderSettled(json(200, { status: body.status, data: body.data, sources: body.sources }));
     const tab = openTab("交通");
     const trend = surface(tab, "ridership-trend");
     expect(trend.textContent).toContain(NO_DATA);
@@ -563,8 +562,8 @@ describe("no sample is left on the dashboard, in its footer or on the LP", () =>
     expect(live).toContain("2018");
   });
 
-  it("src/data/sample.ts exports dataLayers and nothing else", () => {
-    expect(Object.keys(sampleModule)).toEqual(["dataLayers"]);
+  it("src/data/sample.ts is gone (real-data plan PR 9; the layer list lives in src/lib/layers.ts)", () => {
+    expect(existsSync(path.join(process.cwd(), "src/data/sample.ts"))).toBe(false);
   });
 
   it("nothing under src/ names sampleTransportTrends or the TransportTrend type — tests included", () => {

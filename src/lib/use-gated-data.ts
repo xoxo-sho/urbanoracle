@@ -18,7 +18,8 @@ import type { FieldSource, FieldSources } from "@/types";
  *                failure, or a 2xx body without `data`
  *
  * The states are never merged: a consumer renders 読み込み中, 取得失敗, or the
- * figures — and never a stale or sample number in their place.
+ * figures — and never a stale or sample number in their place. `status` is the
+ * only signal (real-data plan PR 9): there is no separate provenance flag.
  */
 export type DataStatus = "loading" | "ok" | "partial" | "unavailable";
 
@@ -28,8 +29,6 @@ export interface DataState<T, X = unknown> {
   data: T | null;
   /** Record fields the server could not fill (status partial); [] otherwise. */
   unavailable: string[];
-  /** Whether the figures came from the upstream source (the /disaster-risks payload is still the sample set). */
-  isLive: boolean;
   /** When the server obtained the live data from upstream (ISO 8601), if it says. */
   fetchedAt: string | null;
   /** Per record field, the year and table the figures came from, if the server says; {} otherwise. */
@@ -42,7 +41,6 @@ const LOADING: DataState<never, never> = {
   status: "loading",
   data: null,
   unavailable: [],
-  isLive: false,
   fetchedAt: null,
   sources: {},
   total: null,
@@ -52,7 +50,6 @@ const UNAVAILABLE: DataState<never, never> = {
   status: "unavailable",
   data: null,
   unavailable: [],
-  isLive: false,
   fetchedAt: null,
   sources: {},
   total: null,
@@ -103,7 +100,6 @@ function fromBody<T, X>(raw: unknown): DataState<T, X> {
     status?: unknown;
     data?: unknown;
     unavailable?: unknown;
-    isLive?: unknown;
     fetchedAt?: unknown;
     sources?: unknown;
     total?: unknown;
@@ -118,7 +114,6 @@ function fromBody<T, X>(raw: unknown): DataState<T, X> {
     status: body.status === "partial" || unavailable.length > 0 ? "partial" : "ok",
     data: body.data as T,
     unavailable,
-    isLive: Boolean(body.isLive),
     fetchedAt: typeof body.fetchedAt === "string" ? body.fetchedAt : null,
     sources: fieldSources(body.sources),
     total: body.total && typeof body.total === "object" ? (body.total as X) : null,

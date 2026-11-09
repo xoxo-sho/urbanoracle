@@ -194,7 +194,7 @@ def test_route_is_401_without_a_token_and_403_pending(client):
 
 def test_route_serves_the_23_wards_the_23_ward_figure_and_the_source(client, built):
     body = client.get(ROUTE, headers=ACTIVE).json()
-    assert body["status"] == "ok" and body["isLive"] is True
+    assert body["status"] == "ok" and "isLive" not in body
     assert [r["code"] for r in body["data"]] == WARD_CODES
     assert body["data"] == [_client_shape(w) for w in built["wards"]]
     assert body["total"] == _client_shape(built["total"])

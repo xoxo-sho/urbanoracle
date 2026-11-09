@@ -8,8 +8,8 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
  * ``samplePopulationTrends`` (src/data/sample.ts), whose 2025 figure,
  * 9,820,000, is neither the 速報 nor the 確報.
  *
- * Contract: the route answers with PR 1's envelope (``status``, ``data``,
- * ``isLive``) and PR 2's ``sources`` — per point, the year and the e-Stat table
+ * Contract: the route answers with PR 1's envelope (``status``, ``data``)
+ * and PR 2's ``sources`` — per point, the year and the e-Stat table
  * the figure came from — and the chart renders what the payload says: its
  * points, its years, its tables. Before the answer the chart says 読み込み中;
  * on a failure it says 取得失敗 and names e-Stat; it never shows a sample
@@ -85,15 +85,15 @@ const offline: Route = async () => {
   throw new TypeError("offline");
 };
 
-const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
+const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
-const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
-const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true, fetchedAt: "2026-10-30T00:00:00+00:00" });
-const DISASTER: Route = json(200, { data: [], isLive: false });
+const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES });
+const TRANSPORT: Route = json(200, { status: "ok", data: [], fetchedAt: "2026-10-30T00:00:00+00:00" });
+const DISASTER: Route = json(200, { status: "ok", data: [] });
 // The 地価公示 snapshot route (PR 5): answers so the page settles (land-prices.test.tsx guards it).
-const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES });
 // The 用途地域 snapshot route (PR 6): answers so the page settles (zoning.test.tsx guards it).
-const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL });
+const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL });
 
 /** The same payload with the 2025 point moved to another year and table: what the page must then say. */
 function trendsSaying(year: number, table: string): Route {
@@ -103,7 +103,7 @@ function trendsSaying(year: number, table: string): Route {
       s.year === LATEST_YEAR ? [String(year), { ...s, year, table }] : [key, s]
     )
   );
-  return json(200, { status: "ok", data, isLive: true, sources });
+  return json(200, { status: "ok", data, sources });
 }
 
 function serve(routes: Record<string, Route>) {

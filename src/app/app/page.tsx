@@ -13,7 +13,7 @@ import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
 import ZoningPanel from "@/components/dashboard/ZoningPanel";
-import { dataLayers } from "@/data/sample";
+import { dataLayers } from "@/lib/layers";
 import type {
   DataLayer,
   DemographicsData,
@@ -30,7 +30,6 @@ import type {
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
 import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
-import { SAMPLE_NOTICE } from "@/lib/sources";
 import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
@@ -117,9 +116,6 @@ const TAB_TO_LAYER: Record<string, DataCategory> = {
 };
 
 const RIDERSHIP_FIELD = "dailyPassengers";
-// The surfaces still fed from a sample set, listed in the footer's sample
-// group: none since real-data plan PR 4b. PR 9 deletes the group.
-const SAMPLE_SURFACES: string[] = [];
 const GROWTH_FIELD = "growthRate";
 
 export default function Home() {
@@ -310,7 +306,7 @@ export default function Home() {
                 onSelectWard={setSelectedWard}
                 layers={layers}
                 stations={stations}
-                transportIsLive={transport.status === "ok"}
+                transportStatus={transport.status}
                 landPrices={landPriceRows}
                 landUse={landUse}
                 landPriceStops={landStops}
@@ -511,16 +507,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* データ出典 / Data sources — per-surface truth, two groups (design-spec-v1 §9),
-            plus the credits the providers prescribe (RECON 2026-10-data-terms §7.1).
-            The two live surfaces are listed under 実データ when their endpoint
-            answered in full; while loading, failed or partial they are listed in
-            neither group — nothing is on screen to attribute, and the surface
-            itself says 読み込み中 / 取得失敗. In the scrolling content, at a
-            legible size, never collapsed. */}
+        {/* データ出典 / Data sources — per-surface truth (design-spec-v1 §9), plus
+            the credits the providers prescribe (RECON 2026-10-data-terms §7.1).
+            One group, 実データ: every surface reads a measured source (real-data
+            plan PR 9 deleted the sample group). A surface is listed once its
+            endpoint has answered; while loading or failed it is not listed —
+            nothing is on screen to attribute, and the surface itself says
+            読み込み中 / 取得失敗. In the scrolling content, at a legible size,
+            never collapsed. */}
         <footer className="mt-4 border-t border-border/50 pt-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">
           <h2 className="mb-2 text-[11px] font-semibold tracking-widest text-foreground">データ出典 / Data sources</h2>
-          <div className={SAMPLE_SURFACES.length > 0 ? "grid gap-x-8 gap-y-2 md:grid-cols-2" : "grid gap-y-2"}>
+          <div className="grid gap-y-2">
             <div data-provenance="live">
               <span className="font-medium text-foreground">実データ</span>
               <ul className="space-y-1">
@@ -610,19 +607,6 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            {/* The sample group: no surface is sample since real-data plan PR 4b
-                (乗降客数推移 reads the S12 panel), so it renders nothing. The
-                group and SAMPLE_NOTICE are deleted in PR 9. */}
-            {SAMPLE_SURFACES.length > 0 && (
-              <div data-provenance="sample" className="sample-block">
-                <span className="font-semibold">{SAMPLE_NOTICE}</span>
-                <ul>
-                  {SAMPLE_SURFACES.map((surface) => (
-                    <li key={surface}>{surface}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </footer>
       </main>

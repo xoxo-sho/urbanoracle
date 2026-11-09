@@ -234,7 +234,7 @@ def test_route_serves_the_six_totals_from_the_snapshot(client):
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
     assert body["status"] == "ok"
-    assert body["isLive"] is True
+    assert "isLive" not in body
     rows = _rows(body)
     served = {y: rows[(REGION, y)] for y in YEARS}
     assert served == EXPECTED_TOTALS, f"(served, source): {served} vs {EXPECTED_TOTALS}"

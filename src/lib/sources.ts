@@ -27,21 +27,6 @@ export const SOURCES = {
     label: "DisasterShield（Beta）",
     href: "",
   },
-  sample: {
-    label: "サンプルデータ（暫定）",
-    href: "",
-  },
 } as const;
 
 export type SourceKey = keyof typeof SOURCES;
-
-/**
- * The visible warning on every surface fed from src/data/sample.ts, or from
- * the hook's fallback to it. A warning, not a citation: a sample number
- * attributed to a ministry is a false claim, and this line is what replaces
- * that claim.
- */
-export const SAMPLE_NOTICE = `${SOURCES.sample.label}— 実データではありません`;
-
-// The 「固定の参考値」 note left with real-data plan PR 8: the last fill on the
-// hardcoded ward table, 人口, reads the 2025 census payload; every fill is its snapshot's.

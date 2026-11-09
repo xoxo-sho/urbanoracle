@@ -44,7 +44,7 @@ interface MapLegendProps {
 
 // Every ward fill is its payload's: 地価 since real-data plan PR 5, 災害 since
 // PR 7 and 人口 since PR 8 (the 2025 census density). No fill reads a
-// hardcoded table any more, so no legend carries 「固定の参考値」.
+// hardcoded table.
 
 // The 人口 ramp's three colours, low to high; the stops themselves come from the data.
 const DENSITY_COLORS = ["var(--chart-5)", "var(--chart-4)", "var(--chart-3)"];

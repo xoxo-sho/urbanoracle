@@ -22,15 +22,14 @@ import {
  *
  * Flipped in PR 1: the hook has no fallback, so an endpoint that has not
  * answered is `unavailable` with no data — the page shows 取得失敗, never a
- * sample figure with a sample label. Only /disaster-risks still has a sample
- * set behind it (PR 7).
+ * sample figure with a sample label. No endpoint has a sample set behind it
+ * (the last, /disaster-risks, left in PR 7; the sample layer itself in PR 9).
  */
 
 type Partial = {
   status?: "loading" | "ok" | "partial" | "unavailable";
   data?: unknown;
   unavailable?: string[];
-  isLive?: boolean;
   fetchedAt?: string | null;
   sources?: Record<string, { year: number; table: string; label: string }>;
   total?: unknown;
@@ -51,7 +50,6 @@ vi.mock("@/lib/use-gated-data", () => ({
     status: "unavailable",
     data: null,
     unavailable: [],
-    isLive: false,
     fetchedAt: null,
     sources: {},
     total: null,
@@ -61,7 +59,8 @@ vi.mock("@/lib/use-gated-data", () => ({
 
 import Home from "@/app/app/page";
 
-const SAMPLE = SOURCES.sample.label;
+// The deleted sample label, written out: SOURCES has no sample entry since real-data plan PR 9.
+const SAMPLE = "サンプルデータ";
 const REAL_SOURCE_STRINGS = ["不動産情報ライブラリ", "e-Stat", "国勢調査", "国土数値情報", "ハザードマップポータル"];
 
 // Live on the current code path (backend/routers/data.py + the client-side
@@ -78,9 +77,9 @@ const OLD_BLANKET_FOOTER = "出典: 不動産情報ライブラリ（国土交�
 const REMOVED_SOURCE = "不動産情報ライブラリ";
 
 const LIVE = {
-  "/api/v1/demographics": { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true },
-  "/api/v1/transport": { status: "ok", data: STATIONS_FIXTURE, isLive: true, sources: TRANSPORT_SOURCES },
-  "/api/v1/zoning": { status: "ok", data: ZONING_FIXTURE, isLive: true, sources: ZONING_SOURCES, total: ZONING_TOTAL },
+  "/api/v1/demographics": { status: "ok", data: DEMOGRAPHICS_FIXTURE },
+  "/api/v1/transport": { status: "ok", data: STATIONS_FIXTURE, sources: TRANSPORT_SOURCES },
+  "/api/v1/zoning": { status: "ok", data: ZONING_FIXTURE, sources: ZONING_SOURCES, total: ZONING_TOTAL },
 } satisfies Record<string, Partial>;
 
 function keyMetric(container: HTMLElement, caption: string): HTMLElement {
@@ -148,7 +147,7 @@ describe("key metrics consume status", () => {
 
 describe("dashboard footer — per-surface truth", () => {
   // Real-data plan PR 4b: the last sample surface (乗降客数推移) reads the S12
-  // panel, so the footer's sample group renders nothing; PR 9 deletes it.
+  // panel; PR 9 deleted the footer's sample group (no-sample-layer.test.tsx).
   it("has a live group and no sample group, and no source that is not fetched", () => {
     gate.state = LIVE;
     const { container } = render(<Home />);

@@ -109,7 +109,7 @@ def test_active_gets_data(client, estat_stub, route):
     body = resp.json()
     assert body["status"] in ("ok", "partial")
     assert isinstance(body["data"], list) and body["data"]
-    assert isinstance(body["isLive"], bool)
+    assert "isLive" not in body
 
 
 @pytest.mark.parametrize("route", DATA_ROUTES)
@@ -119,23 +119,77 @@ def test_every_response_is_strictly_valid_json(client, estat_stub, route):
     json.loads(resp.text, parse_constant=_reject)
 
 
-def test_disaster_risks_is_live_from_the_committed_snapshot(client):
+# --- the envelope: ``status`` is the only signal (real-data plan PR 9) ---------
+#
+# Architect decision 10 (2026-11-09): ``isLive`` leaves every response. It only
+# ever meant "not the sample set", and no route has served a sample set since
+# PR 7. What a client needs to know is in ``status`` (ok / partial, or 503
+# unavailable — PR 1). RED on main (d1eda4e): every 200 body carried the flag.
+
+ENVELOPE_KEYS = {"status", "data", "unavailable", "sources", "total"}
+
+
+@pytest.mark.parametrize("route", DATA_ROUTES)
+def test_no_ok_answer_carries_is_live(client, estat_stub, route):
+    body = client.get(route, headers={"Authorization": "Bearer active-token"}).json()
+    assert body["status"] == "ok"
+    assert "isLive" not in body, sorted(body)
+    # No renamed flag either: the envelope is these keys and nothing else.
+    assert set(body) <= ENVELOPE_KEYS, sorted(set(body) - ENVELOPE_KEYS)
+
+
+def test_the_partial_answer_carries_status_and_no_is_live(client, estat_stub, monkeypatch):
+    from services import demographics
+
+    async def growth_down():
+        raise RuntimeError("e-Stat growth table down")
+
+    monkeypatch.setattr(demographics, "fetch_growth_rates", growth_down)
+    resp = client.get("/api/v1/demographics", headers={"Authorization": "Bearer active-token"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "partial" and body["unavailable"] == ["growthRate"]
+    assert "isLive" not in body, sorted(body)
+    assert set(body) <= ENVELOPE_KEYS, sorted(set(body) - ENVELOPE_KEYS)
+
+
+def test_no_backend_module_names_is_live():
+    """Nothing the server runs builds or documents the flag: no ``isLive`` key
+    and no ``is_live`` argument in main.py or under routers/, services/, core/,
+    middleware/ or db/."""
+    import re
+    from pathlib import Path
+
+    backend = Path(__file__).resolve().parents[1]
+    modules = [backend / "main.py"]
+    for folder in ("routers", "services", "core", "middleware", "db"):
+        modules += sorted((backend / folder).rglob("*.py"))
+    assert len(modules) > 10, [str(m.relative_to(backend)) for m in modules]
+    hits = [
+        str(path.relative_to(backend))
+        for path in modules
+        if re.search(r"is_?live", path.read_text(encoding="utf-8"), re.IGNORECASE)
+    ]
+    assert hits == [], hits
+
+
+def test_disaster_risks_is_the_committed_snapshot(client):
     """Real-data plan PR 7: the 災害 figures are the committed snapshot's
     (東京都 地域危険度 第9回 + 国土数値情報 A31a / A33 / A40 / A49), validated at
     startup — the sample list with its Lv.1–5 and isLive false is gone."""
     body = client.get("/api/v1/disaster-risks", headers={"Authorization": "Bearer active-token"}).json()
-    assert body["isLive"] is True
+    assert "isLive" not in body
     assert body["status"] == "ok"
     assert set(body["sources"]) >= {"earthquake", "flood", "landslide", "tsunami", "hightide"}
     assert all("level" not in r for r in body["data"])
 
 
-def test_transport_is_live_and_complete_from_the_committed_snapshot(client):
+def test_transport_is_complete_from_the_committed_snapshot(client):
     """Real-data plan PR 4: the stations and their ridership are the committed
     国土数値情報 S12 snapshot, validated at startup — no upstream, so no partial
     answer and no 取得日時 to show."""
     body = client.get("/api/v1/transport", headers={"Authorization": "Bearer active-token"}).json()
-    assert body["isLive"] is True
+    assert "isLive" not in body
     assert body["status"] == "ok"
     assert "unavailable" not in body and "fetchedAt" not in body
     assert body["sources"]["ridership"]["table"].startswith("S12")
@@ -147,7 +201,7 @@ def test_land_prices_is_the_committed_snapshot_not_reinfolib(client):
     国土数値情報 地価公示 snapshot — validated at startup, no upstream, so no
     partial answer and no 取得日時."""
     body = client.get("/api/v1/land-prices", headers={"Authorization": "Bearer active-token"}).json()
-    assert body["isLive"] is True
+    assert "isLive" not in body
     assert body["status"] == "ok"
     assert "unavailable" not in body and "fetchedAt" not in body
     assert body["sources"]["price"]["table"].startswith("L01")
@@ -158,7 +212,7 @@ def test_zoning_is_the_committed_snapshot(client):
     国土数値情報 A55-24 snapshot, validated at startup — no upstream, so no
     partial answer and no 取得日時; the 23区 composition rides as ``total``."""
     body = client.get("/api/v1/zoning", headers={"Authorization": "Bearer active-token"}).json()
-    assert body["isLive"] is True
+    assert "isLive" not in body
     assert body["status"] == "ok"
     assert "unavailable" not in body and "fetchedAt" not in body
     assert body["sources"]["zoning"]["table"].startswith("A55")

@@ -217,7 +217,7 @@ interface ZoningArea {
 | Phase 0 | プロジェクトセットアップ・技術選定 | 完了 |
 | Phase 1 | 地図表示 + サンプルデータでのダッシュボード | 完了 |
 | Phase 2 | UI/UX リファイン（Glass UI、アニメーション） | 完了 |
-| Phase 3 | 実データ API 連携（国土数値情報・e-Stat） | 未着手 |
+| Phase 3 | 実データ API 連携（国土数値情報・e-Stat） | 完了（real-data plan PR 1〜9。サンプルデータ層は削除済み） |
 | Phase 4 | ヒートマップ・ポリゴン表示・3D ビュー | 未着手 |
 | Phase 5 | レスポンシブ対応・パフォーマンス最適化 | 未着手 |
 | Phase 6 | デプロイ・CI/CD・モニタリング | 未着手 |

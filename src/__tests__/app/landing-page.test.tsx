@@ -9,13 +9,14 @@ import LandingPage from "@/app/page";
  * Landing page truth (truth fix, Stage 1a/1c).
  *
  * The LP is public and unauthenticated: it is the surface a stranger reads
- * first. Its hero is sample data and must say so; its データ出典 table must
- * list only what the current code path actually fetches, in two honest
- * groups — 実データ and サンプル（暫定） — and must not promise provenance
- * for "every figure" while some figures have none.
+ * first. Its hero is measured (real-data plan PR 7) and its データ出典 table
+ * must list only what the current code path actually fetches — one group,
+ * 実データ, since the sample group left with real-data plan PR 9 — and must
+ * not promise provenance for "every figure" beyond what the page shows.
  */
 
-const SAMPLE = SOURCES.sample.label;
+// The deleted sample label, written out: SOURCES has no sample entry since real-data plan PR 9.
+const SAMPLE = "サンプルデータ";
 
 // Live-fetched on the current code path: e-Stat (/api/v1/demographics),
 // the 国土数値情報 station snapshot (/api/v1/transport), GSI hazard tiles, the 地理院タイル basemap,

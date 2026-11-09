@@ -3,9 +3,7 @@ import { render } from "@testing-library/react";
 import { SOURCES } from "@/lib/sources";
 import { ESTAT_SOURCE } from "@/lib/credits";
 import { FAILED_TEXT, LOADING_TEXT } from "@/components/dashboard/DataState";
-import {
-  dataLayers,
-} from "@/data/sample";
+import { dataLayers } from "@/lib/layers";
 import {
   DEMOGRAPHICS_FIXTURE,
   DEMOGRAPHICS_SOURCES,
@@ -30,26 +28,21 @@ import TransportPanel from "@/components/dashboard/TransportPanel";
 import MapLegend from "@/components/map/MapLegend";
 
 /**
- * Copy guard — sample surfaces must say so (truth fix, Stage 1a).
+ * Copy guard — no surface carries a sample label, and every attribution names
+ * the source the figures came from (truth fix, Stage 1a).
  *
- * Every surface fed from src/data/sample.ts has to carry SOURCES.sample.label
- * on the surface itself, and must not carry an attribution to an upstream it
- * never touched. One real-source string on a sample panel is a false
- * citation, not a footnote.
- *
- * The count per component is the number of distinct sample surfaces inside
- * it (each chart section is its own surface and gets its own label, in the
- * position the SourceNote used to occupy).
- *
- * Since real-data plan PR 1 the census and ridership surfaces have no sample
- * path, and since PR 3 neither has the 人口推移 chart (its own route, the
- * committed census snapshot): while their endpoint is loading or failed they say 読み込み中 or
- * 取得失敗 and name the source that did not answer, which is a statement about
- * the request, not a citation for figures. Those cases are checked here next
- * to the sample ones, so the two kinds of copy never blur.
+ * The file began as "sample surfaces must say so": every surface fed from
+ * src/data/sample.ts carried the sample label and no upstream's name, because
+ * one real-source string on a sample panel is a false citation. Each real-data
+ * PR then moved a surface to a measured source, and PR 9 deleted the sample
+ * module, its label and its components. What is left is the other half: no
+ * surface shows the deleted label, and while its endpoint is loading or failed
+ * a surface says 読み込み中 or 取得失敗 and names the source that did not
+ * answer — a statement about the request, not a citation for figures.
  */
 
-const SAMPLE_LABEL = SOURCES.sample.label;
+// The deleted sample label, written out: SOURCES has no sample entry since real-data plan PR 9.
+const SAMPLE_LABEL = "サンプルデータ";
 
 // Any of these on a sample surface is a false attribution.
 const REAL_SOURCE_STRINGS = [
@@ -69,7 +62,7 @@ function occurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
-describe("sample surfaces carry the sample label and no real-source attribution", () => {
+describe("no legend carries a sample label or a fixed-value note", () => {
 
 
   describe("MapLegend — no choropleth is a hardcoded table any more (人口 left WARD_META in real-data plan PR 8)", () => {

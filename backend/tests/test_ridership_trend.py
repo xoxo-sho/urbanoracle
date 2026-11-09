@@ -434,7 +434,7 @@ def client(db_session, monkeypatch):
 
 def test_route_sends_the_trend_beside_data_as_total(client, built):
     body = client.get(ROUTE, headers=ACTIVE).json()
-    assert body["status"] == "ok" and body["isLive"] is True
+    assert body["status"] == "ok" and "isLive" not in body
     total = body["total"]
     assert total["code"] == "13100" and total["name"] == "東京23区"
     trend = total["trend"]

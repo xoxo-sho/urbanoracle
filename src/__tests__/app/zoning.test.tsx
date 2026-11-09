@@ -111,18 +111,18 @@ const json =
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const pending: Route = () => new Promise<Response>(() => {});
 
-const ZONING: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES, total: TOTAL });
+const ZONING: Route = json(200, { status: "ok", data: ROWS, sources: SOURCES, total: TOTAL });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
-const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
-const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true });
-const DISASTER: Route = json(200, { data: [], isLive: false });
-const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
-const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, isLive: true, sources: LAND_PRICES_SOURCES });
+const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES });
+const TRANSPORT: Route = json(200, { status: "ok", data: [] });
+const DISASTER: Route = json(200, { status: "ok", data: [] });
+const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
+const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_PRICES_FIXTURE, sources: LAND_PRICES_SOURCES });
 
 /** The same payload with the sources moved to another year, table and label: what the page must then say. */
 function zoningSaying(year: number, table: string, label: string): Route {
   const sources = { ...SOURCES, zoning: { year, table, label } };
-  return json(200, { status: "ok", data: ROWS, isLive: true, sources, total: TOTAL });
+  return json(200, { status: "ok", data: ROWS, sources, total: TOTAL });
 }
 
 function serve(routes: Record<string, Route>) {

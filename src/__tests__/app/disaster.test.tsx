@@ -111,20 +111,20 @@ const json =
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const pending: Route = () => new Promise<Response>(() => {});
 
-const DISASTER: Route = json(200, { status: "ok", data: ROWS, isLive: true, sources: SOURCES, total: TOTAL });
+const DISASTER: Route = json(200, { status: "ok", data: ROWS, sources: SOURCES, total: TOTAL });
 const UNAVAILABLE: Route = json(503, { status: "unavailable" });
-const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, isLive: true, sources: DEMOGRAPHICS_SOURCES });
-const TRANSPORT: Route = json(200, { status: "ok", data: [], isLive: true });
-const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, isLive: true, sources: POPULATION_TRENDS_SOURCES });
-const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_ROWS, isLive: true, sources: LAND_PRICES_SOURCES });
-const ZONING: Route = json(200, { status: "ok", data: zoningSnapshotRows(zoning), isLive: true, sources: zoning.sources, total: zoningSnapshotTotal(zoning) });
+const DEMOGRAPHICS: Route = json(200, { status: "ok", data: DEMOGRAPHICS_FIXTURE, sources: DEMOGRAPHICS_SOURCES });
+const TRANSPORT: Route = json(200, { status: "ok", data: [] });
+const TRENDS: Route = json(200, { status: "ok", data: POPULATION_TRENDS_FIXTURE, sources: POPULATION_TRENDS_SOURCES });
+const LAND_PRICES: Route = json(200, { status: "ok", data: LAND_ROWS, sources: LAND_PRICES_SOURCES });
+const ZONING: Route = json(200, { status: "ok", data: zoningSnapshotRows(zoning), sources: zoning.sources, total: zoningSnapshotTotal(zoning) });
 
 /** The same payload with every hazard's source moved to another year, table and label: what the page must then say. */
 function disasterSaying(year: number): Route {
   const sources = Object.fromEntries(
     Object.entries(SOURCES).map(([k, s]) => [k, { year, table: `${s.table}-X${year}`, label: `${s.label}（試験${year}年版）` }])
   );
-  return json(200, { status: "ok", data: ROWS, isLive: true, sources, total: TOTAL });
+  return json(200, { status: "ok", data: ROWS, sources, total: TOTAL });
 }
 
 function serve(routes: Record<string, Route>) {

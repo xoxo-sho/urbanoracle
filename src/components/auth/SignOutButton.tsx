@@ -13,13 +13,14 @@ import { firebaseAuth } from "@/lib/firebase";
  * e-mail beside a 「サインアウト」 control, Firebase signOut on the app's own
  * auth instance, then the product's sign-in route.
  *
- * Renders nothing without a session. /app shows sample data to anyone, so
+ * Renders nothing without a session. The /app shell renders for anyone until
+ * its first data request is answered (a 401 sends the visitor to /login), so
  * this control is the only on-screen difference between a session and no
  * session; drawing it for an anonymous visitor would claim one exists.
  *
  * Navigation is explicit, with replace: nothing gates /app on the client, so
- * without it the sample dashboard would stay on screen looking exactly like
- * the session that just ended — and Back must not return to that view either.
+ * without it the dashboard would stay on screen looking exactly like the
+ * session that just ended — and Back must not return to that view either.
  *
  * On failure the user is still signed in, so the control stays as it was.
  * Pretending otherwise on a shared machine is the one outcome this must not
