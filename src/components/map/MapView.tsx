@@ -22,8 +22,11 @@ interface MapViewProps {
   onSelectWard: (ward: string | null) => void;
   layers: DataLayer[];
   stations: TransportStation[];
-  /** Ridership on the station bubbles is the 国土数値情報 snapshot's only when the answer arrived. */
-  transportIsLive?: boolean;
+  /**
+   * State of the /transport answer behind `stations`: the bubbles are credited
+   * to the 国土数値情報 snapshot only when the answer arrived in full.
+   */
+  transportStatus?: DataStatus;
   /**
    * The 地価 choropleth (real-data plan PR 5): the /land-prices payload, the
    * use the page's switch chose, the three ramp stops derived from that use's
@@ -78,7 +81,7 @@ export default function MapView({
   onSelectWard,
   layers,
   stations,
-  transportIsLive = false,
+  transportStatus = "loading",
   landPrices = [],
   landUse = "residential",
   landPriceStops = null,
@@ -268,7 +271,7 @@ export default function MapView({
       m.addSource("stations", {
         type: "geojson",
         data: buildStationGeoJSON(stations),
-        ...(transportIsLive ? { attribution: `乗降客数: ${SOURCES.ksj.label}` } : {}),
+        ...(transportStatus === "ok" ? { attribution: `乗降客数: ${SOURCES.ksj.label}` } : {}),
       });
 
       m.addLayer({
@@ -321,7 +324,7 @@ export default function MapView({
         });
       }
     }
-  }, [layers, selectedWard, stations, transportIsLive, landPrices, landUse, landPriceStops, landPriceStatus, disaster, disasterStatus, disasterStops, census, censusStatus, censusSources, censusStops]);
+  }, [layers, selectedWard, stations, transportStatus, landPrices, landUse, landPriceStops, landPriceStatus, disaster, disasterStatus, disasterStops, census, censusStatus, censusSources, censusStops]);
 
   // Initialize map
   useEffect(() => {

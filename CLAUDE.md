@@ -35,13 +35,13 @@ The app uses a dashboard-first grid layout (12 columns). The map is one data pan
 
 - **MapView is client-only:** MapLibre requires the DOM, so `MapView` is loaded with `next/dynamic({ ssr: false })`. All map-related components must be client components.
 - **Data layers:** Toggled via `LayerSelector` at the top. Layer state is managed in the root page component. Each layer corresponds to a `DataCategory` type.
-- **Sample data:** Currently uses static sample data in `src/data/sample.ts` (Tokyo wards). This will be replaced with real API integrations (国土数値情報, e-Stat, ハザードマップポータル, etc.).
+- **Data:** There is no sample data. Every figure comes from the gated FastAPI endpoints (`/api/v1/*`, `backend/routers/data.py`: the live e-Stat census call and the committed snapshots in `backend/data/`) through `useGatedData` (`src/lib/use-gated-data.ts`). Its `status` (`loading` / `ok` / `partial` / `unavailable`) is the only signal: a surface without data renders 読み込み中 or 取得失敗, never a placeholder value. The layer list (`dataLayers`) is configuration, in `src/lib/layers.ts`.
 - **shadcn/ui:** Components live in `src/components/ui/`. Add new ones via `npx shadcn@latest add <component>`.
 
 ### Directory Structure (non-obvious)
 
 - `src/types/` — Shared TypeScript interfaces for all data categories
-- `src/data/` — Static sample data (to be replaced by API calls)
+- `src/data/` — Static build-time assets: `hero-spread.json` (the LP hero's figures, built by `etl/disaster.py hero`) and `ward-boundaries.ts` (ward names, centres, boundary loading). No sample data
 - `src/components/map/` — MapLibre map components (client-only)
 - `src/components/dashboard/` — Dashboard panels and charts
 

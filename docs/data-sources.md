@@ -119,7 +119,7 @@ function transformLandPrice(feature: GeoJSON.Feature): LandPricePoint {
 `backend/data/population_trends.json` を返す（real-data plan PR 3）。上流はなく、起動時に
 `services/population_trends.py` が検証し、ファイルが欠けている・壊れている場合はプロセスが
 起動しない（デプロイが失敗する）。レスポンスは `/demographics` と同じ封筒（`status` / `data` /
-`isLive` / `sources`）で、`data` は年ごとの 東京23区 行と各区の行、`sources` は年をキーに
+`sources`）で、`data` は年ごとの 東京23区 行と各区の行、`sources` は年をキーに
 年次・統計表ID・ラベルを載せる。
 
 | 年 | 出典 | ID |
@@ -297,8 +297,12 @@ ODPT はコードパスから外れた。
 
 ### 5.3 乗降客数推移（T3）
 
-交通タブの「乗降客数推移」は本 PR の対象外で、サンプルデータのまま（SAMPLE 表示）。
-S12 の複数年列から作る作業は RECON §9 行 4b。
+交通タブの「乗降客数推移」は、S12 の固定パネル（B2: 2018年度と 2020〜2024年度の系列がすべて
+そろう行。23区 583 単位中 458 単位）の合計（real-data plan PR 4b、2026-11-09）。2019年度は
+描画せず、理由を図に示す（補間しない）。`/api/v1/transport` の `total.trend`
+（`panel` / `years` / `gaps` / `views`）で配信し、スナップショットは `backend/data/stations.json`、
+パネルは `backend/tests/fixtures/stations/ridership_panel.json`。サンプルデータの面は残っていない
+（real-data plan PR 9 でサンプル層を削除）。
 
 ## 6. 用途地域データ
 

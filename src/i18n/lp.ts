@@ -1,5 +1,5 @@
 import type { Lang } from "@/i18n/lang";
-import { SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
+import { SOURCES } from "@/lib/sources";
 import { BOUNDARY_SOURCE } from "@/lib/credits";
 
 /**
@@ -56,7 +56,6 @@ const ja = {
   spreadFloodDeep: "浸水深3m以上",
   spreadUnits:
     "上振れ: 2026年地価公示（2025年1月1日→2026年1月1日）住宅地の継続地点（前年と比較できる地点）の対前年変動率の単純平均、上位6区 ／ 地震: 東京都 地域危険度 第9回（2022年）総合危険度ランク5の町丁目の数（区の全町丁目中）。ランクは都内5,192町丁目の中での相対評価 ／ 洪水: 国土数値情報 洪水浸水想定区域データ A31a-25（想定最大規模）、区の面積に占める浸水深3m以上の区域の割合",
-  sampleNotice: SAMPLE_NOTICE,
   none: "—",
 
   capabilitiesTitle: "二つの軸",
@@ -82,7 +81,6 @@ const ja = {
   srcHero: "国土数値情報（国土交通省）・東京都",
   srcBoundaries: BOUNDARY_SOURCE,
   srcTiles: "地理院タイル（国土地理院）",
-  srcSample: SOURCES.sample.label,
   liveEstat: "人口・密度・年齢構成、5年間の人口増減率",
   liveEstatYear: "2025年国勢調査（人口等基本集計・確報）",
   livePopTrend: "人口推移（東京23区、2000–2025年）",
@@ -145,7 +143,6 @@ const en = {
   spreadFloodDeep: "depth 3 m or more",
   spreadUnits:
     "Upside: 2026 published land prices (2025/1/1 to 2026/1/1), simple mean of the year-on-year change of the residential points that continue from the previous year, top 6 wards / Earthquake: Tokyo Metropolitan Government regional earthquake risk survey, 9th (2022), number of chome at overall risk rank 5 (of all the chome in the ward); the ranks are a relative evaluation among the 5,192 chome in Tokyo / Flood: National Land Numerical Information flood inundation area data A31a-25 (maximum assumed scale), share of the ward's area with an inundation depth of 3 m or more",
-  sampleNotice: "Sample data (provisional) — not real data",
   none: "—",
 
   capabilitiesTitle: "Two axes",
@@ -171,7 +168,6 @@ const en = {
   srcHero: "National Land Numerical Information (Ministry of Land, Infrastructure, Transport and Tourism), Tokyo Metropolitan Government",
   srcBoundaries: "dataofjapan/land (source: Global Map Japan)",
   srcTiles: "GSI Tiles (Geospatial Information Authority of Japan)",
-  srcSample: "Sample data (provisional)",
   liveEstat: "Population, density and age composition, 5-year population change rate",
   liveEstatYear: "2025 Population Census (basic complete tabulation, final)",
   livePopTrend: "Population trend (23 wards, 2000–2025)",
@@ -253,7 +249,7 @@ export const WARD_NAMES: Record<WardCode, Record<Lang, string>> = {
   "13123": { ja: "江戸川", en: "Edogawa" },
 };
 
-/** The code of a ward written as the sample data writes it (e.g. 「千代田区」). */
+/** The code of a ward written as the payloads write it (e.g. 「千代田区」). */
 export function wardCode(region: string): WardCode | undefined {
   return (Object.keys(WARD_NAMES) as WardCode[]).find((code) => `${WARD_NAMES[code].ja}区` === region);
 }

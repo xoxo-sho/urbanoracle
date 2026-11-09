@@ -2,13 +2,13 @@
 人口推移 (real-data plan PR 3), 駅別乗降客数 (PR 4), 地価公示 (PR 5), 用途地域
 (PR 6) and 災害 (PR 7).
 
-Envelope: ``{"status": "ok" | "partial", "data": [...], "isLive": bool}``.
-``status`` says whether the request got everything it asked for; ``isLive``
-says whether the figures came from the upstream source (every route does
-since PR 7; nothing serves a sample set). A partial answer
-adds ``unavailable``: the record fields the upstream did not deliver, so the
-client renders those cells as 取得失敗 and keeps データなし for a cell the
-upstream genuinely has no figure for. A /demographics answer carries
+Envelope: ``{"status": "ok" | "partial", "data": [...]}``. ``status`` says
+whether the request got everything it asked for, and it is the only signal:
+every figure is its source's own, so the envelope carries no provenance flag
+(the one it had left with real-data plan PR 9, Architect decision 10). A
+partial answer adds ``unavailable``: the record fields the upstream did not
+deliver, so the client renders those cells as 取得失敗 and keeps データなし for
+a cell the upstream genuinely has no figure for. A /demographics answer carries
 ``sources``: per census field, the year and the e-Stat table the figure came
 from, so the screen can say which vintage every figure is (real-data plan
 PR 2). The /population-trends answer carries the same shape keyed by year;
@@ -55,13 +55,12 @@ UNAVAILABLE_HTTP_STATUS = 503
 def _envelope(
     data: list[dict],
     *,
-    is_live: bool,
     status: str = "ok",
     unavailable: list[str] | None = None,
     sources: dict[str, dict] | None = None,
     total: dict | None = None,
 ) -> JSONResponse:
-    body: dict = {"status": status, "data": data, "isLive": is_live}
+    body: dict = {"status": status, "data": data}
     if unavailable:
         body["unavailable"] = list(unavailable)
     if sources is not None:
@@ -127,7 +126,6 @@ async def get_demographics() -> JSONResponse:
     data = demographics.transform_census(population, age_shares, growth)
     return _envelope(
         data,
-        is_live=True,
         status="partial" if unavailable else "ok",
         unavailable=unavailable,
         sources=demographics.sources_for(unavailable),
@@ -142,13 +140,11 @@ async def get_population_trends() -> JSONResponse:
     No upstream and no cache: the file was validated when the app started
     (main.py), so this route cannot fail the way the two live ones can — a
     census-table 503 on /demographics never takes the trend chart down, which
-    is why it is a route of its own. ``isLive`` is True: the figures are the
-    census's own, not a sample. ``sources`` names, per year, the table.
+    is why it is a route of its own. ``sources`` names, per year, the table.
     """
     snapshot = population_trends.get(settings.POPULATION_TRENDS_PATH)
     return _envelope(
         population_trends.rows(snapshot),
-        is_live=True,
         sources=population_trends.sources(snapshot),
     )
 
@@ -162,13 +158,11 @@ async def get_land_prices() -> JSONResponse:
 
     No upstream and no cache: the file was validated when the app started
     (main.py), so this route has no partial or failed answer of its own.
-    ``isLive`` is True: the figures are the source's own, not a sample.
     ``sources`` names, per field (price, change), the edition and its year.
     """
     snapshot = land_prices.get(settings.LAND_PRICES_PATH)
     return _envelope(
         land_prices.rows(snapshot),
-        is_live=True,
         sources=land_prices.sources(snapshot),
         # Real-data plan PR 8: the 23区 figures over every point, for the
         # comparison table's 23区 column (additive; the records are unchanged).
@@ -186,13 +180,11 @@ async def get_zoning() -> JSONResponse:
 
     No upstream and no cache: the file was validated when the app started
     (main.py), so this route has no partial or failed answer of its own.
-    ``isLive`` is True: the figures are the source's own, not a sample.
     ``sources`` names, per field (zoning, wards, asOf), the edition and table.
     """
     snapshot = zoning.get(settings.ZONING_PATH)
     return _envelope(
         zoning.rows(snapshot),
-        is_live=True,
         sources=zoning.sources(snapshot),
         total=zoning.total(snapshot),
     )
@@ -209,7 +201,6 @@ async def get_disaster_risks() -> JSONResponse:
 
     No upstream and no cache: the file was validated when the app started
     (main.py), so this route has no partial or failed answer of its own.
-    ``isLive`` is True: the figures are the sources' own, not a sample.
     ``sources`` names, per hazard, the survey or edition, its year and table.
     The hazard rasters on the map are fetched client-side from the ハザード
     マップポータルサイト and never pass through here.
@@ -217,7 +208,6 @@ async def get_disaster_risks() -> JSONResponse:
     snapshot = disaster_risks.get(settings.DISASTER_RISKS_PATH)
     return _envelope(
         disaster_risks.rows(snapshot),
-        is_live=True,
         sources=disaster_risks.sources(snapshot),
         total=disaster_risks.total(snapshot),
     )
@@ -236,7 +226,6 @@ async def get_green_land_use() -> JSONResponse:
     snapshot = green_land_use.get(settings.GREEN_LAND_USE_PATH)
     return _envelope(
         green_land_use.rows(snapshot),
-        is_live=True,
         sources=green_land_use.sources(snapshot),
         total=green_land_use.total(snapshot),
     )
@@ -250,7 +239,6 @@ async def get_transport() -> JSONResponse:
 
     No upstream and no cache: the file was validated when the app started
     (main.py), so this route has no partial or failed answer of its own.
-    ``isLive`` is True: the figures are the source's own, not a sample.
     ``sources`` names, per field, the 国土数値情報 edition and its year.
 
     Real-data plan PR 4b: beside ``data``, ``total`` carries 乗降客数推移 — a
@@ -262,7 +250,6 @@ async def get_transport() -> JSONResponse:
     snapshot = transport.get(settings.STATIONS_PATH)
     return _envelope(
         transport.rows(snapshot),
-        is_live=True,
         sources=transport.sources(snapshot),
         total=transport.total(snapshot),
     )

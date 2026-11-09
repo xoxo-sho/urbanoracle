@@ -19,8 +19,7 @@ import { formatShare } from "@/lib/zoning";
  * The rows come from src/data/hero-spread.json, which `etl/disaster.py hero`
  * builds from backend/data/land_prices.json and backend/data/disaster_risks.json
  * (a drift guard re-runs it). The LP is public, so the file is static, not a
- * gated route. No row mixes a measured and a sample figure; nothing on the
- * spread is a sample, so it carries no SAMPLE tag.
+ * gated route. Every figure on the spread is measured.
  *
  * Its words come from the LP dictionary (src/i18n/lp.ts). Rendered on its own
  * it reads in Japanese; the landing page passes `copy` for the visitor's

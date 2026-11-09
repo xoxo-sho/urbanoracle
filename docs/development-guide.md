@@ -81,9 +81,12 @@ src/
 │   └── index.ts            # 共有型定義（全データカテゴリ）
 │
 ├── data/
-│   └── sample.ts           # サンプルデータ（→ API に置換予定）
+│   ├── hero-spread.json    # LP ヒーローの数値（etl/disaster.py hero が生成）
+│   └── ward-boundaries.ts  # 区名・中心座標・境界データの読み込み（サンプルデータは置かない）
 │
 └── lib/
+    ├── layers.ts           # レイヤー設定（dataLayers）
+    ├── use-gated-data.ts   # /api/v1/* の取得と status（loading / ok / partial / unavailable）
     └── utils.ts            # ユーティリティ（cn関数）
 ```
 
@@ -120,8 +123,8 @@ src/
 ### 4.2 データフロー
 
 ```
-sample.ts (静的データ)
-    ↓  ※将来は API から取得
+/api/v1/* (FastAPI: e-Stat のライブ取得 + backend/data/ のスナップショット、要サインイン)
+    ↓  useGatedData — status: loading / ok / partial / unavailable
 page.tsx (状態管理: layers)
     ├── Header
     │   ├── LayerSelector (layers → 表示切替)
@@ -182,7 +185,7 @@ CSS カスタムプロパティ（OKLCh）を使用。Tailwind のデフォル�
 ### 5.1 新しいデータパネルの追加
 
 1. **型定義**: `src/types/index.ts` にインターフェースを追加
-2. **サンプルデータ**: `src/data/sample.ts` にテストデータを追加
+2. **データ**: `backend/routers/data.py` にエンドポイントを追加し、`useGatedData` で取得する。サンプルデータは置かない（取得前は「読み込み中」、失敗時は「取得失敗」— `src/components/dashboard/DataState.tsx`）
 3. **コンポーネント作成**: `src/components/dashboard/` にパネルコンポーネントを作成
 4. **ページに統合**: `src/app/page.tsx` の Tabs にタブを追加
 
@@ -197,29 +200,18 @@ npx shadcn@latest add <component-name>
 ### 5.3 地図レイヤーの追加
 
 1. `src/types/index.ts` の `DataCategory` に新しいカテゴリを追加
-2. `src/data/sample.ts` の `dataLayers` 配列に新しいレイヤーを追加
+2. `src/lib/layers.ts` の `dataLayers` 配列に新しいレイヤーを追加
 3. `src/components/map/MapView.tsx` で新しいデータタイプの描画ロジックを追加
 
-### 5.4 API 連携の実装（Phase 3）
+### 5.4 データの取得（実装済み）
 
-サンプルデータを API 呼び出しに置換する手順:
+サンプルデータから API への置換は完了しており（real-data plan PR 1〜9）、`src/data/sample.ts` は存在しない。
 
-1. `src/lib/api/` ディレクトリを作成
-2. 各データソース用のフェッチ関数を作成:
+1. サーバー: `backend/routers/data.py` の各エンドポイントが `{"status": "ok" | "partial", "data": [...]}` を返す（`sources`・`total`・`unavailable` は必要な場合のみ）。取得できない場合は HTTP 503 と `{"status": "unavailable"}`
+2. クライアント: `useGatedData(endpoint)`（`src/lib/use-gated-data.ts`）が `status`（`loading` / `ok` / `partial` / `unavailable`）と `data` を返す。`status` が唯一の信号で、ほかに出所を示すフラグはない
+3. 画面: `status` に応じて数値・「読み込み中」・「取得失敗」のいずれかを描画する（`src/components/dashboard/DataState.tsx`）。代わりの値は表示しない
 
-```typescript
-// src/lib/api/land-price.ts
-export async function fetchLandPrices(
-  bounds: { north: number; south: number; east: number; west: number }
-): Promise<LandPricePoint[]> {
-  const res = await fetch(`https://...`);
-  const data = await res.json();
-  return transformToLandPricePoints(data);
-}
-```
-
-3. `page.tsx` で `useEffect` + `useState` に置換（または React Server Components で fetch）
-4. ローディング状態・エラーハンドリングを追加
+データ元・時点・クレジットは [`data-sources.md`](data-sources.md) を参照。
 
 ---
 
