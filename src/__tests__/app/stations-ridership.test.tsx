@@ -61,6 +61,7 @@ import {
   ZONING_TOTAL,
   loadStationsSnapshot,
   stationsSnapshotRows,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const TRANSPORT_ROUTE = "/api/v1/transport";
@@ -129,9 +130,10 @@ async function renderSettled(transport: Route = TRANSPORT) {
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
     "/api/v1/zoning": ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

@@ -1,5 +1,5 @@
 import type { Lang } from "@/i18n/lang";
-import { CHOROPLETH_NOTE, SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
+import { SAMPLE_NOTICE, SOURCES } from "@/lib/sources";
 import { BOUNDARY_SOURCE } from "@/lib/credits";
 
 /**
@@ -101,14 +101,16 @@ const ja = {
   liveQuakeYear: "地震に関する地域危険度測定調査（第9回、2022年9月公表）",
   liveDisasterKsj: "洪水・高潮の浸水深区分別の面積割合、土砂災害警戒区域の数、津波浸水想定の有無（災害タブ）",
   liveDisasterKsjYear: "洪水浸水想定区域（A31a-25）・土砂災害警戒区域（A33-25）・津波浸水想定（A40-23）・高潮浸水想定区域（A49-20）・行政区域データ（N03-20260101）",
+  srcTochi: "東京都都市整備局「土地利用現況調査」",
+  liveGreen: "公園等・農用地・森林・原野の面積割合（23区の中での位置）",
+  liveGreenYear: "2021年 土地利用現況調査（表－1 土地面積・区部区別）",
+  srcComparison: "上記の各出典",
+  liveComparison: "23区の中での位置（7指標の区の値・23区全体の値・値の大きい順の順位）",
   liveHero: "LP ヒーロー（住宅地 平均変動率 × 地震・洪水）",
   liveHeroYear: "2026年地価公示（L01-26）・地域危険度 第9回・洪水浸水想定区域（A31a-25）",
   liveBoundaries: "行政区界（区境界ポリゴン）",
   liveTiles: "地図タイル（淡色地図）",
   sampleRidership: "乗降客数推移",
-  sampleRadar: "区別総合比較（レーダー）",
-  sampleRadarScale: "0–100",
-  sampleChoropleth: `地図の塗り分け（人口）: ${CHOROPLETH_NOTE}`,
 
   provRequiredTitle: "データ提供元が求める表示",
 
@@ -187,14 +189,16 @@ const en = {
   liveQuakeYear: "Regional earthquake risk survey (9th, published 2022/9)",
   liveDisasterKsj: "Share of area by inundation depth class for flood and storm surge, number of sediment disaster warning areas, whether a tsunami inundation projection is set (Disaster tab)",
   liveDisasterKsjYear: "Flood inundation areas (A31a-25), sediment disaster warning areas (A33-25), tsunami inundation (A40-23), storm surge inundation areas (A49-20), administrative area data (N03-20260101)",
+  srcTochi: "Tokyo Metropolitan Government land use survey (Bureau of Urban Development)",
+  liveGreen: "Share of area that is parks etc., farmland, forest or wild land (Position among the 23 wards)",
+  liveGreenYear: "2021 land use survey (Table 1, land area by ward)",
+  srcComparison: "Each source above",
+  liveComparison: "Position among the 23 wards (for 7 measures: the ward value, the 23-ward figure and the rank, largest first)",
   liveHero: "LP hero (residential average change × earthquake, flood)",
   liveHeroYear: "2026 published land prices (L01-26), regional risk survey 9th, flood inundation areas (A31a-25)",
   liveBoundaries: "Administrative boundaries (ward boundary polygons)",
   liveTiles: "Map tiles (pale map)",
   sampleRidership: "Ridership trend",
-  sampleRadar: "Overall comparison by ward (radar)",
-  sampleRadarScale: "0–100",
-  sampleChoropleth: "Map shading (population): fixed reference values — not real data",
 
   provRequiredTitle: "Notices the data providers require (the prescribed Japanese text, each followed by a translation)",
 

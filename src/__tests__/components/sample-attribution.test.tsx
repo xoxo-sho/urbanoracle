@@ -70,17 +70,6 @@ function occurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
-function expectSampleLabelled(root: HTMLElement, surfaces: number) {
-  const text = root.textContent ?? "";
-  expect(
-    occurrences(text, SAMPLE_LABEL),
-    `expected ≥${surfaces} × "${SAMPLE_LABEL}" on this surface`
-  ).toBeGreaterThanOrEqual(surfaces);
-  for (const real of REAL_SOURCE_STRINGS) {
-    expect(text, `sample surface must not cite "${real}"`).not.toContain(real);
-  }
-}
-
 describe("sample surfaces carry the sample label and no real-source attribution", () => {
 
 

@@ -34,6 +34,8 @@ import {
   KSJ_S12_EDITED_EN,
   KSJ_SOURCE,
   KSJ_SOURCE_EN,
+  TOCHI_CREDIT_EN,
+  TOCHI_EDITED,
 } from "@/lib/credits";
 
 // The prescribed Japanese sentence, and on the English page its translation
@@ -54,6 +56,8 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: KSJ_A40_EDITED, en: KSJ_A40_EDITED_EN },
   { ja: KSJ_A49_EDITED, en: KSJ_A49_EDITED_EN },
   { ja: HAZARD_PORTAL_SOURCE, en: HAZARD_PORTAL_SOURCE_EN },
+  // Real-data plan PR 8: the 都市整備局 土地利用現況調査 table in the same 東京都 CC BY form.
+  { ja: TOCHI_EDITED, en: TOCHI_CREDIT_EN },
 ];
 
 // The A55 page's six 注意事項 (real-data plan PR 6), all of them, in their own
@@ -102,18 +106,17 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcKsj", "liveZoning", "liveZoningYear"],
   ["srcKikendo", "liveQuake", "liveQuakeYear"],
   ["srcKsj", "liveDisasterKsj", "liveDisasterKsjYear"],
+  ["srcTochi", "liveGreen", "liveGreenYear"],
+  ["srcComparison", "liveComparison", "none"],
   ["srcHero", "liveHero", "liveHeroYear"],
   ["srcHazard", "liveHazard", "none"],
   ["srcBoundaries", "liveBoundaries", "none"],
   ["srcTiles", "liveTiles", "none"],
 ];
 
-// Surfaces still fed from src/data/sample.ts, or from a hardcoded table.
-const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [
-  ["sampleRidership", "none"],
-  ["sampleRadar", "sampleRadarScale"],
-  ["sampleChoropleth", "none"],
-];
+// Surfaces still fed from src/data/sample.ts: since real-data plan PR 8 (the
+// radar became 「23区の中での位置」, the 人口 fill reads the census) only one.
+const SAMPLE_ROWS: [content: LpKey, scale: LpKey][] = [["sampleRidership", "none"]];
 
 export default function LandingContent() {
   const { lang, t } = useLang();

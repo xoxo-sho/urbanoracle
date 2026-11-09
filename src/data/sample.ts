@@ -1,8 +1,4 @@
-import type {
-  DataLayer,
-  TransportTrend,
-  WardProfile,
-} from "@/types";
+import type { DataLayer, TransportTrend } from "@/types";
 
 export const dataLayers: DataLayer[] = [
   { id: "land-price", label: "地価", description: "公示地価・基準地価", color: "var(--up-text)", enabled: true },
@@ -17,7 +13,9 @@ export const dataLayers: DataLayer[] = [
 // snapshot (/api/v1/land-prices). PR 7 switches the hero together with its
 // downside and deletes this.
 
-// 5主要駅の年次推移（COVID影響あり）
+// 5主要駅の年次推移（COVID影響あり） — the last sample set: 乗降客数推移 on the 交通
+// tab reads it and says SAMPLE. The radar's ward profiles left with real-data
+// plan PR 8, when the radar became the 「23区の中での位置」 table.
 export const sampleTransportTrends: TransportTrend[] = [
   // 新宿
   { year: 2017, passengers: 769_307, station: "新宿" },
@@ -46,30 +44,4 @@ export const sampleTransportTrends: TransportTrend[] = [
   { year: 2022, passengers: 445_600, station: "池袋" },
   { year: 2023, passengers: 502_100, station: "池袋" },
   { year: 2024, passengers: 538_400, station: "池袋" },
-];
-
-export const sampleWardProfiles: WardProfile[] = [
-  { region: "千代田区", population: 15, landPrice: 95, accessibility: 98, safety: 85, greenRatio: 40 },
-  { region: "中央区", population: 35, landPrice: 88, accessibility: 92, safety: 70, greenRatio: 25 },
-  { region: "港区", population: 55, landPrice: 82, accessibility: 90, safety: 80, greenRatio: 45 },
-  { region: "新宿区", population: 72, landPrice: 75, accessibility: 95, safety: 65, greenRatio: 30 },
-  { region: "文京区", population: 50, landPrice: 48, accessibility: 80, safety: 82, greenRatio: 42 },
-  { region: "台東区", population: 45, landPrice: 45, accessibility: 78, safety: 55, greenRatio: 20 },
-  { region: "墨田区", population: 58, landPrice: 32, accessibility: 70, safety: 30, greenRatio: 22 },
-  { region: "江東区", population: 62, landPrice: 28, accessibility: 72, safety: 35, greenRatio: 30 },
-  { region: "品川区", population: 68, landPrice: 42, accessibility: 85, safety: 78, greenRatio: 35 },
-  { region: "目黒区", population: 55, landPrice: 45, accessibility: 82, safety: 80, greenRatio: 38 },
-  { region: "大田区", population: 82, landPrice: 22, accessibility: 65, safety: 72, greenRatio: 40 },
-  { region: "世田谷区", population: 100, landPrice: 30, accessibility: 60, safety: 90, greenRatio: 65 },
-  { region: "渋谷区", population: 52, landPrice: 70, accessibility: 88, safety: 75, greenRatio: 35 },
-  { region: "中野区", population: 65, landPrice: 28, accessibility: 72, safety: 70, greenRatio: 25 },
-  { region: "杉並区", population: 75, landPrice: 25, accessibility: 62, safety: 82, greenRatio: 55 },
-  { region: "豊島区", population: 60, landPrice: 52, accessibility: 90, safety: 60, greenRatio: 18 },
-  { region: "北区", population: 65, landPrice: 20, accessibility: 68, safety: 55, greenRatio: 45 },
-  { region: "荒川区", population: 48, landPrice: 18, accessibility: 65, safety: 42, greenRatio: 22 },
-  { region: "板橋区", population: 72, landPrice: 18, accessibility: 60, safety: 75, greenRatio: 42 },
-  { region: "練馬区", population: 80, landPrice: 15, accessibility: 52, safety: 85, greenRatio: 62 },
-  { region: "足立区", population: 78, landPrice: 12, accessibility: 45, safety: 40, greenRatio: 50 },
-  { region: "葛飾区", population: 68, landPrice: 10, accessibility: 48, safety: 45, greenRatio: 48 },
-  { region: "江戸川区", population: 78, landPrice: 12, accessibility: 50, safety: 42, greenRatio: 55 },
 ];

@@ -75,6 +75,7 @@ import {
   ZONING_TOTAL,
   landPricesSnapshotRows,
   loadLandPricesSnapshot,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const LAND_ROUTE = "/api/v1/land-prices";
@@ -165,9 +166,10 @@ async function renderSettled(routes: { land?: Route; demographics?: Route } = {}
     "/api/v1/population-trends": TRENDS,
     [LAND_ROUTE]: routes.land ?? LAND,
     "/api/v1/zoning": ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   for (let i = 0; i < 2; i++) {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

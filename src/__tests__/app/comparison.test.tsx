@@ -280,7 +280,7 @@ describe("the radar is gone; 「23区の中での位置」 takes its place", () 
     });
   }
 
-  it("ties share a rank: the ten wards with no 町丁目 at rank 5 all read the same 順位", async () => {
+  it("ties share a rank: the wards with no 町丁目 at rank 5 all read the same 順位", async () => {
     const zeros = WARDS.filter((w) => VALUES.rank5[w] === 0);
     expect(zeros.length).toBeGreaterThan(1);
     const { container } = await renderSettled();

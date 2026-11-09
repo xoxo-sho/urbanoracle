@@ -630,3 +630,9 @@ export function landPricesSnapshotTotal(snapshot: LandPricesSnapshot) {
   const t = (snapshot as unknown as { region: string; total: { n: number; residential: unknown; commercial: unknown; industrial: { n: number } } });
   return { region: t.region, n: t.total.n, residential: t.total.residential, commercial: t.total.commercial, industrial: { n: t.total.industrial.n } };
 }
+
+/** The /api/v1/green-land-use answer, from the committed snapshot: for the page harnesses that answer every route. */
+export function greenPayload() {
+  const s = loadGreenSnapshot();
+  return { status: "ok", data: greenSnapshotRows(s), isLive: true, sources: s.sources, total: greenSnapshotTotal(s) };
+}

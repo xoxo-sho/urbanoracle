@@ -8,20 +8,18 @@ import LandPriceChart from "@/components/dashboard/LandPriceChart";
 import DemographicsChart from "@/components/dashboard/DemographicsChart";
 import DisasterRiskPanel from "@/components/dashboard/DisasterRiskPanel";
 import TransportPanel from "@/components/dashboard/TransportPanel";
-import WardRadar from "@/components/dashboard/WardRadar";
+import WardComparison from "@/components/dashboard/WardComparison";
 import WardTable from "@/components/dashboard/WardTable";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import LandUseSwitch from "@/components/dashboard/LandUseSwitch";
 import ZoningPanel from "@/components/dashboard/ZoningPanel";
-import {
-  dataLayers,
-  sampleTransportTrends,
-  sampleWardProfiles,
-} from "@/data/sample";
+import { dataLayers, sampleTransportTrends } from "@/data/sample";
 import type {
   DataLayer,
   DemographicsData,
   DisasterWard,
+  GreenWard,
+  LandPriceTotal,
   LandPriceWard,
   PopulationTrend,
   TransportStation,
@@ -31,7 +29,7 @@ import type {
 import MapLegend from "@/components/map/MapLegend";
 import { Map, TrendingUp, Users, Shield } from "lucide-react";
 import { FAILED_TEXT, isPending, pendingText } from "@/components/dashboard/DataState";
-import { CHOROPLETH_NOTE, SAMPLE_NOTICE } from "@/lib/sources";
+import { SAMPLE_NOTICE } from "@/lib/sources";
 import {
   ESTAT_API_CREDIT,
   ESTAT_EDITED,
@@ -61,6 +59,8 @@ import {
   MENCHO_SOURCE,
   RIDERSHIP_DEFINITION_NOTE,
   RIDERSHIP_JR_NOTE,
+  TOCHI_CREDIT,
+  TOCHI_EDITED,
   WARD_BOUNDARY_CREDIT,
   ZONING_ASOF_NOTE,
   ZONING_DESIGNATED_NOTE,
@@ -80,6 +80,8 @@ import {
 import { landPriceStops, type LandUse } from "@/lib/land-price";
 import { K2_LABEL, countOf, disasterView, quakeShortLine, rank5Stops } from "@/lib/disaster";
 import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
+import { buildMeasures } from "@/lib/comparison";
+import { densityStops } from "@/lib/census-map";
 import { useGatedData } from "@/lib/use-gated-data";
 import { A55Notices } from "@/components/dashboard/RequiredCredits";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
@@ -132,7 +134,8 @@ export default function Home() {
   // The 地価公示 snapshot (real-data plan PR 5): one record per ward with the
   // 住宅地 / 商業地 figures and their counts; the payload names the edition and
   // year every 地価 surface prints.
-  const landPrices = useGatedData<LandPriceWard[]>("/api/v1/land-prices");
+  // `total` (PR 8): the 23区 figures over every point, for 「23区の中での位置」.
+  const landPrices = useGatedData<LandPriceWard[], LandPriceTotal>("/api/v1/land-prices");
   const landPriceRows = useMemo(() => landPrices.data ?? [], [landPrices.data]);
   const landPriceSources = landPrices.sources ?? {};
   const landPriceProvenance = landPriceLine(landPriceSources);
@@ -195,20 +198,24 @@ export default function Home() {
     return stations.filter((s) => s.ward === selectedWard);
   }, [selectedWard, stations]);
 
-  const filteredProfiles = useMemo(() => {
-    if (!selectedWard) return sampleWardProfiles;
-    const selected = sampleWardProfiles.find((p) => p.region === selectedWard);
-    if (!selected) return sampleWardProfiles;
-    const avg = {
-      region: "23区平均",
-      population: Math.round(sampleWardProfiles.reduce((s, p) => s + p.population, 0) / sampleWardProfiles.length),
-      landPrice: Math.round(sampleWardProfiles.reduce((s, p) => s + p.landPrice, 0) / sampleWardProfiles.length),
-      accessibility: Math.round(sampleWardProfiles.reduce((s, p) => s + p.accessibility, 0) / sampleWardProfiles.length),
-      safety: Math.round(sampleWardProfiles.reduce((s, p) => s + p.safety, 0) / sampleWardProfiles.length),
-      greenRatio: Math.round(sampleWardProfiles.reduce((s, p) => s + p.greenRatio, 0) / sampleWardProfiles.length),
-    };
-    return [selected, avg];
-  }, [selectedWard]);
+  // The 人口 choropleth (real-data plan PR 8): the census densities, stops from
+  // the data; the legend prints the same array.
+  const censusStops = useMemo(() => densityStops(demographicsRows), [demographicsRows]);
+
+  // 公園等・農用地・森林・原野 (real-data plan PR 8, decision 6): the 都市整備局
+  // 土地利用現況調査 令和3年 snapshot, one record per ward and the 23区 as `total`.
+  const green = useGatedData<GreenWard[], GreenWard>("/api/v1/green-land-use");
+
+  // 「23区の中での位置」 (decision 7): seven rows, each from its own endpoint
+  // and in that endpoint's state.
+  // Small (23 wards × 7 rows), so computed each render; the React Compiler memoizes it.
+  const measures = buildMeasures({
+    census: { status: demographics.status, rows: demographicsRows, unavailable: demographics.unavailable, sources: censusSources },
+    land: { status: landPrices.status, rows: landPriceRows, total: landPrices.total, sources: landPriceSources },
+    transport: { status: transport.status, stations, sources: transportSources },
+    disaster: { status: disasterRisks.status, rows: disasterRows, total: disasterRisks.total, sources: disasterSources },
+    green: { status: green.status, rows: green.data ?? [], total: green.total, sources: green.sources ?? {} },
+  });
 
   // Key metrics
   const metricsDemo = selectedWard ? filteredDemographics : demographicsRows;
@@ -298,6 +305,10 @@ export default function Home() {
                 disaster={disasterRows}
                 disasterStatus={disasterRisks.status}
                 disasterStops={disasterStops}
+                census={demographicsRows}
+                censusStatus={demographics.status}
+                censusSources={censusSources}
+                censusStops={censusStops}
               />
               <div className="absolute top-3 left-3 z-10">
                 <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
@@ -315,6 +326,9 @@ export default function Home() {
                 disasterStatus={disasterRisks.status}
                 disasterSources={disasterSources}
                 disasterStops={disasterStops}
+                censusStatus={demographics.status}
+                censusSources={censusSources}
+                densityStops={censusStops}
               />
             </div>
 
@@ -365,9 +379,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ward Radar */}
+            {/* 23区の中での位置 (real-data plan PR 8): in place of the radar */}
             <div className="shrink-0 animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0 }}>
-              <WardRadar profiles={filteredProfiles} selectedWard={selectedWard} />
+              <WardComparison measures={measures} selectedWard={selectedWard} />
             </div>
           </div>
 
@@ -541,6 +555,12 @@ export default function Home() {
                     </span>
                   </li>
                 )}
+                {green.data !== null && (
+                  <li data-source="green-land-use">
+                    公園等・農用地・森林・原野の面積割合（23区の中での位置）: {TOCHI_CREDIT}
+                    <span className="block">{TOCHI_EDITED}</span>
+                  </li>
+                )}
                 <li data-source="hazard-tiles">
                   地図のハザード重ね（{HAZARD_RASTER_NAMES}）: {HAZARD_PORTAL_SOURCE}（{HAZARD_PORTAL_URL}）
                 </li>
@@ -555,8 +575,6 @@ export default function Home() {
               <span className="font-semibold">{SAMPLE_NOTICE}</span>
               <ul>
                 <li>乗降客数推移</li>
-                <li>区別総合比較</li>
-                <li>地図の塗り分け（人口）: {CHOROPLETH_NOTE}</li>
               </ul>
             </div>
           </div>

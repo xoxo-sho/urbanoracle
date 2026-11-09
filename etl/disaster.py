@@ -771,7 +771,8 @@ def build(fixtures: Path = FIXTURES, n03_fixtures: Path = N03_FIXTURES) -> dict:
             "earthquake": {"year": 2022, "table": "地域危険度 第9回", "label": f"東京都「{KIKENDO_TITLE}」町丁目別ランク（総合・建物倒壊・火災）"},
             "flood": {"year": A31_YEAR, "table": A31_ID, "label": f"国土数値情報 洪水浸水想定区域データ（河川単位）{A31_EDITION} 想定最大規模（東京都・関東地方整備局）"},
             "landslide": {"year": A33_YEAR, "table": A33_ID, "label": f"国土数値情報 土砂災害警戒区域データ {A33_EDITION}（東京都 2025年7月30日時点）"},
-            "tsunami": {"year": 2023, "table": A40_ID, "label": "国土数値情報 津波浸水想定データ（東京都、A40-23）"},
+            # The table rides in `table`; the panel prints it once after the label (real-data plan PR 8).
+            "tsunami": {"year": 2023, "table": A40_ID, "label": "国土数値情報 津波浸水想定データ（東京都）"},
             "hightide": {"year": A49_YEAR, "table": A49_ID, "label": f"国土数値情報 高潮浸水想定区域データ {A49_EDITION} 東京都 想定最大規模"},
             "wards": {"year": int(meta["N03"]["id"][4:8]), "table": meta["N03"]["id"], "label": f"国土数値情報 行政区域データ {meta['N03']['edition']} 東京都（区の面積）"},
         },

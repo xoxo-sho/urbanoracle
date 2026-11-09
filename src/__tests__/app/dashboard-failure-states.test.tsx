@@ -65,6 +65,7 @@ import {
   ZONING_FIXTURE,
   ZONING_SOURCES,
   ZONING_TOTAL,
+  greenPayload,
 } from "@/__tests__/fixtures/live-data";
 
 const LOADING = "読み込み中";
@@ -156,9 +157,10 @@ async function renderSettled(routes: { demographics: Route; transport: Route }) 
     "/api/v1/population-trends": TRENDS,
     "/api/v1/land-prices": LAND_PRICES,
     "/api/v1/zoning": ZONING,
+    "/api/v1/green-land-use": json(200, greenPayload()),
   });
   const view = render(<Home />);
-  await waitFor(() => expect(mock).toHaveBeenCalledTimes(6));
+  await waitFor(() => expect(mock).toHaveBeenCalledTimes(7));
   // Let each response → json → setState chain drain.
   for (let i = 0; i < 2; i++) {
     await act(async () => {
