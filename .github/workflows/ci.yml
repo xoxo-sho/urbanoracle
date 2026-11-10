@@ -61,14 +61,24 @@ jobs:
       # NOT on the placeholder deny-list, so a build that simply lost its
       # arguments stays distinguishable from this one. The real-config
       # assertions run at image build time (Stage 5/6) with the real appId.
-      - name: Build (static export)
+      #
+      # It runs with NO NETWORK: scripts/build-offline.sh starts `npm run
+      # build` in the Dockerfile's node:20-slim with `--network none`, after
+      # checking that the container cannot reach fonts.googleapis.com or
+      # fonts.gstatic.com. The web fonts and the OG card's fonts are vendored
+      # (public/fonts, src/app/_og-fonts, scripts/vendor-fonts.mjs), so the
+      # build needs nothing from outside; a next/font/google import, or OG
+      # text the vendored fonts lack, fails here on every pull request rather
+      # than at deploy (vercel/next.js#99114 failed 2 of the 10 deploys up to
+      # 2026-11-09). Every step below reads this out/.
+      - name: Build (static export) — offline, in a container with no network
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: structural-check-build
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dxalabs-platform.firebaseapp.com
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: dxalabs-platform
           NEXT_PUBLIC_FIREBASE_APP_ID: structural-check-build
           NEXT_PUBLIC_SITE_URL: https://urbanoracle.dxalabs.com
-        run: npm run build
+        run: bash scripts/build-offline.sh
 
       - name: Verify bundle structure
         run: SKIP_REAL_CONFIG=1 npm run verify:bundle
@@ -90,8 +100,10 @@ jobs:
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
       - name: "Font check 2/3 + 3/3 — metrics on out/; runtime check console asserted"
-        # Serves out/ with a static server (own config, no dev server). Fonts
-        # are self-hosted by next/font — no network needed.
+        # Serves out/ with a static server (own config, no dev server). The
+        # fonts are vendored in the repo (public/fonts, scripts/vendor-fonts.mjs).
+        # e2e/font-origin.spec.ts runs here too: on /, /login and /app every
+        # font comes from this origin and no request goes to Google Fonts.
         run: npm run test:fonts
       # The landing page's JA/EN toggle, against the same out/ built above:
       # python3's http.server on its own port, 1440×900 and 390×844 — default
@@ -120,6 +132,59 @@ jobs:
           name: font-metrics-report
           path: playwright-report
           if-no-files-found: ignore
+
+  # The production image, built and booted (follow-up 4, 2026-11-10). The two
+  # other jobs test the source; nothing before this job ever built the
+  # Dockerfile, so a missing COPY or a difference between the runner and
+  # python:3.11-slim showed only at deploy, or not at all — every font went out
+  # as text/plain from the image while the suite passed (found by hand before
+  # PR 27). This builds the image the way cloudbuild.yaml does — same
+  # Dockerfile, same build args, linux/amd64 — with the structural config, and
+  # scripts/ci/image-smoke.sh boots it against a throwaway Postgres with no
+  # production secret.
+  #
+  # It gates the deploy (deploy.yml: `needs: ci`) but does not feed it: Cloud
+  # Build still builds the image that ships, with the real config.
+  image:
+    name: Image build + smoke
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: urbanoracle-smoke:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Layers are cached in the Actions cache (npm ci and pip install are the
+      # slow ones); `load` puts the image in the runner's docker for the smoke.
+      - name: Build image (linux/amd64, as cloudbuild.yaml builds it)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}
+          build-args: |
+            NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
+            NEXT_PUBLIC_FIREBASE_API_KEY=structural-check-build
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=dxalabs-platform.firebaseapp.com
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=dxalabs-platform
+            NEXT_PUBLIC_FIREBASE_APP_ID=structural-check-build
+            NEXT_PUBLIC_SITE_URL=https://urbanoracle.dxalabs.com
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: "smoke: runs as a non-root user"
+        run: bash scripts/ci/image-smoke.sh user "$IMAGE"
+
+      - name: "smoke: verify-bundle on the image's /app/static"
+        run: bash scripts/ci/image-smoke.sh bundle "$IMAGE"
+
+      - name: "smoke: boots — health, LP, fonts as font/woff2, GeoJSON, data routes 401"
+        run: bash scripts/ci/image-smoke.sh boot "$IMAGE"
+
+      - name: "smoke: refuses to start when a snapshot is missing"
+        run: bash scripts/ci/image-smoke.sh snapshot "$IMAGE"
 
   backend:
     runs-on: ubuntu-latest

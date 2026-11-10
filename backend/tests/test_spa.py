@@ -19,6 +19,9 @@ PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"\x00" * 64
 GIF_BYTES = b"GIF89a" + b"\x00" * 64
 WEBP_BYTES = b"RIFF" + b"\x00\x00\x00\x00" + b"WEBP" + b"\x00" * 64
+WOFF2_BYTES = b"wOF2" + b"\x00" * 64
+# Named as scripts/vendor-fonts.mjs names them: <subset>-<first 16 hex of sha256>.woff2
+VENDORED_FONT = "latin-0123456789abcdef.woff2"
 
 
 @pytest.fixture()
@@ -37,6 +40,12 @@ def site(tmp_path):
 
     # The extensionless metadata route, exactly as Next emits it.
     (tmp_path / "opengraph-image").write_bytes(PNG_BYTES)
+
+    # The vendored web fonts (public/fonts → out/fonts): content-hashed woff2
+    # files beside their licence.
+    (tmp_path / "fonts" / "geist").mkdir(parents=True)
+    (tmp_path / "fonts" / "geist" / VENDORED_FONT).write_bytes(WOFF2_BYTES)
+    (tmp_path / "fonts" / "geist" / "OFL.txt").write_text("SIL OPEN FONT LICENSE Version 1.1")
     return tmp_path
 
 
@@ -196,6 +205,32 @@ def test_hashed_assets_are_immutable(client):
     assert "max-age=31536000" in resp.headers["cache-control"]
 
 
+def test_vendored_fonts_are_immutable_like_next_static(client):
+    """next/font served these from /_next/static/media with a one-year
+    immutable cache; the vendored copies carry a content hash in their name
+    and keep it. Without the header a browser revalidates every font file on
+    every visit."""
+    resp = client.get(f"/fonts/geist/{VENDORED_FONT}")
+    assert resp.status_code == 200
+    assert resp.content == WOFF2_BYTES
+    assert resp.headers["content-type"] == "font/woff2"
+    assert resp.headers.get("cache-control") == "public, max-age=31536000, immutable"
+
+
+def test_the_font_licence_is_served_but_not_cached_forever(client):
+    # OFL.txt has no content hash in its name, so it must stay replaceable.
+    resp = client.get("/fonts/geist/OFL.txt")
+    assert resp.status_code == 200
+    assert "SIL OPEN FONT LICENSE" in resp.text
+    assert "immutable" not in resp.headers.get("cache-control", "")
+
+
+def test_a_missing_font_is_a_404_not_the_landing_page(client):
+    resp = client.get("/fonts/geist/latin-ffffffffffffffff.woff2")
+    assert resp.status_code == 404
+    assert "UrbanOracle" not in resp.text
+
+
 @pytest.mark.parametrize(("header", "value"), SECURITY_HEADERS.items())
 def test_security_headers_apply_to_spa_responses(site, header, value):
     """The Stage 3b middleware must cover static responses, not just the API."""
@@ -206,3 +241,106 @@ def test_security_headers_apply_to_spa_responses(site, header, value):
     mount_static_site(app, site)
     resp = TestClient(app).get("/")
     assert resp.headers[header] == value
+
+
+# ---------------------------------------------------------------------------
+# Content types do not depend on the host's type table
+# ---------------------------------------------------------------------------
+# Python's mimetypes reads the operating system's table (/etc/mime.types and
+# friends). macOS and the ubuntu CI runner have one that knows .woff2; the
+# production image (python:3.11-slim) has none, and there the app served every
+# font — and the ward GeoJSON — as text/plain, while this suite passed
+# (measured in the linux/amd64 image of 3909835, 2026-11-10: 137 .woff2 and
+# 1 .geojson). These tests take the table away, so they see what the image
+# sees whatever machine runs them.
+
+
+@pytest.fixture()
+def no_type_table(monkeypatch):
+    """Python's mimetypes database, emptied: every guess answers None."""
+    empty = mimetypes.MimeTypes()
+    for table in (*empty.types_map, *empty.types_map_inv, empty.suffix_map, empty.encodings_map):
+        table.clear()
+    monkeypatch.setattr(mimetypes, "_db", empty)
+    monkeypatch.setattr(mimetypes, "inited", True)
+    assert mimetypes.guess_type("a.css") == (None, None)
+    assert mimetypes.guess_type("a.woff2") == (None, None)
+
+
+@pytest.fixture()
+def full_site(site):
+    """The fixture site plus one file of every other extension the export has."""
+    (site / "_next" / "static" / "chunks" / "c3d4.css").write_text("body{}")
+    (site / "_next" / "static" / "media").mkdir()
+    (site / "_next" / "static" / "media" / "Heading-s.p.0abc.woff2").write_bytes(WOFF2_BYTES)
+    (site / "_next" / "static" / "media" / "favicon.0abc.ico").write_bytes(b"\x00\x00\x01\x00")
+    (site / "data").mkdir()
+    (site / "data" / "tokyo-wards.geojson").write_text('{"type":"FeatureCollection","features":[]}')
+    (site / "favicon.ico").write_bytes(b"\x00\x00\x01\x00")
+    (site / "globe.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+    (site / "app.txt").write_text("1:{}")
+    return site
+
+
+# Every extension in the export of 3909835 (242 files), at the mount that
+# serves it, with the type it must carry.
+SERVED_TYPES = [
+    ("/_next/static/chunks/a1b2.js", "application/javascript"),
+    ("/_next/static/chunks/c3d4.css", "text/css; charset=utf-8"),
+    ("/_next/static/media/Heading-s.p.0abc.woff2", "font/woff2"),
+    ("/_next/static/media/favicon.0abc.ico", "image/vnd.microsoft.icon"),
+    (f"/fonts/geist/{VENDORED_FONT}", "font/woff2"),
+    ("/fonts/geist/OFL.txt", "text/plain; charset=utf-8"),
+    ("/", "text/html; charset=utf-8"),
+    ("/app", "text/html; charset=utf-8"),
+    ("/no-such-page", "text/html; charset=utf-8"),
+    ("/app.txt", "text/plain; charset=utf-8"),
+    ("/robots.txt", "text/plain; charset=utf-8"),
+    ("/sitemap.xml", "application/xml"),
+    ("/data/tokyo-wards.geojson", "application/geo+json"),
+    ("/favicon.ico", "image/vnd.microsoft.icon"),
+    ("/globe.svg", "image/svg+xml"),
+    ("/opengraph-image", "image/png"),
+]
+
+
+@pytest.mark.parametrize(("path", "expected"), SERVED_TYPES)
+def test_content_type_without_a_host_type_table(no_type_table, full_site, path, expected):
+    app = FastAPI()
+    assert mount_static_site(app, full_site) is True
+    resp = TestClient(app).get(path)
+    assert resp.status_code in (200, 404)  # /no-such-page is the 404 document
+    assert resp.headers["content-type"] == expected
+
+
+def test_cache_headers_survive_the_explicit_types(no_type_table, full_site):
+    app = FastAPI()
+    mount_static_site(app, full_site)
+    client = TestClient(app)
+    immutable = "public, max-age=31536000, immutable"
+    assert client.get("/_next/static/media/Heading-s.p.0abc.woff2").headers["cache-control"] == immutable
+    assert client.get(f"/fonts/geist/{VENDORED_FONT}").headers["cache-control"] == immutable
+    assert "immutable" not in client.get("/fonts/geist/OFL.txt").headers.get("cache-control", "")
+    assert client.get("/app").headers["cache-control"] == "no-cache"
+
+
+def test_nosniff_is_still_sent_with_a_font(no_type_table, full_site):
+    from middleware.security_headers import SecurityHeadersMiddleware
+
+    app = FastAPI()
+    app.add_middleware(SecurityHeadersMiddleware)
+    mount_static_site(app, full_site)
+    resp = TestClient(app).get(f"/fonts/geist/{VENDORED_FONT}")
+    assert resp.headers["content-type"] == "font/woff2"
+    assert resp.headers["x-content-type-options"] == "nosniff"
+
+
+def test_an_extension_outside_the_table_is_served_as_a_download_not_as_text(no_type_table, full_site):
+    # Fail closed: a file type nobody listed must not be sniffable text.
+    (full_site / "notes.xyz").write_text("hello")
+    app = FastAPI()
+    mount_static_site(app, full_site)
+    resp = TestClient(app).get("/notes.xyz")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/octet-stream"
+

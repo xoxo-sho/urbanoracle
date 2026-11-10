@@ -23,6 +23,8 @@ ORIGIN="https://urbanoracle.dxalabs.com"
 APP_ID='1:490573289488:web:0123456789abcdef012345'
 OTHER_APP_ID='1:490573289488:web:fedcba9876543210fedcba'
 API_KEY='AIzaSyA1234567890abcdefghijklmnopqrstuvw'
+# Named as scripts/vendor-fonts.mjs names a font: <subset>-<first 16 hex of sha256>.woff2
+FONT_FILE='latin-0123456789abcdef.woff2'
 
 export EXPECT_SITE_ORIGIN="$ORIGIN"
 export EXPECT_APP_ID="$APP_ID"
@@ -81,6 +83,13 @@ EOF
 
   printf '\x89PNG\r\n\x1a\n placeholder-bytes' > "$dir/opengraph-image"
 
+  # The vendored web fonts: one face in the emitted CSS, its file under /fonts/.
+  mkdir -p "$dir/fonts/geist"
+  printf 'wOF2 placeholder-bytes' > "$dir/fonts/geist/${FONT_FILE}"
+  cat > "$dir/_next/static/chunks/fonts.css" <<EOF
+@font-face{font-family:Geist;font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/geist/${FONT_FILE})format("woff2")}
+EOF
+
   cat > "$dir/robots.txt" <<EOF
 User-Agent: *
 Allow: /
@@ -128,6 +137,22 @@ expect_fail_naming() {
     printf '  FAIL expected %s failure line(s), got %s: %s\n' "${4:-1}" "$failures" "$label" >&2; FAILED=$((FAILED + 1))
   else
     printf '  ok   RED as expected, naming %s: %s\n' "$needle" "$label"; PASSED=$((PASSED + 1))
+  fi
+}
+
+# The web-font checks (4d): the verifier's own failure line, and no other.
+expect_fail_line() {
+  local label="$1" dir="$2" needle="$3" out status failures
+  out=$(bash "$VERIFY" "$dir" 2>&1); status=$?
+  failures=$(printf '%s\n' "$out" | grep -c '^  FAIL ')
+  if [ "$status" -eq 0 ]; then
+    printf '  FAIL verifier stayed GREEN on a broken bundle: %s\n' "$label" >&2; FAILED=$((FAILED + 1))
+  elif ! printf '%s\n' "$out" | grep -qF -- "FAIL ${needle}"; then
+    printf '  FAIL verifier went red without the line "%s": %s\n' "$needle" "$label" >&2; FAILED=$((FAILED + 1))
+  elif [ "$failures" -ne 1 ]; then
+    printf '  FAIL expected 1 failure line, got %s: %s\n' "$failures" "$label" >&2; FAILED=$((FAILED + 1))
+  else
+    printf '  ok   RED as expected, with "%s": %s\n' "$needle" "$label"; PASSED=$((PASSED + 1))
   fi
 }
 
@@ -280,6 +305,43 @@ expect_fail_naming "isLive inside a longer prop name" "$WORK/f44" 'the identifie
 build_fixture "$WORK/f45"
 printf 'uniform sampler2D u;this.sampleCurveX(t);r.validationSamples;gl.SAMPLES;gl.SAMPLE_COVERAGE;MULTISAMPLE;i.sampleCount;\n' >> "$WORK/f45/$CHUNK"
 expect_pass "third-party names containing 'sample' are not the sample layer" "$WORK/f45"
+
+# --- web fonts (vendored; nothing from Google) ------------------------------
+build_fixture "$WORK/f50"
+printf '@import url("https://fonts.googleapis.com/css2?family=Geist&display=swap");\n' >> "$WORK/f50/_next/static/chunks/fonts.css"
+expect_fail_line "a stylesheet imports from fonts.googleapis.com" "$WORK/f50" 'web fonts: fonts.googleapis.com is referenced in the bundle (1 file(s), first: _next/static/chunks/fonts.css)'
+
+build_fixture "$WORK/f51"
+sedi 's#<script src#<link rel="preload" as="font" href="https://fonts.gstatic.com/s/geist/v4/x.woff2"/><script src#' "$WORK/f51/index.html"
+expect_fail_line "the landing page preloads a font from fonts.gstatic.com" "$WORK/f51" 'web fonts: fonts.gstatic.com is referenced in the bundle (1 file(s), first: index.html)'
+
+build_fixture "$WORK/f52"
+printf 'const css="https://fonts.googleapis.com/css2?family=Noto+Sans+JP";\n' >> "$WORK/f52/_next/static/chunks/config.js"
+expect_fail_line "a chunk fetches a stylesheet from fonts.googleapis.com" "$WORK/f52" 'web fonts: fonts.googleapis.com is referenced in the bundle (1 file(s), first: _next/static/chunks/config.js)'
+
+build_fixture "$WORK/f53"
+rm -f "$WORK/f53/fonts/geist/${FONT_FILE}"
+expect_fail_line "the stylesheet names a font file that is not in the bundle" "$WORK/f53" "web fonts: 1 of 1 referenced font file(s) are not in the bundle (first: /fonts/geist/${FONT_FILE})"
+
+build_fixture "$WORK/f54"
+rm -rf "$WORK/f54/fonts"
+sedi 's#<script src#<link rel="preload" as="font" href="/fonts/geist-mono/latin-fedcba9876543210.woff2"/><script src#' "$WORK/f54/index.html"
+expect_fail_line "public/fonts was left out of the image" "$WORK/f54" 'web fonts: 2 of 2 referenced font file(s) are not in the bundle (first: /fonts/geist-mono/latin-fedcba9876543210.woff2)'
+
+build_fixture "$WORK/f55"
+rm -f "$WORK/f55/_next/static/chunks/fonts.css"
+expect_fail_line "the vendored stylesheet is not in the bundle" "$WORK/f55" 'web fonts: nothing in the bundle references a vendored font under /fonts/ — the stylesheet is missing'
+
+# False-positive guard: the identity hosts a real bundle does name are on
+# googleapis.com too, and are not Google Fonts.
+build_fixture "$WORK/f56"
+printf 'const IDENTITY="https://identitytoolkit.googleapis.com/v1",TOKEN="https://securetoken.googleapis.com/v1";\n' >> "$WORK/f56/_next/static/chunks/config.js"
+expect_pass "identitytoolkit / securetoken on googleapis.com are not Google Fonts" "$WORK/f56"
+
+# --- content types (every extension in the bundle is in MEDIA_TYPES) -------
+build_fixture "$WORK/f57"
+printf 'II*\0' > "$WORK/f57/_next/static/chunks/photo.tiff"
+expect_fail_line "a file type the backend has no Content-Type for" "$WORK/f57" 'content types: the bundle has file type(s) with no entry in MEDIA_TYPES (backend/core/spa.py): .tiff'
 
 # --- landing page ---------------------------------------------------------
 build_fixture "$WORK/f13"

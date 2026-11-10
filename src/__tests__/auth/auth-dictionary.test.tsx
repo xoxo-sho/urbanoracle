@@ -9,11 +9,7 @@ import { AUTH_COPY, PASSWORD_LABELS, type AuthKey } from "@/i18n/auth";
 import { LanguageProvider } from "@/i18n/lang-context";
 import { metadata as layoutMetadata } from "@/app/layout";
 
-// layout.tsx calls next/font loaders at module scope; only its metadata is read.
-vi.mock("next/font/google", () => {
-  const font = () => ({ variable: "", className: "", style: { fontFamily: "" } });
-  return { Geist: font, Geist_Mono: font, Noto_Sans_JP: font };
-});
+// layout.tsx calls the next/font/local loader at module scope; only its metadata is read.
 vi.mock("next/font/local", () => ({
   default: () => ({ variable: "", className: "", style: { fontFamily: "" } }),
 }));

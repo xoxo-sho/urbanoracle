@@ -3,13 +3,10 @@ import { render } from "@testing-library/react";
 import LandingPage, { metadata as pageMetadata } from "@/app/page";
 import { metadata as layoutMetadata } from "@/app/layout";
 
-// layout.tsx calls next/font loaders at module scope; they only exist under
-// the Next compiler. Only its exported `metadata` is read here, so the loaders
-// are stubbed to the shape layout.tsx consumes (`.variable`).
-vi.mock("next/font/google", () => {
-  const font = () => ({ variable: "", className: "", style: { fontFamily: "" } });
-  return { Geist: font, Geist_Mono: font, Noto_Sans_JP: font };
-});
+// layout.tsx calls the next/font/local loader at module scope (the two heading
+// subsets); it only exists under the Next compiler. Only its exported
+// `metadata` is read here, so the loader is stubbed to the shape layout.tsx
+// consumes (`.variable`). The other faces are plain CSS (styles/fonts.css).
 vi.mock("next/font/local", () => ({
   default: () => ({ variable: "", className: "", style: { fontFamily: "" } }),
 }));

@@ -240,6 +240,75 @@ check_absent 'the sample provenance group (data-provenance … sample)' E 'data-
 check_absent 'the identifier isLive (any casing, alone or inside a longer name)' Ei 'is_?live'
 
 # --------------------------------------------------------------------------
+# 4d. Web fonts: vendored, on this origin, nothing from Google
+# --------------------------------------------------------------------------
+# Geist, Geist Mono and Noto Sans JP are vendored in the repository
+# (public/fonts, scripts/vendor-fonts.mjs): the build fetches nothing from
+# Google Fonts, and the browser must not either. A Google Fonts host named
+# anywhere in the export means a stylesheet, a preload or a script points a
+# visitor's browser at Google again.
+for host in fonts.googleapis.com fonts.gstatic.com; do
+  files=$(grep -rlF -- "$host" "$DIR" 2>/dev/null)
+  if [ -n "$files" ]; then
+    count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
+    first=$(printf '%s\n' "$files" | sort | head -1)
+    fail "web fonts: ${host} is referenced in the bundle (${count} file(s), first: ${first#"$DIR"/})"
+  else
+    pass "web fonts: no reference to ${host}"
+  fi
+done
+
+# The emitted CSS and the preload links point at /fonts/<family>/<name>-<hash>.woff2.
+# Each of those files has to be in the bundle: public/ left out of the image,
+# or a stylesheet from one vendoring run beside the files of another, would
+# otherwise ship pages whose fonts all 404 — and render in the fallback face
+# with no error anywhere.
+font_refs=$(grep -rhoE '/fonts/[a-z0-9-]+/[a-z0-9-]+-[0-9a-f]{16}\.woff2' "$DIR" 2>/dev/null | sort -u)
+if [ -z "$font_refs" ]; then
+  fail "web fonts: nothing in the bundle references a vendored font under /fonts/ — the stylesheet is missing"
+else
+  ref_count=$(printf '%s\n' "$font_refs" | wc -l | tr -d ' ')
+  missing=0
+  first_missing=""
+  while IFS= read -r ref; do
+    if [ ! -f "$DIR$ref" ]; then
+      missing=$((missing + 1))
+      [ -z "$first_missing" ] && first_missing="$ref"
+    fi
+  done <<FONT_REFS
+$font_refs
+FONT_REFS
+  if [ "$missing" -gt 0 ]; then
+    fail "web fonts: ${missing} of ${ref_count} referenced font file(s) are not in the bundle (first: ${first_missing})"
+  else
+    pass "web fonts: all ${ref_count} referenced font files are in the bundle"
+  fi
+fi
+
+# --------------------------------------------------------------------------
+# 4e. Every file type in the bundle has a stated Content-Type
+# --------------------------------------------------------------------------
+# backend/core/spa.py serves the bundle with the types in its MEDIA_TYPES
+# mapping and nothing else: the production image has no system type table, so
+# an extension missing there goes out as application/octet-stream (before the
+# mapping existed, fonts went out as text/plain and no check noticed). A new
+# file type in the export has to be listed there first.
+SPA_PY="${SPA_PY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/backend/core/spa.py}"
+if [ ! -f "$SPA_PY" ]; then
+  fail "content types: ${SPA_PY} not found — cannot read the MEDIA_TYPES mapping"
+else
+  untyped=""
+  for ext in $(find "$DIR" -type f -name '*.*' | sed 's/.*\.//' | tr '[:upper:]' '[:lower:]' | sort -u); do
+    grep -qF "\".${ext}\": \"" "$SPA_PY" || untyped="${untyped} .${ext}"
+  done
+  if [ -n "$untyped" ]; then
+    fail "content types: the bundle has file type(s) with no entry in MEDIA_TYPES (backend/core/spa.py):${untyped}"
+  else
+    pass "content types: every file extension in the bundle is in MEDIA_TYPES"
+  fi
+fi
+
+# --------------------------------------------------------------------------
 # 5. The landing page
 # --------------------------------------------------------------------------
 LP_INDEX="$DIR/index.html"
