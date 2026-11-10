@@ -200,6 +200,8 @@ def mount_static_site(app: FastAPI, static_dir: str | Path) -> bool:
     if fonts_dir.is_dir():
         app.mount("/fonts", VendoredFonts(directory=fonts_dir), name="fonts")
 
+    # GET only, like every route here: HEAD is answered for all of them by
+    # middleware/head.py, as this GET with the body left off.
     @app.get("/{full_path:path}", include_in_schema=False)
     async def static_site(full_path: str) -> FileResponse:
         if full_path.startswith(RESERVED_PREFIXES):

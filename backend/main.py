@@ -16,6 +16,7 @@ from core.authz import get_current_user, register_authz_handlers, require_active
 from core.config import settings
 from core.logging_setup import configure_logging
 from core.spa import mount_static_site
+from middleware.head import HeadAsGetMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 from routers.auth import router as auth_router
 from routers.data import router as data_router
@@ -55,6 +56,10 @@ app = FastAPI(
 # next.config.ts's headers() cannot survive a static export; these are the
 # same four values, re-emitted here.
 app.add_middleware(SecurityHeadersMiddleware)
+# HEAD answers wherever GET does, with GET's status and headers and no body
+# (middleware/head.py). Added last, so it is the outermost layer: everything
+# inside it — auth, the headers above, the static site — sees the GET.
+app.add_middleware(HeadAsGetMiddleware)
 register_authz_handlers(app)
 
 app.include_router(health_router, prefix="/api/v1")

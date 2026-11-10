@@ -237,9 +237,9 @@ describe("K1 成長率 has its own source line, from the payload", () => {
   });
 
   it("is set in the dashboard's source-note size (globals.css .source-note, 11px), not a smaller ad-hoc size", async () => {
-    // The 9px caption on this tile is already logged as unreadable (RECON §9,
-    // Architect additions); a new line must not be smaller still. The one
-    // provenance size the dashboard has is .source-note.
+    // The caption on this tile is the caption size (text-xs, 12px, follow-up 2);
+    // a provenance line must not be set smaller than .source-note, the one
+    // provenance size the dashboard has.
     const { container } = await renderSettled(demographics(CENSUS_YEAR));
     const line = growthTile(container).querySelector<HTMLElement>('[data-source="growthRate"]');
     expect(line, "no [data-source=growthRate] line on the 成長率 tile").not.toBeNull();

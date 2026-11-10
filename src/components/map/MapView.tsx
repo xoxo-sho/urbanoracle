@@ -100,6 +100,16 @@ export default function MapView({
   const hoveredWard = useRef<number | null>(null);
   const initialized = useRef(false);
   const wardGeoJSON = useRef<WardFeatureCollection | null>(null);
+  // The map's own handlers are registered once, at mount, so they read the
+  // selection through refs: a value captured in them would stay the first
+  // render's (null), and a second click on the selected ward would select it
+  // again instead of clearing it.
+  const selectedWardRef = useRef(selectedWard);
+  const onSelectWardRef = useRef(onSelectWard);
+  useEffect(() => {
+    selectedWardRef.current = selectedWard;
+    onSelectWardRef.current = onSelectWard;
+  }, [selectedWard, onSelectWard]);
 
   const setupLayers = useCallback((m: maplibregl.Map) => {
     // MapLibre paint expressions cannot read CSS variables, so the semantic
@@ -294,7 +304,7 @@ export default function MapView({
         source: "stations",
         layout: {
           "text-field": ["get", "name"],
-          "text-size": 10,
+          "text-size": 12,
           "text-offset": [0, -1.8],
           "text-anchor": "bottom",
         },
@@ -362,7 +372,7 @@ export default function MapView({
         wardGeoJSON.current = data;
         setupLayers(m);
         initialized.current = true;
-        if (selectedWard) flyToWard(m, selectedWard);
+        if (selectedWardRef.current) flyToWard(m, selectedWardRef.current);
       });
     });
 
@@ -419,12 +429,12 @@ export default function MapView({
       popup.current?.remove();
     });
 
-    // Click: select ward
+    // Click: select a ward; a click on the selected ward clears the selection.
     m.on("click", "ward-fill", (e) => {
       if (!e.features || e.features.length === 0) return;
       const name = e.features[0].properties?.name;
       if (name) {
-        onSelectWard(selectedWard === name ? null : name);
+        onSelectWardRef.current(selectedWardRef.current === name ? null : name);
       }
     });
 

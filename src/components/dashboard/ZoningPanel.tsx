@@ -45,7 +45,7 @@ export default function ZoningPanel({ composition, status, sources = {}, selecte
       <div className="chart-section" data-surface="zoning-composition">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">用途地域 面積構成</h4>
-          <span className="text-[10px] text-muted-foreground" data-region>
+          <span className="text-xs text-muted-foreground" data-region>
             {region}
           </span>
         </div>
@@ -80,7 +80,7 @@ export default function ZoningPanel({ composition, status, sources = {}, selecte
                 >
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={typeStyle(i)} />
                   <span className="text-[11px] text-muted-foreground truncate flex-1">{t.name}</span>
-                  <span className="text-[10px] tabular-nums text-muted-foreground">{formatKm2(t.m2)}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{formatKm2(t.m2)}</span>
                   <span className="text-[11px] tabular-nums text-foreground w-12 text-right">{formatShare(t.share)}</span>
                 </div>
               ))}
@@ -136,14 +136,14 @@ export default function ZoningPanel({ composition, status, sources = {}, selecte
                   data-bcr-min={t.bcr.min}
                   data-bcr-max={t.bcr.max}
                 >
-                  <span className="w-28 text-[10px] text-muted-foreground truncate" title={t.name}>
+                  <span className="w-28 shrink-0 text-xs leading-snug text-muted-foreground md:w-40" title={t.name}>
                     {t.name}
                   </span>
                   <div className="flex-1 flex items-center gap-2" title={rangeText("容積率", t.far)}>
                     <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${Math.min(100, (t.far.mean / FAR_SCALE) * 100)}%`, ...typeStyle(i) }} />
                     </div>
-                    <span className="text-[10px] tabular-nums w-24 text-right">
+                    <span className="w-24 shrink-0 text-right text-xs tabular-nums md:w-28">
                       {t.far.mean.toFixed(0)}%<span className="text-muted-foreground"> {t.far.min}〜{t.far.max}</span>
                     </span>
                   </div>
@@ -151,14 +151,14 @@ export default function ZoningPanel({ composition, status, sources = {}, selecte
                     <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
                       <div className="h-full rounded-full opacity-60" style={{ width: `${Math.min(100, t.bcr.mean)}%`, ...typeStyle(i) }} />
                     </div>
-                    <span className="text-[10px] tabular-nums w-24 text-right">
+                    <span className="w-24 shrink-0 text-right text-xs tabular-nums md:w-28">
                       {t.bcr.mean.toFixed(0)}%<span className="text-muted-foreground"> {t.bcr.min}〜{t.bcr.max}</span>
                     </span>
                   </div>
                 </div>
               ))}
-              <div className="flex items-center gap-3 text-[9px] text-muted-foreground mt-1">
-                <span className="w-28" />
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                <span className="w-28 shrink-0 md:w-40" />
                 <span className="flex-1 text-center">容積率 面積加重平均（範囲 最小〜最大、%）</span>
                 <span className="flex-1 text-center">建蔽率 面積加重平均（範囲 最小〜最大、%）</span>
               </div>

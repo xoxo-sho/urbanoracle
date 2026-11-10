@@ -73,20 +73,20 @@ function TransportNote({ status, sources }: { status: DataStatus; sources?: Fiel
   const year = ridershipYearLabel(sources);
   if (status === "loading") {
     return (
-      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+      <p className="mt-1 text-xs leading-snug text-muted-foreground/80" data-state="loading">
         乗降客数: {LOADING_TEXT}
       </p>
     );
   }
   if (status !== "ok") {
     return (
-      <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+      <p className="state-legend mt-1 text-xs leading-snug" data-state="unavailable">
         乗降客数: {FAILED_TEXT}
       </p>
     );
   }
   return (
-    <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+    <p className="source-note mt-1">
       出典: {SOURCES.ksj.label}
       {year ? ` ${year}` : ""}
     </p>
@@ -103,17 +103,17 @@ function DisasterNote({ status, sources }: { status: DataStatus; sources?: Field
   return (
     <>
       {status === "loading" ? (
-        <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+        <p className="mt-1 text-xs leading-snug text-muted-foreground/80" data-state="loading">
           {CHOROPLETH_LABEL}: {LOADING_TEXT}
         </p>
       ) : status !== "ok" ? (
-        <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+        <p className="state-legend mt-1 text-xs leading-snug" data-state="unavailable">
           {CHOROPLETH_LABEL}: {FAILED_TEXT}
         </p>
       ) : (
-        <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">出典: {line ?? SOURCES.tokyoKikendo.label}（町丁目の相対評価）</p>
+        <p className="source-note mt-1">出典: {line ?? SOURCES.tokyoKikendo.label}（町丁目の相対評価）</p>
       )}
-      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+      <p className="source-note mt-1">
         重ね: {HAZARD_RASTER_NAMES} — {HAZARD_PORTAL_SOURCE}
       </p>
     </>
@@ -128,19 +128,19 @@ function CensusNote({ status, sources }: { status: DataStatus; sources?: FieldSo
   const line = densityLegendSource(sources);
   if (status === "loading") {
     return (
-      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+      <p className="mt-1 text-xs leading-snug text-muted-foreground/80" data-state="loading">
         人口密度: {LOADING_TEXT}
       </p>
     );
   }
   if (status === "unavailable") {
     return (
-      <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+      <p className="state-legend mt-1 text-xs leading-snug" data-state="unavailable">
         人口密度: {FAILED_TEXT}
       </p>
     );
   }
-  return line ? <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">出典: {line}</p> : null;
+  return line ? <p className="source-note mt-1">出典: {line}</p> : null;
 }
 
 /**
@@ -151,20 +151,20 @@ function LandPriceNote({ status, sources }: { status: DataStatus; sources?: Fiel
   const year = landPriceYearLabel(sources);
   if (status === "loading") {
     return (
-      <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80" data-state="loading">
+      <p className="mt-1 text-xs leading-snug text-muted-foreground/80" data-state="loading">
         平均価格: {LOADING_TEXT}
       </p>
     );
   }
   if (status !== "ok") {
     return (
-      <p className="state-legend mt-1 text-[8px] leading-snug" data-state="unavailable">
+      <p className="state-legend mt-1 text-xs leading-snug" data-state="unavailable">
         平均価格: {FAILED_TEXT}
       </p>
     );
   }
   return (
-    <p className="mt-1 text-[8px] leading-snug text-muted-foreground/80">
+    <p className="source-note mt-1">
       出典: {SOURCES.ksj.label}
       {year ? ` ${year}` : ""}
     </p>
@@ -216,7 +216,7 @@ export default function MapLegend({
         if (!config) return null;
         return (
           <div key={layer.id} data-legend={layer.id} data-legend-stops={stopsFor(layer.id) !== undefined ? JSON.stringify(stopsFor(layer.id)) : undefined}>
-            <div className="text-[9px] font-medium text-muted-foreground mb-1">{config.label}</div>
+            <div className="text-xs font-medium text-muted-foreground mb-1">{config.label}</div>
             <div className="flex items-center gap-0.5">
               {/* h-audit: data-ramp — the legend swatch is the colour scale itself. */}
               <div
@@ -229,7 +229,7 @@ export default function MapLegend({
             {(stopsFor(layer.id) === undefined || stopsFor(layer.id)) && (
               <div className="flex justify-between mt-0.5">
                 {config.stops.map((s, i) => (
-                  <span key={i} className="text-[8px] text-muted-foreground" data-stop={stopsFor(layer.id) !== undefined ? "" : undefined}>
+                  <span key={i} className="text-xs text-muted-foreground" data-stop={stopsFor(layer.id) !== undefined ? "" : undefined}>
                     {s.label}
                   </span>
                 ))}

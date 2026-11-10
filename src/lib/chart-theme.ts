@@ -13,7 +13,7 @@ export const TOOLTIP_STYLE = {
 export const AXIS_STYLE = {
   tick: { fill: "var(--axis-tick)" },
   tickMuted: { fill: "var(--axis-tick-muted)" },
-  fontSize: 10,
+  fontSize: 12,
   axisLine: false as const,
   tickLine: false as const,
 } as const;

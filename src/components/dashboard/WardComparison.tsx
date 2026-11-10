@@ -28,7 +28,7 @@ function RankScale({ rank }: { rank: number }) {
       data-rank-scale
       role="img"
       aria-label={`順位 ${rank}位（1〜${WARD_COUNT}位）`}
-      className="flex items-center gap-1.5 text-[9px] tabular-nums text-muted-foreground"
+      className="flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground"
     >
       <span aria-hidden>1</span>
       {/* h-audit: data-mark — the marker is the rank's position on the 1–23 scale. */}
@@ -47,7 +47,7 @@ function Row({ m, selectedWard }: { m: Measure; selectedWard: string | null }) {
   const header = (
     <div className="flex items-baseline justify-between gap-2">
       <span className="text-[11px] font-medium text-foreground">{m.label}</span>
-      <span className="shrink-0 text-[9px] text-muted-foreground">{m.order}</span>
+      <span className="shrink-0 text-xs text-muted-foreground">{m.order}</span>
     </div>
   );
   if (m.state !== "ok") {
@@ -72,20 +72,20 @@ function Row({ m, selectedWard }: { m: Measure; selectedWard: string | null }) {
         <div className="flex items-baseline justify-between gap-2">
           <span data-value={value ?? undefined} className="text-sm font-bold tabular-nums text-foreground">
             {value === undefined ? NO_DATA : m.format(value)}
-            {note && <span className="ml-1 text-[10px] font-normal text-muted-foreground">（{note}）</span>}
+            {note && <span className="ml-1 text-xs font-normal text-muted-foreground">（{note}）</span>}
           </span>
           {ranked ? (
             <span data-rank={ranked.rank} data-tied={String(ranked.tied)} className="shrink-0 text-[11px] font-semibold tabular-nums">
               {ranked.rank}位<span className="font-normal text-muted-foreground">／{WARD_COUNT}区{ranked.tied ? "（同順位あり）" : ""}</span>
             </span>
           ) : (
-            <span className="shrink-0 text-[10px] text-muted-foreground">順位: {NO_DATA}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">順位: {NO_DATA}</span>
           )}
         </div>
       )}
       {ranked && <RankScale rank={ranked.rank} />}
       {ext && m.complete && (
-        <div className="grid grid-cols-2 gap-2 text-[10px] tabular-nums">
+        <div className="grid grid-cols-2 gap-2 text-xs tabular-nums">
           <span data-max>
             <span className="text-muted-foreground">最も大きい区 </span>
             {wardsText(ext.max.wards)} {m.format(ext.max.value)}
@@ -96,7 +96,7 @@ function Row({ m, selectedWard }: { m: Measure; selectedWard: string | null }) {
           </span>
         </div>
       )}
-      <div className="text-[10px] tabular-nums">
+      <div className="text-xs tabular-nums">
         <span className="text-muted-foreground">23区全体 </span>
         <span data-total={total ?? undefined}>{total === null ? NO_DATA : m.format(total)}</span>
       </div>
@@ -115,7 +115,7 @@ export default function WardComparison({ measures, selectedWard }: { measures: M
       <h4 id="ward-comparison-title" className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         23区の中での位置{selectedWard ? `（${selectedWard}）` : ""}
       </h4>
-      <p className="text-[10px] leading-snug text-muted-foreground">
+      <p className="text-xs leading-snug text-muted-foreground">
         {selectedWard
           ? `${selectedWard}の値と23区の中での順位（1〜${WARD_COUNT}位、各行に記した順）。${TIE_RULE}。`
           : `区を選ぶと、その区の値と順位を表示します。各行は23区全体の値と、値の最も大きい区・小さい区。順位は各行に記した順で、${TIE_RULE}。`}

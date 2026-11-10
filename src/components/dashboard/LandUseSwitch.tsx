@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export default function LandUseSwitch({ value, onChange }: { value: LandUse; onChange: (use: LandUse) => void }) {
   return (
     <div data-land-use-switch role="group" aria-label="用途区分" className="flex items-center gap-1">
-      <span className="mr-1 text-[10px] text-muted-foreground">用途区分</span>
+      <span className="mr-1 text-xs text-muted-foreground">用途区分</span>
       {LAND_USES.map((use) => (
         <button
           key={use}

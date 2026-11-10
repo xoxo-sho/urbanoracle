@@ -63,7 +63,7 @@ export default function HeroSpread({ copy = JA_COPY }: { copy?: HeroSpreadCopy }
   return (
     <div className="rounded-sm border" style={{ borderColor: "var(--surface-border)" }} data-hero-spread>
       <div
-        className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 px-4 py-2 text-[10px] tracking-widest uppercase"
+        className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 px-4 py-2 text-xs tracking-widest uppercase"
         style={{ borderBottom: "1px solid var(--rule)" }}
         data-hero-head
       >
