@@ -8,6 +8,7 @@ export default defineConfig({
   // login specs (playwright.login.config.ts): they test the built export.
   testIgnore: [
     /font-metrics\.spec\.ts/,
+    /font-origin\.spec\.ts/,
     /lp-i18n\.spec\.ts/,
     /lang-title\.spec\.ts/,
     /login-split\.spec\.ts/,

@@ -1,35 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import localFont from "next/font/local";
+import { preload } from "react-dom";
 import { AuthProvider } from "@/lib/auth-context";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+// Geist (Latin), Geist Mono (mono) and Noto Sans JP (the body JA face the
+// dxa-ui bridge points --dxa-face-ja at) are vendored in the repository:
+// public/fonts/<family>/, written by scripts/vendor-fonts.mjs. Neither the
+// build nor the browser contacts Google. styles/fonts.css holds one
+// @font-face per Google slice (unicode-range and all), the size-adjusted
+// "<family> Fallback" faces and --font-geist-sans / --font-geist-mono /
+// --font-noto-sans-jp on :root — the rules, files and variables
+// next/font/google produced here until 2026-11 (docs/vendored-fonts.md).
+// Imported before globals.css, the order next/font's stylesheets had.
+import "../../styles/fonts.css";
 import "./globals.css";
 import { FontRuntimeCheck } from "./font-runtime-check";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// The body JA face (dxa-ui, 2026-08-19). Until this loader existed the body
-// chain was `Geist, "Geist Fallback"` and nothing else — no CJK face, no
-// generic family — so every Japanese glyph (621 on the LP) fell through to
-// the engine's per-glyph system fallback, silently, and a failed Geist load
-// would have left nothing at all after it. Geist stays the Latin face; this
-// is what the bridge's --dxa-face-ja points at. preload:false like the other
-// JP faces on the platform (many unicode-range slices); display swap.
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  preload: false,
-  display: "swap",
-});
+import { PRELOAD_FONTS } from "./vendored-fonts";
 
 // Heading faces (spec §3), self-hosted as heading-only subsets so the payload
 // is bounded and reproducible. Both are display: swap — a heading face must
@@ -82,10 +68,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The latin file of Geist and of Geist Mono, as next/font/google preloaded
+  // them. Noto Sans JP is not preloaded: 124 unicode-range slices, each
+  // fetched only when a page shows a character in it (display: swap).
+  for (const href of PRELOAD_FONTS) {
+    preload(href, { as: "font", type: "font/woff2", crossOrigin: "" });
+  }
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} ${sourceSerif.variable} ${zenOldMincho.variable} antialiased`}
+      className={`${sourceSerif.variable} ${zenOldMincho.variable} antialiased`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground">

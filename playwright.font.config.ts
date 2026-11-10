@@ -1,6 +1,8 @@
 /**
  * Dedicated Playwright config for the font checks (check 2 metrics + check 3
- * runtime-console assertion). Separate from playwright.config.ts on purpose:
+ * runtime-console assertion, e2e/font-metrics.spec.ts) and for the font-origin
+ * check (e2e/font-origin.spec.ts: every font from this origin, none from
+ * Google). Separate from playwright.config.ts on purpose:
  * that one boots `next dev` for the dashboard spec; this one serves the
  * PRODUCTION static export (out/) with a plain static server, because what it
  * measures is what ships (FastAPI serves out/ from STATIC_DIR).
@@ -16,7 +18,7 @@ const BASE_URL = process.env.FONT_TEST_BASE_URL ?? `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: /font-metrics\.spec\.ts/,
+  testMatch: /font-(metrics|origin)\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,

@@ -1,4 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import OG_FALLBACKS from "./_og-fonts/og-fonts.json";
 
 /**
  * Social card (design-spec-v1 §0, §2).
@@ -25,7 +28,20 @@ const NAVY = "#16305C";
 const COPPER = "#6E2417";
 const RULE = "rgba(26,24,20,0.18)";
 
-export default function OpengraphImage() {
+// For the characters its bundled Latin font lacks — the Japanese here —
+// next/og fetched Noto Sans JP subsets from Google Fonts at build time, one
+// per Satori language group, and drew the card without them when the fetch
+// failed. The same fonts are in the repository (src/app/_og-fonts, written by
+// scripts/vendor-fonts.mjs; docs/vendored-fonts.md) and are passed here under
+// the name, lang, weight and style next/og gives them. Passing `fonts`
+// replaces next/og's default font, so that one is passed too.
+const OG_FONTS = join(process.cwd(), "src", "app", "_og-fonts");
+
+export default async function OpengraphImage() {
+  const [latin, ...fallbacks] = await Promise.all([
+    readFile(join(OG_FONTS, "Geist-Regular.ttf")),
+    ...OG_FALLBACKS.map((f) => readFile(join(OG_FONTS, f.file))),
+  ]);
   return new ImageResponse(
     (
       <div
@@ -71,6 +87,19 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size
+    {
+      ...size,
+      fonts: [
+        // next/og's default font, as next/og registers it.
+        { name: "geist", data: latin, weight: 400, style: "normal" },
+        ...OG_FALLBACKS.map((f, i) => ({
+          name: f.name,
+          data: fallbacks[i],
+          weight: 400 as const,
+          style: "normal" as const,
+          lang: f.lang,
+        })),
+      ],
+    }
   );
 }

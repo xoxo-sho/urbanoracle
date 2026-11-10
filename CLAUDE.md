@@ -37,6 +37,7 @@ The app uses a dashboard-first grid layout (12 columns). The map is one data pan
 - **Data layers:** Toggled via `LayerSelector` at the top. Layer state is managed in the root page component. Each layer corresponds to a `DataCategory` type.
 - **Data:** There is no sample data. Every figure comes from the gated FastAPI endpoints (`/api/v1/*`, `backend/routers/data.py`: the live e-Stat census call and the committed snapshots in `backend/data/`) through `useGatedData` (`src/lib/use-gated-data.ts`). Its `status` (`loading` / `ok` / `partial` / `unavailable`) is the only signal: a surface without data renders 読み込み中 or 取得失敗, never a placeholder value. The layer list (`dataLayers`) is configuration, in `src/lib/layers.ts`.
 - **shadcn/ui:** Components live in `src/components/ui/`. Add new ones via `npx shadcn@latest add <component>`.
+- **Fonts are vendored:** Geist, Geist Mono and Noto Sans JP live in `public/fonts/` with their `@font-face` rules in `styles/fonts.css` (both written by `node scripts/vendor-fonts.mjs`, run by hand; sources and sha256 in `docs/vendored-fonts.md`). Never import `next/font/google`: CI builds with no network (`scripts/build-offline.sh`). The two heading subsets in `src/app/fonts/` use `next/font/local`.
 
 ### Directory Structure (non-obvious)
 

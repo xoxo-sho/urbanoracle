@@ -1,0 +1,23 @@
+[
+  {
+    "file": "noto-sans-jp-og-1.ttf",
+    "name": "satori_ja-JP_fallback_都市資産価値上振下両面地人口交通災害",
+    "lang": "ja-JP",
+    "weight": 400,
+    "style": "normal"
+  },
+  {
+    "file": "noto-sans-jp-og-2.ttf",
+    "name": "satori_ja-JP_fallback_のをれとからリスク",
+    "lang": "ja-JP",
+    "weight": 400,
+    "style": "normal"
+  },
+  {
+    "file": "noto-sans-jp-og-3.ttf",
+    "name": "satori_ja-JP_fallback_、。・",
+    "lang": "ja-JP",
+    "weight": 400,
+    "style": "normal"
+  }
+]
