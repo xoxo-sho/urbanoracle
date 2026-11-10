@@ -16,7 +16,12 @@ LP hero reads three sample sets. Architect decisions (2026-11-05):
   a genuine zero.
 - 津波: KSJ A40-23 has no polygon in the 23 wards and 東京都's 津波浸水想定 was set
   for the 島しょ部 only, so every ward is 対象外 with that basis stated.
-- 高潮: KSJ A49-20 (2020年度), per ward the share of the ward area by class.
+- 高潮: until follow-up 3, KSJ A49-20 (2020年度). Architect decision B
+  (2026-11-09) replaces it with 東京都港湾局・建設局「高潮浸水想定区域図」
+  （令和6年12月改定）, 10 m cells with their 浸水深, put into the same seven
+  classes at the same boundaries; per ward the share of the ward area by
+  class. The guards for it are in test_takashio.py; the ones below that named
+  A49 were flipped with it (each says so).
 - Decision 9 pattern: ``etl/disaster.py`` builds the snapshot from committed
   excerpts; the route serves it with a ``source`` per hazard, no ``level``
   field, every ward a value or an explained 対象外; startup validation.
@@ -71,7 +76,9 @@ A31_SHA256 = {
     "A31a-25_83_10_GEOJSON.zip": "e66542cecda1c2ed9e7cf74d3333512a65bdb334557410389e521e7c259bca35",
 }
 A40_SHA256 = "b8e24973e5f9b885d481c28211f107587d14597cb3d9674d26c1aa591dacdc5c"
-A49_SHA256 = "cec46df37c0d8cabc660fc85f8ec6f0cac78b6754a5387f7be21b7a599810390"
+# Follow-up 3 (Architect decision B, 2026-11-09): the 高潮 file is 東京都's
+# shape(depth).zip of the 令和6年12月改定; the A49-20 pin left with the source.
+TAKASHIO_SHA256 = "1ea3b9788eec769711b4574635058cf66debf4ace128e090088ae0757c5fae9c"
 N03_SHA256 = "94f10b26256566db970dd74b09d614f059c1e8a432f9244ac9c4add76c32ff16"
 
 # The Architect's cross-check figures (brief 2026-11-05).
@@ -89,7 +96,6 @@ EDITED = {
     "edited_a31": f"「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（{KSJ}）を加工して作成",
     "edited_a33": f"「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（{KSJ}）を加工して作成",
     "edited_a40": f"「国土数値情報（津波浸水想定データ）」（国土交通省）（{KSJ}）を加工して作成",
-    "edited_a49": f"「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（{KSJ}）を加工して作成",
     "edited_n03": f"「国土数値情報（行政区域データ）」（国土交通省）（{KSJ}）を加工して作成",
 }
 CC_BY = "クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）"
@@ -166,7 +172,9 @@ def test_fixtures_are_the_pinned_files(meta):
     assert meta["A31a"]["id"] == "A31a-25" and meta["A31a"]["member_dir"] == "20_想定最大規模"
     assert meta["A33"]["sha256"] == A33_SHA256 and meta["A33"]["tokyo_asof"] == "2025-07-30"
     assert meta["A40"]["sha256"] == A40_SHA256
-    assert meta["A49"]["sha256"] == A49_SHA256 and meta["A49"]["id"] == "A49-20"
+    # Flipped in follow-up 3: 高潮 is no longer cut from 国土数値情報 A49-20.
+    assert "A49" not in meta
+    assert meta["takashio"]["sha256"] == TAKASHIO_SHA256 and meta["takashio"]["revision"] == "令和6年12月改定"
     assert meta["N03"]["sha256"] == N03_SHA256
     # The national-river zones are in: 荒川 and 江戸川 are 関東地方整備局's.
     rivers = meta["A31a"]["rivers"]
@@ -213,7 +221,7 @@ def test_the_architects_cross_check_figures(built):
 
 def test_flood_and_hightide_shares_are_the_class_areas_over_the_n03_ward_area(built, etl):
     areas = etl.ward_areas()
-    for name, key, n_classes, deep in (("ksj_A31a-25_L2_tokyo23.csv", "flood", 6, 3), ("ksj_A49-20_tokyo23.csv", "hightide", 7, None)):
+    for name, key, n_classes, deep in (("ksj_A31a-25_L2_tokyo23.csv", "flood", 6, 3), ("tokyo_takashio_r6_tokyo23.csv", "hightide", 7, None)):
         m2 = _class_csv(name)
         for w in built["wards"]:
             block = w[key]
@@ -228,13 +236,17 @@ def test_flood_and_hightide_shares_are_the_class_areas_over_the_n03_ward_area(bu
                 assert block["deepShare"] == round(expected, 4)
 
 
-def test_the_committed_geojson_re_derives_the_guard_wards_flood_and_hightide_rows(etl, meta):
-    # One guard ward per hazard (the smallest geometry covering ≥ 2 classes),
-    # recorded in the meta; its rows are re-derived with the standard library.
-    for name, key in (("ksj_A31a-25_L2_guard.geojson", "A31a"), ("ksj_A49-20_guard.geojson", "A49")):
+def test_the_committed_guards_re_derive_the_guard_wards_flood_and_hightide_rows(etl, meta):
+    # One guard ward per hazard, recorded in the meta; its rows are re-derived
+    # with the standard library. 洪水: the smallest resolved geometry covering
+    # ≥ 2 classes. 高潮 (flipped in follow-up 3): the cells of the ward with the
+    # fewest cells covering ≥ 2 classes — test_takashio.py re-derives them.
+    for name, key in (("ksj_A31a-25_L2_guard.geojson", "A31a"),):
         features = json.loads((FIXTURES / name).read_text(encoding="utf-8"))["features"]
         assert {f["properties"]["code"] for f in features} == {meta[key]["guard_ward"]}
         assert len(features) >= 2
+    assert not (FIXTURES / "ksj_A49-20_guard.geojson").exists() and not (FIXTURES / "ksj_A49-20_tokyo23.csv").exists()
+    assert (FIXTURES / "tokyo_takashio_r6_guard.csv").is_file()
     assert etl.verify() == []
 
 
@@ -284,7 +296,9 @@ def test_the_snapshot_names_a_source_per_hazard_the_licence_basis_and_the_credit
     assert built["sources"]["flood"]["table"] == "A31a-25" and "想定最大規模" in built["sources"]["flood"]["label"]
     assert built["sources"]["landslide"]["table"] == "A33-25" and "2025年7月30日時点" in built["sources"]["landslide"]["label"]
     assert built["sources"]["tsunami"]["table"] == "A40-23"
-    assert built["sources"]["hightide"]["table"] == "A49-20" and "2020年度" in built["sources"]["hightide"]["label"]
+    # Flipped in follow-up 3: the 高潮 source is the 都's map, its 時点 the revision.
+    assert built["sources"]["hightide"]["table"] == "令和6年12月改定" and "東京都港湾局・建設局" in built["sources"]["hightide"]["label"]
+    assert "A49" not in json.dumps(built["sources"], ensure_ascii=False)
     basis = built["licence"]["earthquake"]["basis"]
     assert "クリエイティブ・コモンズ 表示（CC BY）" in basis and "本利用規約が優先するものとします" in basis
     assert "無断で複製・転用することはできません" in basis and "spec.api.metro.tokyo.lg.jp" in basis
@@ -428,6 +442,13 @@ def test_startup_refuses_a_missing_snapshot(tmp_path):
         pytest.param(lambda s: s["total"]["earthquake"].__setitem__("rank5", 1), id="the 23区 total not the sum of the wards"),
         pytest.param(lambda s: s["credit"].__setitem__("edited_a31", "「国土数値情報（洪水浸水想定区域データ）」（国土交通省）をもとにX社作成"), id="an editor name in the credit"),
         pytest.param(lambda s: s["credit"].pop("kikendo"), id="the 都 CC BY credit missing"),
+        # Follow-up 3: the 高潮 source's credit, licence basis and 時点.
+        pytest.param(lambda s: s["credit"].pop("takashio_edited"), id="the 高潮 CC BY modified-use credit missing"),
+        pytest.param(lambda s: s["credit"].__setitem__("takashio_edited", "このサービスは、高潮浸水想定区域図を利用しています。"), id="the 高潮 credit not in the 都's form"),
+        pytest.param(lambda s: s["licence"].pop("hightide"), id="the 高潮 licence basis missing"),
+        pytest.param(lambda s: s["notes"].pop("hightide_as_of"), id="the 高潮 時点 missing"),
+        pytest.param(lambda s: s["notes"].__setitem__("hightide_as_of", "時点：2020年度"), id="a 高潮 時点 the source does not name"),
+        pytest.param(lambda s: s["notes"].pop("hightide_classes"), id="the 高潮 class note missing"),
     ],
 )
 def test_startup_refuses_a_malformed_snapshot(tmp_path, mutate):

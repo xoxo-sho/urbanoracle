@@ -22,7 +22,15 @@ import path from "node:path";
  *                  (row 4b) took it from the panel — ridership-trend.test.tsx
  *                  guards it, and the label of a station counted on another row;
  *   credits       the 加工 form with no editor name, on the tab and in the
- *                  footer; nothing names ODPT anywhere.
+ *                  footer.
+ *
+ * Follow-up 3 (Architect decision A, 2026-11-09) flipped what PR 4 said about
+ * the retired live client: its public endpoint is now the source of a
+ * committed file whose figures 駅一覧 shows beside S12's, with the credit its
+ * licence prescribes — so the name is back on the tab, in the footer and on
+ * the LP, and what must stay out of the client is the API host and any key.
+ * toei-own-figures.test.tsx guards the figures; the flipped assertions below
+ * each say so.
  *
  * The figures served here are the committed snapshot's (fixtures/live-data.ts
  * reads backend/data/stations.json); the backend guards derive the same
@@ -77,9 +85,12 @@ const EDITED_S12 = `「国土数値情報（駅別乗降客数データ）」（
 const EDITED_N03 = `「国土数値情報（行政区域データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`;
 const DEFINITION_NOTE = "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）";
 const JR_NOTE = "JR東日本の値は乗車人員を2倍した値（原典資料による）";
-// Built so this file does not itself carry the retired source's name.
+// Built so this file does not itself carry the retired client's name.
 const RETIRED = "OD" + "PT";
-const RETIRED_JA = "公共交通オープン" + "データ";
+const RETIRED_HOSTS = ["api." + RETIRED.toLowerCase() + ".org", "api-public." + RETIRED.toLowerCase() + ".org"];
+const RETIRED_KEY = "consumer" + "Key";
+// The one credit that may name it (follow-up 3): the センター's, in its prescribed form.
+const TOEI_CREDIT_FILES = ["src/lib/credits.ts", "src/lib/sources.ts"];
 const BUNDLED_NOTE = "同梱データ（出典未確認）";
 
 const snapshot = loadStationsSnapshot();
@@ -111,7 +122,18 @@ const ZONING: Route = json(200, { status: "ok", data: ZONING_FIXTURE, sources: Z
 /** The same payload with the ridership source moved to another year and table: what the page must then say. */
 function transportSaying(year: number, table: string): Route {
   const sources = { ...SOURCES, ridership: { ...SOURCES.ridership, year, table }, stations: { ...SOURCES.stations, year, table } };
-  return json(200, { status: "ok", data: ROWS, sources, total: TOTAL });
+  // Follow-up 3: the operators' own figures carry a 年度 of their own, and the
+  // notice names it — both the payload's, so the swapped payload moves them too.
+  const data = ROWS.map((r) => (r.ownFigures ? { ...r, ownFigures: r.ownFigures.map((f) => ({ ...f, year: f.year - YEAR + year })) } : r));
+  const total = {
+    ...TOTAL,
+    operatorFigures: {
+      ...TOTAL.operatorFigures,
+      years: TOTAL.operatorFigures.years.map((y) => ({ ...y, year: y.year - YEAR + year })),
+      notice: TOTAL.operatorFigures.notice.map((s) => s.replaceAll(`${YEAR}年度`, `${year}年度`).replaceAll(`${YEAR - 1}年度`, `${year - 1}年度`)),
+    },
+  };
+  return json(200, { status: "ok", data, sources, total });
 }
 
 function serve(routes: Record<string, Route>) {
@@ -299,7 +321,9 @@ describe("T2 事業者別 — per-operator sums that add up to K3", () => {
     const ops = operatorRows(panel);
     expect(Object.values(ops).reduce((a, b) => a + b, 0)).toBe(TOTAL_23);
     expect(keyMetric(container, "乗降客").textContent).toContain(man(TOTAL_23));
-    expect(panel.querySelector("[data-line][data-passengers]")).toBeNull();
+    // The sample's per-line panel is gone; the operators' own per-line figures of
+    // follow-up 3 are marked [data-own-figure] and are in no sum.
+    expect(panel.querySelector("[data-line][data-passengers]:not([data-own-figure])")).toBeNull();
     expect(panel.textContent).not.toContain("路線別利用規模");
   });
 });
@@ -344,7 +368,7 @@ describe("T3 乗降客数推移 is no longer the sample set (real-data plan PR 4
   });
 });
 
-describe("credits — the 加工 form with no editor name; nothing names the retired source", () => {
+describe("credits — the 加工 form with no editor name; the センター only in its credit (flipped in follow-up 3)", () => {
   it("the 交通 tab carries the 出典 line and both 加工 statements beside the figures", async () => {
     await renderSettled();
     const panel = openTab("交通");
@@ -355,8 +379,10 @@ describe("credits — the 加工 form with no editor name; nothing names the ret
     expect(text).toContain(EDITED_S12);
     expect(text).toContain(EDITED_N03);
     expect(text).not.toMatch(/をもとに.*作成/);
-    expect(panel.textContent).not.toContain(RETIRED);
-    expect(panel.textContent).not.toContain(RETIRED_JA);
+    // Flipped: the センター is named — in its prescribed credit, nowhere else — and no host or key.
+    expect(panel.querySelector('[data-credit="toei"]')?.textContent).toBe(snapshot.credit.toei_edited);
+    for (const host of RETIRED_HOSTS) expect(panel.textContent).not.toContain(host);
+    expect(panel.textContent).not.toContain(RETIRED_KEY);
     expect(panel.textContent).not.toContain(BUNDLED_NOTE);
   });
 
@@ -368,8 +394,10 @@ describe("credits — the 加工 form with no editor name; nothing names the ret
     expect(live).toContain(EDITED_N03);
     expect(live).toContain(`${YEAR}年度`);
     expect(live).toContain(SOURCES.ridership.table);
-    expect(live).not.toContain(RETIRED);
-    expect(live).not.toContain(RETIRED_JA);
+    // Flipped: the footer carries the センター's credit; no host, no key.
+    expect(live).toContain(snapshot.credit.toei_edited);
+    for (const host of RETIRED_HOSTS) expect(live).not.toContain(host);
+    expect(live).not.toContain(RETIRED_KEY);
     expect(footerSample(container)).not.toContain("駅別乗降客数");
     // Real-data plan PR 4b: 乗降客数推移 left the sample group, and the group with it.
     expect(container.querySelector('footer [data-provenance="sample"]')).toBeNull();
@@ -414,7 +442,7 @@ describe("states — 読み込み中 / 取得失敗 / data, no partial path", ()
   });
 });
 
-describe("the retired source is gone from the client source tree", () => {
+describe("the retired live client is gone from the client source tree (flipped in follow-up 3: the name stays in the credit)", () => {
   function walk(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
       const full = path.join(dir, entry);
@@ -425,12 +453,12 @@ describe("the retired source is gone from the client source tree", () => {
     return out;
   }
 
-  it("no file under src/ (tests aside) names it, reads its key or keeps the bundled-data note", () => {
+  it("no file under src/ (tests aside) names a host of it, reads its key or keeps the bundled-data note; its name is in the credit files only", () => {
     const root = path.join(process.cwd(), "src");
-    const hits = walk(root).filter((file) => {
-      const text = readFileSync(file, "utf8");
-      return text.toLowerCase().includes(RETIRED.toLowerCase()) || text.includes(RETIRED_JA) || text.includes(BUNDLED_NOTE);
-    });
-    expect(hits.map((f) => path.relative(process.cwd(), f))).toEqual([]);
+    const files = walk(root).map((file) => [path.relative(process.cwd(), file), readFileSync(file, "utf8")] as const);
+    const hosts = files.filter(([, text]) => RETIRED_HOSTS.some((h) => text.includes(h)) || text.includes(RETIRED_KEY) || text.includes(BUNDLED_NOTE));
+    expect(hosts.map(([f]) => f)).toEqual([]);
+    const named = files.filter(([, text]) => text.toLowerCase().includes(RETIRED.toLowerCase())).map(([f]) => f);
+    expect(named.sort()).toEqual([...TOEI_CREDIT_FILES].sort());
   });
 });

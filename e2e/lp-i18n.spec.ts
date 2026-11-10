@@ -17,12 +17,14 @@ import {
   KSJ_A33_EDITED_EN,
   KSJ_A40_EDITED,
   KSJ_A40_EDITED_EN,
-  KSJ_A49_EDITED,
-  KSJ_A49_EDITED_EN,
   HAZARD_PORTAL_SOURCE,
   HAZARD_PORTAL_SOURCE_EN,
+  TAKASHIO_EDITED,
+  TAKASHIO_CREDIT_EN,
   TOCHI_EDITED,
   TOCHI_CREDIT_EN,
+  TOEI_EDITED,
+  TOEI_CREDIT_EN,
   KSJ_L01_EDITED,
   KSJ_L01_EDITED_EN,
   KSJ_N03_EDITED,
@@ -103,15 +105,18 @@ const PRESCRIBED_PAIRS: [ja: string, en: string][] = [
   [KSJ_SOURCE, KSJ_SOURCE_EN],
   [KSJ_S12_EDITED, KSJ_S12_EDITED_EN],
   [KSJ_N03_EDITED, KSJ_N03_EDITED_EN],
+  // Follow-up 3: 東京都交通局's own figures beside S12's — the センター's CC BY credit.
+  [TOEI_EDITED, TOEI_CREDIT_EN],
   [KSJ_L01_EDITED, KSJ_L01_EDITED_EN],
   [KSJ_A55_EDITED, KSJ_A55_EDITED_EN],
-  // Real-data plan PR 7: the 東京都 CC BY credit with its 改変 sentence, the four
-  // hazard datasets' 加工 lines and the hazard-map portal's 出典 line.
+  // Real-data plan PR 7: the 東京都 CC BY credit with its 改変 sentence, the three
+  // KSJ hazard datasets' 加工 lines and the hazard-map portal's 出典 line; follow-up 3
+  // puts the 都's 高潮 map credit, in the same CC BY form, where A49's line was.
   [KIKENDO_EDITED, KIKENDO_CREDIT_EN],
   [KSJ_A31_EDITED, KSJ_A31_EDITED_EN],
   [KSJ_A33_EDITED, KSJ_A33_EDITED_EN],
   [KSJ_A40_EDITED, KSJ_A40_EDITED_EN],
-  [KSJ_A49_EDITED, KSJ_A49_EDITED_EN],
+  [TAKASHIO_EDITED, TAKASHIO_CREDIT_EN],
   [HAZARD_PORTAL_SOURCE, HAZARD_PORTAL_SOURCE_EN],
   // Real-data plan PR 8: the 都市整備局 土地利用現況調査 table in the same 東京都 CC BY form.
   [TOCHI_EDITED, TOCHI_CREDIT_EN],

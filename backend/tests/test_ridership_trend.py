@@ -319,8 +319,11 @@ def test_builder_names_the_trend_source_and_the_panel_among_its_inputs(built):
 
 def test_builder_refuses_a_panel_that_no_longer_fits_the_excerpt(etl, tmp_path):
     def build_with(mutate) -> None:
-        for name in (etl.S12_EXCERPT, etl.N03_EXCERPT, etl.META, PANEL.name):
-            (tmp_path / name).write_bytes((FIXTURES / name).read_bytes())
+        # Every committed input of the builder — whatever it reads beside the
+        # excerpts and the panel (follow-up 3 added the 東京都交通局 figures' files).
+        for source in FIXTURES.iterdir():
+            if source.is_file():
+                (tmp_path / source.name).write_bytes(source.read_bytes())
         doc = json.loads(PANEL.read_text(encoding="utf-8"))
         mutate(doc)
         (tmp_path / PANEL.name).write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")

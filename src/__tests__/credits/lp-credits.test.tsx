@@ -32,7 +32,13 @@ const KIKENDO_EDITED =
 const KSJ_A31_EDITED = "「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_A33_EDITED = "「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const KSJ_A40_EDITED = "「国土数値情報（津波浸水想定データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
-const KSJ_A49_EDITED = "「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
+// Follow-up 3 (Architect decisions A and B, 2026-11-09): the 都's 高潮 map credit
+// in place of A49's 加工 line, and the センター's credit for 東京都交通局's own
+// figures — both in their providers' prescribed forms. The センター is therefore
+// named on the page, in that credit and the provenance row only.
+const TAKASHIO_EDITED = "このサービスは、以下の著作物を改変して利用しています。高潮浸水想定区域図［想定最大規模］（浸水深）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
+const TOEI_EDITED = "このサービスは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、東京都交通局 乗降者数情報、クリエイティブ・コモンズ・ライセンス\u3000表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
+const A49_EDITED = "「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成";
 const HAZARD_PORTAL_SOURCE = "出典：ハザードマップポータルサイト";
 // Real-data plan PR 8 (decision 6): the 都市整備局 土地利用現況調査 table, CC BY on the
 // 東京都オープンデータAPIカタログ, in the same 2(1)ア/イ form — the share is computed from it.
@@ -69,7 +75,7 @@ afterEach(() => {
 });
 
 describe("landing page データ出典 — Japanese", () => {
-  it("carries the e-Stat API credit and the 国土数値情報 出典 line with both 加工 statements; nothing names the retired source", () => {
+  it("carries the e-Stat API credit and the 国土数値情報 出典 line with both 加工 statements; the センター only in its credit (flipped in follow-up 3)", () => {
     const { container } = render(<LandingPage />);
     const text = sourcesSection(container).textContent ?? "";
     expect(text).toContain(ESTAT_API_CREDIT);
@@ -78,11 +84,15 @@ describe("landing page データ出典 — Japanese", () => {
     expect(text).toContain(KSJ_N03_EDITED);
     expect(text).toContain(KSJ_L01_EDITED);
     expect(text).toContain(KSJ_A55_EDITED);
-    for (const line of [KIKENDO_EDITED, KSJ_A31_EDITED, KSJ_A33_EDITED, KSJ_A40_EDITED, KSJ_A49_EDITED, HAZARD_PORTAL_SOURCE, TOCHI_EDITED]) expect(text).toContain(line);
+    for (const line of [KIKENDO_EDITED, KSJ_A31_EDITED, KSJ_A33_EDITED, KSJ_A40_EDITED, TAKASHIO_EDITED, TOEI_EDITED, HAZARD_PORTAL_SOURCE, TOCHI_EDITED]) expect(text).toContain(line);
+    expect(text).not.toContain(A49_EDITED);
     for (const notice of A55_NOTICES) expect(text).toContain(notice);
     expect(text).not.toMatch(/をもとに.*作成/);
-    expect(container.textContent).not.toContain(RETIRED);
-    expect(container.textContent).not.toContain(RETIRED_JA);
+    // The センター's name stands in its credit and in the provenance row that names the source; nowhere else, and no host.
+    const outside = (container.textContent ?? "").replaceAll(TOEI_EDITED, "").replaceAll("東京都交通局 乗降者数情報（公共交通オープンデータセンター）", "");
+    expect(outside).not.toContain(RETIRED);
+    expect(outside).not.toContain(RETIRED_JA);
+    expect(container.textContent).not.toContain("api." + RETIRED.toLowerCase() + ".org");
     expect(container.textContent).not.toContain("同梱データ（出典未確認）");
   });
 
@@ -117,7 +127,8 @@ describe("landing page データ出典 — English", () => {
       [KSJ_A31_EDITED, "Translation: Created by processing the National Land Numerical Information (flood inundation area data)"],
       [KSJ_A33_EDITED, "Translation: Created by processing the National Land Numerical Information (sediment disaster warning area data)"],
       [KSJ_A40_EDITED, "Translation: Created by processing the National Land Numerical Information (tsunami inundation data)"],
-      [KSJ_A49_EDITED, "Translation: Created by processing the National Land Numerical Information (storm surge inundation area data)"],
+      [TAKASHIO_EDITED, "Translation: Storm surge inundation area map [maximum assumed scale] (inundation depth), Tokyo Metropolitan Government"],
+      [TOEI_EDITED, "Translation: This service modifies the work below. Bureau of Transportation, Tokyo Metropolitan Government / Association for Open Data of Public Transportation"],
       [HAZARD_PORTAL_SOURCE, "Translation: Source: Hazard Map Portal Site"],
       [TOCHI_EDITED, "Translation: Land use in Tokyo, 2021, ward area (Table 1)"],
     ]) {

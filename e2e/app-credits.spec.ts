@@ -44,11 +44,16 @@ interface SnapshotStation {
   note?: string;
   remarks?: unknown[];
   countedElsewhere?: unknown;
+  // Follow-up 3: the operator's own published figure per line, beside S12's.
+  ownFigures?: unknown[];
 }
 const stationsSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "backend", "data", "stations.json"), "utf8")) as {
   sources: Record<string, unknown>;
+  credit: Record<string, string>;
   // 乗降客数推移 (real-data plan PR 4b): the panel series the route sends beside `data`.
   trend: { panel: { id: string }; years: number[]; gaps: { year: number; text: string }[]; views: { name: string; units: number; panelUnits: number }[] };
+  // Follow-up 3: whose figures the stations' ownFigures are, the notice and the counts (sent as total.operatorFigures).
+  operatorFigures: { publisher: string; years: unknown[]; stationLines: number; below: Record<string, number>; notice: string[] };
   stations: SnapshotStation[];
 };
 const OPERATOR_PREFIX: Record<string, string> = { 東日本旅客鉄道: "JR", 東京地下鉄: "メトロ", 東京都: "都営" };
@@ -67,6 +72,7 @@ const stationRows = stationsSnapshot.stations.map((s) => ({
   ...(s.remarks ? { remarks: s.remarks } : {}),
   ...(s.countedElsewhere ? { countedElsewhere: s.countedElsewhere } : {}),
   ...(s.note ? { note: s.note } : {}),
+  ...(s.ownFigures ? { ownFigures: s.ownFigures } : {}),
 }));
 // The 人口推移 snapshot route (real-data plan PR 3) answers from the committed snapshot itself.
 interface SnapshotPoint {
@@ -138,6 +144,15 @@ const API: Record<string, unknown> = {
         years: stationsSnapshot.trend.years,
         gaps: stationsSnapshot.trend.gaps.map(({ year, text }) => ({ year, text })),
         views: stationsSnapshot.trend.views,
+      },
+      // Follow-up 3: the operators' own figures' notice and credit (backend/services/transport.py total()).
+      operatorFigures: {
+        publisher: stationsSnapshot.operatorFigures.publisher,
+        years: stationsSnapshot.operatorFigures.years,
+        stationLines: stationsSnapshot.operatorFigures.stationLines,
+        below: stationsSnapshot.operatorFigures.below,
+        notice: stationsSnapshot.operatorFigures.notice,
+        credit: stationsSnapshot.credit.toei_edited,
       },
     },
   },
