@@ -86,8 +86,12 @@ const EDITED = [
   `「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`,
   `「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`,
   `「国土数値情報（津波浸水想定データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`,
-  `「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`,
 ];
+// Follow-up 3 (Architect decision B, 2026-11-09): 高潮 comes from 東京都's map of
+// the 令和6年12月改定, so its credit is the 都's CC BY form; A49's 加工 line left
+// with the source (takashio.test.tsx guards the surface).
+const A49_EDITED = `「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（${KSJ_SITE}）を加工して作成`;
+const TAKASHIO_EDITED = "このサービスは、以下の著作物を改変して利用しています。高潮浸水想定区域図［想定最大規模］（浸水深）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
 const TOKYO_CC_BY = "クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）";
 const KIKENDO_TITLE = "地震に関する地域危険度測定調査（第9回）地域危険度一覧（令和4年9月公表）";
 
@@ -321,7 +325,7 @@ describe("災害 tab — each hazard in its own classes with its source and 時�
     expect(tsunami.textContent).toContain(TSUNAMI_TEXT);
   });
 
-  it("高潮: every class with its share of the ward's area and the 2020年度版 source", async () => {
+  it("高潮: every class with its share of the ward's area and the 都's 令和6年12月改定 as the source (flipped in follow-up 3)", async () => {
     const { container } = await renderSettled();
     selectWard(container, "葛飾区");
     const tide = surface(openTab("災害"), "disaster-hightide");
@@ -334,7 +338,9 @@ describe("災害 tab — each hazard in its own classes with its source and 時�
       expect(r.textContent).toContain(c.label);
     }
     expect(notesOf(tide)).toContain(SOURCES.hightide.label);
-    expect(notesOf(tide)).toContain("2020年度");
+    expect(notesOf(tide)).toContain("令和6年12月改定");
+    expect(tide.textContent).not.toContain("2020年度");
+    expect(tide.textContent).not.toContain("A49");
   });
 
   it("no ward selected: every hazard surface reads the payload's 23区 record", async () => {
@@ -486,12 +492,15 @@ describe("LP hero — the L01 upside with its 地震 and 洪水 figures, no samp
 });
 
 describe("credits and lists — the 災害 sources under 実データ, nothing 災害 left in the sample lists", () => {
-  it("dashboard footer: the 都 CC BY credit with the 改変 sentence, the four KSJ 加工 lines and the hazard-map 出典 under 実データ; no 災害 in the sample block", async () => {
+  it("dashboard footer: the 都 CC BY credits with the 改変 sentence (地域危険度, 高潮), the three KSJ 加工 lines and the hazard-map 出典 under 実データ; no 災害 in the sample block", async () => {
     const { container } = await renderSettled();
     const live = footerLive(container);
     expect(live).toContain(`${KIKENDO_TITLE}、東京都、${TOKYO_CC_BY}`);
     expect(live).toContain("このサービスは、以下の著作物を改変して利用しています。");
     for (const line of EDITED) expect(live).toContain(line);
+    // Flipped in follow-up 3: the 高潮 credit is the 都's, and A49's line is gone.
+    expect(live).toContain(TAKASHIO_EDITED);
+    expect(live).not.toContain(A49_EDITED);
     expect(live).toContain(HAZARD_PORTAL);
     const sample = footerSample(container);
     expect(sample).not.toContain("災害");
@@ -511,6 +520,9 @@ describe("credits and lists — the 災害 sources under 実データ, nothing �
     const required = container.querySelector('[data-credit="required"]')?.textContent ?? "";
     expect(required).toContain(`${KIKENDO_TITLE}、東京都、${TOKYO_CC_BY}`);
     for (const line of EDITED) expect(required).toContain(line);
+    // Flipped in follow-up 3: the 高潮 credit is the 都's, and A49's line is gone.
+    expect(required).toContain(TAKASHIO_EDITED);
+    expect(required).not.toContain(A49_EDITED);
     expect(required).toContain(HAZARD_PORTAL);
   });
 

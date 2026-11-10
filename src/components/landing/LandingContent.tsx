@@ -22,8 +22,6 @@ import {
   KSJ_A31_EDITED_EN,
   KSJ_A33_EDITED_EN,
   KSJ_A40_EDITED_EN,
-  KSJ_A49_EDITED,
-  KSJ_A49_EDITED_EN,
   KSJ_A55_EDITED,
   KSJ_A55_EDITED_EN,
   KSJ_L01_EDITED,
@@ -34,8 +32,12 @@ import {
   KSJ_S12_EDITED_EN,
   KSJ_SOURCE,
   KSJ_SOURCE_EN,
+  TAKASHIO_CREDIT_EN,
+  TAKASHIO_EDITED,
   TOCHI_CREDIT_EN,
   TOCHI_EDITED,
+  TOEI_CREDIT_EN,
+  TOEI_EDITED,
 } from "@/lib/credits";
 
 // The prescribed Japanese sentence, and on the English page its translation
@@ -46,15 +48,18 @@ const REQUIRED_NOTICES: { ja: string; en: string }[] = [
   { ja: KSJ_SOURCE, en: KSJ_SOURCE_EN },
   { ja: KSJ_S12_EDITED, en: KSJ_S12_EDITED_EN },
   { ja: KSJ_N03_EDITED, en: KSJ_N03_EDITED_EN },
+  // Follow-up 3: 東京都交通局's own figures beside S12's in 駅一覧 — the センター's CC BY credit, modified-use form.
+  { ja: TOEI_EDITED, en: TOEI_CREDIT_EN },
   { ja: KSJ_L01_EDITED, en: KSJ_L01_EDITED_EN },
   { ja: KSJ_A55_EDITED, en: KSJ_A55_EDITED_EN },
-  // Real-data plan PR 7: the 東京都 CC BY credit with its 改変 sentence, the four
-  // hazard datasets' 加工 lines and the hazard-map portal's 出典 line.
+  // Real-data plan PR 7: the 東京都 CC BY credit with its 改変 sentence, the three
+  // KSJ hazard datasets' 加工 lines and the hazard-map portal's 出典 line; and
+  // (follow-up 3) the 都's credit for the 高潮 map, in the same CC BY form.
   { ja: KIKENDO_EDITED, en: KIKENDO_CREDIT_EN },
   { ja: KSJ_A31_EDITED, en: KSJ_A31_EDITED_EN },
   { ja: KSJ_A33_EDITED, en: KSJ_A33_EDITED_EN },
   { ja: KSJ_A40_EDITED, en: KSJ_A40_EDITED_EN },
-  { ja: KSJ_A49_EDITED, en: KSJ_A49_EDITED_EN },
+  { ja: TAKASHIO_EDITED, en: TAKASHIO_CREDIT_EN },
   { ja: HAZARD_PORTAL_SOURCE, en: HAZARD_PORTAL_SOURCE_EN },
   // Real-data plan PR 8: the 都市整備局 土地利用現況調査 table in the same 東京都 CC BY form.
   { ja: TOCHI_EDITED, en: TOCHI_CREDIT_EN },
@@ -102,11 +107,13 @@ const LIVE_ROWS: [source: LpKey, content: LpKey, year: LpKey][] = [
   ["srcEstat", "livePopTrend", "livePopTrendYear"],
   ["srcMencho", "liveMencho", "liveMenchoYear"],
   ["srcKsj", "liveStations", "liveStationsYear"],
+  ["srcToei", "liveToei", "liveToeiYear"],
   ["srcKsj", "liveRidershipTrend", "liveRidershipTrendYear"],
   ["srcKsj", "liveLandPrice", "liveLandPriceYear"],
   ["srcKsj", "liveZoning", "liveZoningYear"],
   ["srcKikendo", "liveQuake", "liveQuakeYear"],
   ["srcKsj", "liveDisasterKsj", "liveDisasterKsjYear"],
+  ["srcTakashio", "liveTakashio", "liveTakashioYear"],
   ["srcTochi", "liveGreen", "liveGreenYear"],
   ["srcComparison", "liveComparison", "none"],
   ["srcHero", "liveHero", "liveHeroYear"],

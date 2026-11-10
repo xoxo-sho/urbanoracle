@@ -45,7 +45,6 @@ import {
   KSJ_A31_EDITED,
   KSJ_A33_EDITED,
   KSJ_A40_EDITED,
-  KSJ_A49_EDITED,
   KSJ_A55_EDITED,
   KSJ_L01_EDITED,
   KSJ_N03_EDITED,
@@ -62,8 +61,11 @@ import {
   RIDERSHIP_NOTICE_LEAD,
   RIDERSHIP_NOTICE_MARKER,
   RIDERSHIP_TREND_UNIT_NOTE,
+  TAKASHIO_CREDIT,
+  TAKASHIO_EDITED,
   TOCHI_CREDIT,
   TOCHI_EDITED,
+  TOEI_EDITED,
   WARD_BOUNDARY_CREDIT,
   ZONING_ASOF_NOTE,
   ZONING_DESIGNATED_NOTE,
@@ -87,7 +89,7 @@ import { HAZARD_RASTER_NAMES } from "@/components/map/hazard-rasters";
 import { buildMeasures } from "@/lib/comparison";
 import { densityStops } from "@/lib/census-map";
 import { useGatedData } from "@/lib/use-gated-data";
-import { A55Notices, S12Notice } from "@/components/dashboard/RequiredCredits";
+import { A55Notices, OperatorFiguresNotice, S12Notice } from "@/components/dashboard/RequiredCredits";
 import { trendView, trendYearsLabel } from "@/lib/ridership-trend";
 import { TOKYO_WARD_NAMES } from "@/lib/wards";
 import VerificationBanner from "@/components/auth/VerificationBanner";
@@ -179,6 +181,9 @@ export default function Home() {
   // 乗降客数推移 (real-data plan PR 4b): the panel series the answer carries
   // beside `data`, for the selected ward or for 東京23区.
   const ridershipTrend = transport.total?.trend ?? null;
+  // 東京都交通局's own figures beside S12's (follow-up 3): the notice sentences
+  // and the credit the answer carries beside `data`; shown, never summed.
+  const operatorFigures = transport.total?.operatorFigures ?? null;
   const ridershipTrendView = transport.status === "ok" ? trendView(ridershipTrend, selectedWard) : null;
   // The e-Stat growth table did not answer: population, density and age are
   // live, every growth figure is 取得失敗.
@@ -398,6 +403,7 @@ export default function Home() {
             {transportSource && !isPending(transport.status) && (
               <div className="shrink-0" data-surface="ridership-notice">
                 <S12Notice lead={RIDERSHIP_NOTICE_LEAD} className="source-note" />
+                <OperatorFiguresNotice sentences={operatorFigures?.notice} className="source-note" />
               </div>
             )}
 
@@ -496,6 +502,7 @@ export default function Home() {
                   selectedWard={selectedWard}
                   status={transport.status}
                   sources={transportSources}
+                  operatorFigures={operatorFigures}
                 />
               </TabsContent>
 
@@ -568,6 +575,14 @@ export default function Home() {
                     {" ／ "}{KSJ_N03_EDITED}
                     <span className="block">{RIDERSHIP_DEFINITION_NOTE} ／ {RIDERSHIP_JR_NOTE}</span>
                     <S12Notice inline withAddress />
+                    <OperatorFiguresNotice inline sentences={operatorFigures?.notice} />
+                  </li>
+                )}
+                {transport.status === "ok" && operatorFigures && (
+                  <li data-source="operator-figures">
+                    都営地下鉄・日暮里・舎人ライナーの駅別乗降人員（交通タブの駅一覧に併記・合計には不使用）:
+                    {transportSources.operatorFigures ? ` ${transportSources.operatorFigures.label}` : ""}
+                    <span className="block">{TOEI_EDITED}</span>
                   </li>
                 )}
                 {ridershipTrendView && (
@@ -587,7 +602,13 @@ export default function Home() {
                     地震（災害タブ・ランク5の町丁目指標・地図の塗り分け）: {KIKENDO_CREDIT}
                     <span className="block">{KIKENDO_EDITED}</span>
                     <span className="block">
-                      洪水・土砂災害・津波・高潮（災害タブ）: {KSJ_SOURCE} ／ {KSJ_A31_EDITED} ／ {KSJ_A33_EDITED} ／ {KSJ_A40_EDITED} ／ {KSJ_A49_EDITED} ／ {KSJ_N03_EDITED}
+                      洪水・土砂災害・津波（災害タブ）: {KSJ_SOURCE} ／ {KSJ_A31_EDITED} ／ {KSJ_A33_EDITED} ／ {KSJ_A40_EDITED} ／ {KSJ_N03_EDITED}
+                    </span>
+                    <span className="block" data-credit="takashio">
+                      高潮（災害タブ）: {TAKASHIO_CREDIT}
+                      {disasterSources.hightide ? `（${disasterSources.hightide.table}）` : ""}
+                      <span className="block">{TAKASHIO_EDITED}</span>
+                      <span className="block">区の面積（割合の分母）: {KSJ_N03_EDITED}</span>
                     </span>
                   </li>
                 )}

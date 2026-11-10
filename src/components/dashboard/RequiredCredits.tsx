@@ -11,6 +11,8 @@ import {
   RIDERSHIP_SOURCE_NOTICE,
   RIDERSHIP_SOURCE_NOTICE_AT,
   RIDERSHIP_SOURCE_NOTICE_FROM,
+  TAKASHIO_EDITED,
+  TOEI_EDITED,
 } from "@/lib/credits";
 
 /**
@@ -81,6 +83,68 @@ export function S12Notice({
       {RIDERSHIP_SOURCE_NOTICE}
       <span className="block">— {from}</span>
     </p>
+  );
+}
+
+/**
+ * What the transport notice gains with 東京都交通局's own figures (follow-up 3,
+ * Architect decision A, 2026-11-09), as the payload states it — facts only:
+ * the sums use 国土数値情報's values; 都営 rows also show 交通局's figure, which
+ * counts transfers between 都営 lines on both lines; at how many rows S12's
+ * value is below it. Stands wherever S12's own notice stands, right after it.
+ * Nothing is rendered for a payload that carries no such sentences.
+ */
+export function OperatorFiguresNotice({
+  sentences,
+  inline = false,
+  className,
+}: {
+  sentences: readonly string[] | null | undefined;
+  inline?: boolean;
+  className?: string;
+}) {
+  if (!sentences || sentences.length === 0) return null;
+  const body = sentences.map((sentence) => (
+    <span key={sentence} className="block">
+      {sentence}
+    </span>
+  ));
+  if (inline) {
+    return (
+      <span className={className ?? "block"} data-notice="toei">
+        {body}
+      </span>
+    );
+  }
+  return (
+    <p className={className ?? "source-note mt-1"} data-notice="toei">
+      {body}
+    </p>
+  );
+}
+
+/**
+ * 東京都交通局 乗降者数情報 (公共交通オープンデータセンター, CC BY 4.0): the credit
+ * in the センター's prescribed form with the modified-use sentence, beside the
+ * 駅一覧 that shows the figures.
+ */
+export function ToeiCredits() {
+  return (
+    <div className="credit-block" data-credit="toei">
+      <p>{TOEI_EDITED}</p>
+    </div>
+  );
+}
+
+/**
+ * 東京都「高潮浸水想定区域図」（令和6年12月改定）: the 都's CC BY credit in its
+ * modified-use form (東京都オープンデータ利用規約 2(1)イ), on the 高潮 surface.
+ */
+export function TakashioCredits() {
+  return (
+    <div className="credit-block" data-credit="takashio">
+      <p>{TAKASHIO_EDITED}</p>
+    </div>
   );
 }
 

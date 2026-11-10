@@ -324,6 +324,8 @@ describe("T3 乗降客数推移 — the panel's sum for the view, from the paylo
           gaps: [{ year: 2032, text: "2032年度は表示しません：試験用の理由" }],
           views: body.total.trend.views.map((v) => ({ ...v, units: 9, panelUnits: 4, passengers: 1000, panelPassengers: 250, series: [{ year: 2031, passengers: 111 }, { year: 2033, passengers: 250 }] })),
         },
+        // Follow-up 3: the operators' own figures' notice names their 年度 — the payload's too, so the swapped payload says something else.
+        operatorFigures: { ...body.total.operatorFigures, notice: ["試験用の注記"] },
       },
     };
     await renderSettled(json(200, shifted));

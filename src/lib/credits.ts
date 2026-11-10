@@ -132,6 +132,30 @@ export const RIDERSHIP_NOTICE_MARKER = "※ 下記の注記参照";
 export const RIDERSHIP_NOTICE_LEAD = "※ 日間乗降客：";
 
 /**
+ * 東京都交通局's own figures beside S12's in 駅一覧 (follow-up 3, Architect
+ * decision A, 2026-11-09), from 東京都交通局 乗降者数情報 on the 公共交通オープン
+ * データセンター (https://ckan.odpt.org/dataset/r_passenger_survey-toei, CC BY
+ * 4.0, 「コンテンツ等の提供者名: 東京都交通局・公共交通オープンデータ協議会」). The
+ * credit takes the form the センター's FAQ prescribes
+ * (https://developer.odpt.org/ja/faq-info, read 2026-11-09): 「【提供者名】、
+ * 【名称】、クリエイティブ・コモンズ・ライセンス　表示4.0国際（URL）」 — the FAQ sets
+ * a full-width space there — and, for a modified use, 「この【…】は、以下の著作物
+ * を改変して利用しています。」 and a space before it. The same two sentences are
+ * the snapshot's `credit.toei` / `credit.toei_edited`
+ * (backend/data/stations.json). The figures are shown, never summed.
+ */
+export const TOEI_PROVIDER = "東京都交通局・公共交通オープンデータ協議会";
+export const TOEI_CONTENT = "東京都交通局 乗降者数情報";
+export const TOEI_CREDIT = `${TOEI_PROVIDER}、${TOEI_CONTENT}、クリエイティブ・コモンズ・ライセンス\u3000表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）`;
+export const TOEI_EDITED = `このサービスは、以下の著作物を改変して利用しています。 ${TOEI_CREDIT}`;
+export const TOEI_CREDIT_EN =
+  "Translation: This service modifies the work below. Bureau of Transportation, Tokyo Metropolitan Government / Association for Open Data of Public Transportation, Passenger survey of Bureau of Transportation, Tokyo Metropolitan Government, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja).";
+/** How 駅一覧 labels the two figures of a 都営 line: the operator's with its 年度, then S12's. */
+export const OWN_FIGURE_PUBLISHER = "東京都交通局";
+export const OWN_FIGURE_S12 = "国土数値情報";
+export const OWN_FIGURE_S12_ELSEWHERE = "他の行に計上";
+
+/**
  * 事業者別 groups the figures by the operator S12 writes them under, and a row
  * may hold another operator's line (its 備考 says which) — so the title says
  * whose rows these are (Architect decision 2026-11-09).
@@ -192,22 +216,39 @@ export const KIKENDO_EDITED = `このサービスは、以下の著作物を改�
 export const KIKENDO_CREDIT_EN =
   "Translation: Earthquake regional risk survey (9th), list of regional risk (published September 2022), Tokyo Metropolitan Government, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja). This service modifies the work above.";
 /**
- * 国土数値情報 利用規約 1)イ for the 洪水 (A31a), 土砂 (A33), 津波 (A40) and
- * 高潮 (A49) figures: the 加工 form with no editor name (Architect decision 12).
- * Recorded in the snapshot's `credit.edited_a31` … `edited_a49`.
+ * 国土数値情報 利用規約 1)イ for the 洪水 (A31a), 土砂 (A33) and 津波 (A40)
+ * figures: the 加工 form with no editor name (Architect decision 12).
+ * Recorded in the snapshot's `credit.edited_a31` … `edited_a40`.
  */
 export const KSJ_A31_EDITED = `「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
 export const KSJ_A33_EDITED = `「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
 export const KSJ_A40_EDITED = `「国土数値情報（津波浸水想定データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
-export const KSJ_A49_EDITED = `「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（${KSJ_SITE_URL}）を加工して作成`;
 export const KSJ_A31_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (flood inundation area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 export const KSJ_A33_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (sediment disaster warning area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
 export const KSJ_A40_EDITED_EN =
   "Translation: Created by processing the National Land Numerical Information (tsunami inundation data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
-export const KSJ_A49_EDITED_EN =
-  "Translation: Created by processing the National Land Numerical Information (storm surge inundation area data), Ministry of Land, Infrastructure, Transport and Tourism (https://nlftp.mlit.go.jp/ksj/).";
+/**
+ * 高潮 (follow-up 3, Architect decision B, 2026-11-09): 東京都港湾局・建設局
+ * 「高潮浸水想定区域図」（令和6年12月改定）, in place of 国土数値情報's 2020年度 file.
+ * Catalogue record t000015d1700000007 is CC BY 4.0 (read through a mirror — the
+ * catalogue is geo-blocked from the build machine) and 東京都オープンデータ利用規約
+ * (read directly) prescribes the credit, so it takes the same 2(1)ア / イ form
+ * as 地域危険度: the dashboard puts the 10 m cells into depth classes and sums
+ * them per ward, which is a modified use. The same sentences are the
+ * snapshot's `credit.takashio` / `credit.takashio_edited`, `notes.hightide_classes`
+ * and `notes.hightide_as_of` (backend/data/disaster_risks.json).
+ */
+export const TAKASHIO_TITLE = "高潮浸水想定区域図［想定最大規模］（浸水深）";
+export const TAKASHIO_CREDIT = `${TAKASHIO_TITLE}、東京都、${TOKYO_CC_BY}`;
+export const TAKASHIO_EDITED = `このサービスは、以下の著作物を改変して利用しています。${TAKASHIO_CREDIT}`;
+export const TAKASHIO_CREDIT_EN =
+  "Translation: Storm surge inundation area map [maximum assumed scale] (inundation depth), Tokyo Metropolitan Government, Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/deed.ja). This service modifies the work above.";
+/** The 時点 the 高潮 surface shows, and what it says about its depth classes. */
+export const TAKASHIO_AS_OF_LEAD = "時点：";
+export const TAKASHIO_CLASS_NOTE =
+  "浸水深の区分は、これまでと同じ7区分の境界（0.3m・0.5m・1m・3m・5m・10m・20m）を、東京都のデータの浸水深（10mメッシュごと、m単位）に当てはめたものです";
 /**
  * The A33 page's 【重要：データ利用時の注意事項】 bullet that applies to every
  * 土砂 figure here, and the A31a page's 留意事項 and 東京都 note, word for word

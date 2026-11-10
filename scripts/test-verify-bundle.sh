@@ -215,14 +215,22 @@ build_fixture "$WORK/f12"
 sedi "s#${ORIGIN}#https://urbanoracle-seven.vercel.app#g" "$WORK/f12/index.html"
 expect_fail "the retired Vercel host is referenced in the bundle" "$WORK/f12"
 
-# --- retired data sources -------------------------------------------------
+# --- retired ridership client (follow-up 3: the name may appear — in the credit — the client may not) ---
 build_fixture "$WORK/f30"
-printf 'const SOURCE_LABEL="公共交通オープンデータセンター（ODPT）";\n' >> "$WORK/f30/_next/static/chunks/config.js"
-expect_fail "the retired ridership source is still named in a chunk" "$WORK/f30"
+printf 'const API="https://api.odpt.org/api/v4/odpt:PassengerSurvey?acl:consumerKey=x";\n' >> "$WORK/f30/_next/static/chunks/config.js"
+expect_fail "the retired ridership client's keyed endpoint is in a chunk" "$WORK/f30"
 
 build_fixture "$WORK/f31"
-sedi 's#<h1>#<p>出典: 公共交通オープンデータセンター</p><h1>#' "$WORK/f31/index.html"
-expect_fail "the retired ridership source is still named on the landing page" "$WORK/f31"
+printf 'fetch("https://api-public.odpt.org/api/v4/odpt:PassengerSurvey");\n' >> "$WORK/f31/_next/static/chunks/config.js"
+expect_fail "a request to the public endpoint is in a chunk" "$WORK/f31"
+
+build_fixture "$WORK/f31b"
+printf 'const KEY=process.env.ODPT_API_KEY;\n' >> "$WORK/f31b/_next/static/chunks/config.js"
+expect_fail "the retired key's variable name is in a chunk" "$WORK/f31b"
+
+build_fixture "$WORK/f31c"
+sedi 's#<h1>#<p>東京都交通局・公共交通オープンデータ協議会、東京都交通局 乗降者数情報</p><h1>#' "$WORK/f31c/index.html"
+expect_pass "the センター's credit on the landing page is allowed" "$WORK/f31c"
 
 # --- the sample layer (real-data plan PR 9) ---------------------------------
 CHUNK="_next/static/chunks/config.js"

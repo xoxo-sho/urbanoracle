@@ -109,8 +109,19 @@ export interface SnapshotTrendView {
 export interface StationsSnapshot {
   year: number;
   sources: FieldSources;
-  credit: { source: string; edited_s12: string; edited_n03: string };
+  credit: { source: string; edited_s12: string; edited_n03: string; toei: string; toei_edited: string };
   notes: { definition: string; jr_east: string; source_notice: string; source_notice_at: string };
+  /** Follow-up 3: 東京都交通局's own figures — whose, which 年度, the counts and the notice. */
+  operatorFigures: {
+    publisher: string;
+    provider: string;
+    years: { name: string; year: number }[];
+    stationLines: number;
+    stations: number;
+    below: { rows: number; subway: number; liner: number; s12Year: number };
+    notice: string[];
+    matching: { objects: number; matched: number; renamed: unknown[]; outsideWards: { line: string; station: string }[] };
+  };
   wards: { code: string; name: string; stations: number; passengers: number }[];
   trend: {
     panel: { id: string; decided: string; units: number; unitsIn: number };
@@ -130,6 +141,7 @@ export interface StationsSnapshot {
     note?: string;
     remarks?: { operator: string; line: string; text: string }[];
     countedElsewhere?: { label: string; targets: { ward: string; wardCode: string; station: string; operator: string; line: string; remark: string }[] };
+    ownFigures?: { operator: string; line: string; year: number; passengers: number; s12: number | null }[];
   }[];
 }
 
@@ -163,6 +175,7 @@ export function stationsSnapshotRows(snapshot: StationsSnapshot): TransportStati
     ...(s.remarks ? { remarks: s.remarks } : {}),
     ...(s.countedElsewhere ? { countedElsewhere: s.countedElsewhere } : {}),
     ...(s.note ? { note: s.note } : {}),
+    ...(s.ownFigures ? { ownFigures: s.ownFigures } : {}),
   }));
 }
 
@@ -176,6 +189,15 @@ export function transportTotal(snapshot: StationsSnapshot) {
       years: snapshot.trend.years,
       gaps: snapshot.trend.gaps.map(({ year, text }) => ({ year, text })),
       views: snapshot.trend.views,
+    },
+    // Follow-up 3: the operators' own figures' notice and credit, as total() sends them.
+    operatorFigures: {
+      publisher: snapshot.operatorFigures.publisher,
+      years: snapshot.operatorFigures.years,
+      stationLines: snapshot.operatorFigures.stationLines,
+      below: snapshot.operatorFigures.below,
+      notice: snapshot.operatorFigures.notice,
+      credit: snapshot.credit.toei_edited,
     },
   };
 }

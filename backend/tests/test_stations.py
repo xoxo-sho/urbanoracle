@@ -63,9 +63,16 @@ EDITED_N03 = f"「国土数値情報（行政区域データ）」（国土交�
 DEFINITION_NOTE = "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）"
 JR_NOTE = "JR東日本の値は乗車人員を2倍した値（原典資料による）"
 
-# Built so this file does not itself contain the retired source's name.
+# Built so this file does not itself contain the retired client's name.
 RETIRED = "od" + "pt"
-RETIRED_JA = "公共交通オープン" + "データ"
+# Follow-up 3 (Architect decision A, 2026-11-09): what PR 4 retired is the live
+# client and its key — a network call and a secret at request time. The
+# センター's public endpoint (no key) is now the source of a committed file that
+# 駅一覧 shows beside S12, with the credit its licence prescribes, so the name
+# is back in the data and the credits; the hosts and the key are what must
+# stay out of the running code.
+RETIRED_HOSTS = ("api." + RETIRED + ".org", "api-public." + RETIRED + ".org")
+RETIRED_KEY = "consumer" + "Key"
 
 ACTIVE = {"Authorization": "Bearer active-token"}
 PENDING = {"Authorization": "Bearer pending-token"}
@@ -201,18 +208,32 @@ def test_the_bundled_geojson_is_gone():
     assert not OLD_GEOJSON.exists(), f"{OLD_GEOJSON} is still in the repo"
 
 
-def test_no_retired_source_in_the_backend():
-    hits = []
+def test_no_live_client_of_the_retired_source_in_the_backend():
+    """Flipped in follow-up 3 (was: nothing in backend/ names the source). The
+    code the app runs — everything outside tests/ — names neither the センター
+    nor its hosts nor a key; the committed files may name it as the source
+    and in the credit, and never carry a key."""
+    code_hits, key_hits = [], []
     for path in sorted(BACKEND.rglob("*")):
         if not path.is_file() or path.suffix not in {".py", ".json", ".txt", ".md", ".ini", ".toml"}:
             continue
         if path == Path(__file__) or "__pycache__" in path.parts or ".pytest_cache" in path.parts:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        if RETIRED in text.lower() or RETIRED_JA in text:
-            hits.append(str(path.relative_to(ROOT)))
-    assert hits == [], hits
+        running = path.suffix == ".py" and "tests" not in path.relative_to(BACKEND).parts
+        if running and (RETIRED in text.lower() or any(host in text for host in RETIRED_HOSTS)):
+            code_hits.append(str(path.relative_to(ROOT)))
+        # A key in a committed data file would be a leaked secret; the code's
+        # only mention of the parameter is the log redaction (core/logging_setup.py).
+        if path.suffix != ".py" and (RETIRED_KEY in text or (RETIRED.upper() + "_API_KEY") in text):
+            key_hits.append(str(path.relative_to(ROOT)))
+    assert code_hits == [], code_hits
+    assert key_hits == [], key_hits
     assert importlib.util.find_spec("services." + RETIRED) is None
+    # The one place the name belongs: the snapshot's own-figure source and credit.
+    snapshot = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+    assert RETIRED in json.dumps(snapshot["sources"]["operatorFigures"]).lower()
+    assert "公共交通オープンデータ協議会" in snapshot["credit"]["toei"]
 
 
 def test_no_retired_key_is_read_from_the_environment():

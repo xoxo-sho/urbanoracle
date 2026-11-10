@@ -78,55 +78,7 @@
  "fetched": "2026-11-05",
  "projection": {
   "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）",
-  "method": "etl/zoning.py tm_project + shoelace on geometry rounded to 9 decimals; set operations on JGD2011 lon/lat (shapely, grid 1e-9°)"
- },
- "A49": {
-  "id": "A49-20",
-  "edition": "2020年度（令和2年度）版",
-  "year": 2020,
-  "page": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-2024.html",
-  "guard_ward": "13110",
-  "guard_sizes": {
-   "13101": 829727,
-   "13102": 1473276,
-   "13103": 1688040,
-   "13104": 155221,
-   "13105": 144270,
-   "13106": 1408166,
-   "13107": 1173720,
-   "13108": 4662210,
-   "13109": 1526524,
-   "13110": 25894,
-   "13111": 5013866,
-   "13112": 142,
-   "13113": 139,
-   "13114": 139,
-   "13115": 139,
-   "13116": 139,
-   "13117": 1240145,
-   "13118": 1538208,
-   "13119": 756079,
-   "13120": 139,
-   "13121": 5061289,
-   "13122": 1737089,
-   "13123": 3069298
-  },
-  "file": "A49-20_13_GML.zip",
-  "url": "https://nlftp.mlit.go.jp/ksj/gml/data/A49/A49-20/A49-20_13_GML.zip",
-  "bytes": 31712745,
-  "sha256": "cec46df37c0d8cabc660fc85f8ec6f0cac78b6754a5387f7be21b7a599810390",
-  "member": "A49-20_13.geojson",
-  "polygons_in_file": 6,
-  "polygons_kept": 59039,
-  "polygons_per_class": {
-   "1": 13469,
-   "2": 18027,
-   "3": 12665,
-   "4": 10180,
-   "5": 3277,
-   "6": 1418,
-   "7": 3
-  }
+  "method": "etl/zoning.py tm_project + shoelace on geometry rounded to 9 decimals; set operations on JGD2011 lon/lat (shapely, grid 1e-9°); 高潮: the cells are on 第IX系 already — the N03 ward polygons are projected with tm_project and each 10 m cell is intersected with them in metres"
  },
  "A31a": {
   "id": "A31a-25",
@@ -216,5 +168,109 @@
    "荒川（関東地方整備局）": 22817,
    "隅田川（東京都）": 7691
   }
+ },
+ "takashio": {
+  "id": "東京都 高潮浸水想定区域図（令和6年12月改定）",
+  "title": "高潮浸水想定区域図［想定最大規模］（浸水深）",
+  "publisher": "東京都港湾局・建設局",
+  "revision": "令和6年12月改定",
+  "revised": "2024-12-19",
+  "year": 2024,
+  "page": "https://www.kouwan.metro.tokyo.lg.jp/jishin_kouwankyoku_oshirase/takashio/shinsuisoutei",
+  "explanation": "https://www.kouwan.metro.tokyo.lg.jp/documents/d/kouwan/r7_takashio_setsumeishiryou",
+  "layout": "https://data.storage.data.metro.tokyo.lg.jp/kouwan/takashioshinsuisouteizukaku.pdf",
+  "catalog": "https://catalog.data.metro.tokyo.lg.jp/dataset/t000015d1700000007",
+  "catalog_record": "t000015d1700000007",
+  "catalog_licence": "CC-BY-4.0（クリエイティブ・コモンズ 表示（CC BY））— read via the mirror, the catalogue is geo-blocked from here",
+  "catalog_mirror": "https://search.ckan.jp/backend/api/package_show?id=catalog.data.metro.tokyo.lg.jp__dataset:t000015d1700000007",
+  "terms": "https://portal.data.metro.tokyo.lg.jp/terms/",
+  "file": "shape(depth).zip",
+  "url": "https://data.storage.data.metro.tokyo.lg.jp/kouwan/shape(depth).zip",
+  "bytes": 44703942,
+  "sha256": "1ea3b9788eec769711b4574635058cf66debf4ace128e090088ae0757c5fae9c",
+  "last_modified": "Fri, 13 Dec 2024 02:21:07 GMT",
+  "members": 90,
+  "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）— JGD_2011_Japan_Zone_9",
+  "cell_m": 10,
+  "cells": 1856039,
+  "cells_m2_in_wards": "184837310.567",
+  "cells_m2_outside_wards": "766589.433",
+  "depth_cm_min": 1,
+  "depth_cm_max": 1936,
+  "classes_from": "国土数値情報 高潮浸水想定区域データ A49-20（2020年度版）",
+  "class_bounds_cm": [
+   [
+    1,
+    0,
+    30
+   ],
+   [
+    2,
+    30,
+    50
+   ],
+   [
+    3,
+    50,
+    100
+   ],
+   [
+    4,
+    100,
+    300
+   ],
+   [
+    5,
+    300,
+    500
+   ],
+   [
+    6,
+    500,
+    1000
+   ],
+   [
+    7,
+    1000,
+    2000
+   ]
+  ],
+  "cells_per_class": {
+   "1": 125513,
+   "2": 101860,
+   "3": 261028,
+   "4": 800944,
+   "5": 495079,
+   "6": 71300,
+   "7": 315
+  },
+  "guard_ward": "13110",
+  "guard_cells": 391,
+  "cells_per_ward": {
+   "13101": 28830,
+   "13102": 38510,
+   "13103": 45959,
+   "13104": 4956,
+   "13105": 5019,
+   "13106": 57058,
+   "13107": 121052,
+   "13108": 247677,
+   "13109": 51923,
+   "13110": 391,
+   "13111": 200849,
+   "13112": 0,
+   "13113": 0,
+   "13114": 0,
+   "13115": 0,
+   "13116": 0,
+   "13117": 64883,
+   "13118": 55082,
+   "13119": 52680,
+   "13120": 0,
+   "13121": 212476,
+   "13122": 293047,
+   "13123": 374173
+  },
+  "fetched": "2026-11-09"
  }
 }

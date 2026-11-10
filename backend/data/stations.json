@@ -22,6 +22,11 @@
    "year": 2024,
    "table": "S12-25",
    "label": "国土数値情報 駅別乗降客数データ 2024年度（令和6年度）版 乗降客数2018・乗降客数2020・乗降客数2021・乗降客数2022・乗降客数2023・乗降客数2024（1日平均、人/日）— 全年度を同じ基準で比べられる行の合計"
+  },
+  "operatorFigures": {
+   "year": 2024,
+   "table": "odpt:PassengerSurvey",
+   "label": "東京都交通局 乗降者数情報（公共交通オープンデータセンター）1日平均乗降人員：都営地下鉄 2024年度・日暮里・舎人ライナー 2023年度"
   }
  },
  "inputs": {
@@ -69,19 +74,86 @@
    "sha256": "08e15a011623df8908f63b14e72538adece11caf54cdc26a146ab1207c7f6e64",
    "id": "B2",
    "decided": "2026-11-09"
+  },
+  "odpt_PassengerSurvey_Toei.json": {
+   "path": "backend/tests/fixtures/stations/odpt_PassengerSurvey_Toei.json",
+   "sha256": "72ec43dae65535685e8344cacc7ab033264fa4a34267fe1f7c80d524c8cd4e63",
+   "cut_from": {
+    "file": "odpt_PassengerSurvey_Toei.json",
+    "url": "https://api-public.odpt.org/api/v4/odpt:PassengerSurvey?odpt:operator=odpt.Operator:Toei",
+    "bytes": 105446,
+    "sha256": "72ec43dae65535685e8344cacc7ab033264fa4a34267fe1f7c80d524c8cd4e63",
+    "objects": 119,
+    "years": [
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024
+    ],
+    "dc_dates": [
+     "2025-09-29T08:00:00+09:00",
+     "2026-01-05T11:00:00+09:00"
+    ],
+    "committed": "whole, byte for byte",
+    "retrieved": "2026-11-09T14:35:38Z",
+    "endpoint": "公共交通オープンデータセンター 公開エンドポイント（api-public.odpt.org）— アクセストークン不要、ユーザ登録不要",
+    "catalog": "https://ckan.odpt.org/dataset/r_passenger_survey-toei",
+    "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "licence_url": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+    "provider": "東京都交通局・公共交通オープンデータ協議会",
+    "content": "東京都交通局 乗降者数情報",
+    "credit_form": "https://developer.odpt.org/ja/faq-info"
+   }
+  },
+  "odpt_toei_titles.json": {
+   "path": "backend/tests/fixtures/stations/odpt_toei_titles.json",
+   "sha256": "833852e15be9b6a9f93362c748c65a37158b7565416a5c0ffb741c935b3c82ee",
+   "cut_from": {
+    "file": "odpt_toei_titles.json",
+    "cut": "the Japanese title of every railway and station the 乗降者数情報 names, each station's railway and its coordinates (geo:lat / geo:long)",
+    "from": [
+     {
+      "file": "odpt_Station_Toei.json",
+      "url": "https://api-public.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Toei",
+      "bytes": 142181,
+      "sha256": "dcf17c03668fb2021811553f97dffcb7f0958beab1df748fb3857beae9def7bf"
+     },
+     {
+      "file": "odpt_Railway_Toei.json",
+      "url": "https://api-public.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Toei",
+      "bytes": 22948,
+      "sha256": "2bdfb82cf5f33c2f440981158df6701fbe6b25c45cb77b61304205978c44c691"
+     }
+    ],
+    "stations": 119,
+    "railways": 5,
+    "retrieved": "2026-11-09T14:35:38Z"
+   }
   }
  },
  "licence": {
   "name": "国土数値情報 利用規約（PDL1.0準拠）— 駅別乗降客数データ・行政区域データはいずれも「オープンデータ（CC_BY_4.0）」",
-  "url": "https://nlftp.mlit.go.jp/ksj/other/agreement.html"
+  "url": "https://nlftp.mlit.go.jp/ksj/other/agreement.html",
+  "operatorFigures": {
+   "name": "クリエイティブ・コモンズ・ライセンス 表示4.0国際（CC BY 4.0）",
+   "url": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+   "basis": "公共交通オープンデータセンター データカタログサイトの当該データセットのページ（https://ckan.odpt.org/dataset/r_passenger_survey-toei、2026-11-09 直接読了）が「ライセンス Creative Commons Attribution 4.0 International (CC BY 4.0)」「※本コンテンツ等はCC BY 4.0の下でライセンスされています。」「コンテンツ等の提供者名: 東京都交通局・公共交通オープンデータ協議会」と記す。クレジットの形は開発者サイトの FAQ（https://developer.odpt.org/ja/faq-info、同日直接読了）に従う。取得はアクセストークンの要らない公開エンドポイント（api-public）から行い、アクセストークンもユーザ登録も使っていない。"
+  }
  },
  "credit": {
   "source": "出典：国土交通省国土数値情報ダウンロードサイト（https://nlftp.mlit.go.jp/ksj/）",
   "edited_s12": "「国土数値情報（駅別乗降客数データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
   "edited_n03": "「国土数値情報（行政区域データ）」（国土交通省）（https://nlftp.mlit.go.jp/ksj/）を加工して作成",
+  "toei": "東京都交通局・公共交通オープンデータ協議会、東京都交通局 乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）",
+  "toei_edited": "このサービスは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、東京都交通局 乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）",
   "pages": {
    "S12": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S12-2024.html",
-   "N03": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
+   "N03": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+   "toei": "https://ckan.odpt.org/dataset/r_passenger_survey-toei"
   }
  },
  "notes": {
@@ -1406,6 +1478,63 @@
    }
   ]
  },
+ "operatorFigures": {
+  "publisher": "東京都交通局",
+  "provider": "東京都交通局・公共交通オープンデータ協議会",
+  "content": "東京都交通局 乗降者数情報",
+  "retrieved": "2026-11-09T14:35:38Z",
+  "years": [
+   {
+    "name": "都営地下鉄",
+    "year": 2024
+   },
+   {
+    "name": "日暮里・舎人ライナー",
+    "year": 2023
+   }
+  ],
+  "stationLines": 118,
+  "stations": 112,
+  "s12Rows": {
+   "matched": 120,
+   "withOwnFigure": 106
+  },
+  "below": {
+   "rows": 46,
+   "subway": 44,
+   "liner": 2,
+   "s12Year": 2024
+  },
+  "notice": [
+   "日間乗降客・事業者別・乗降客数推移・23区の中での位置の値は、国土数値情報（駅別乗降客数データ）の値で計算しています。",
+   "都営地下鉄と日暮里・舎人ライナーの駅は、駅一覧に東京都交通局の公表値（都営地下鉄 2024年度、日暮里・舎人ライナー 2023年度）も併記しています。都営地下鉄の公表値は路線ごとの値で、都営地下鉄の路線どうしの乗り換えは両方の路線で数えられています。",
+   "国土数値情報の2024年度の値が、併記した東京都交通局の公表値より小さい行は46行です（都営地下鉄44行、日暮里・舎人ライナー2行）。"
+  ],
+  "transfersBasis": {
+   "quote": "（注）「一日平均乗降人員」は、浅草線、三田線、新宿線、大江戸線の乗降人員の合計から、都営線相互の乗り換え客数を引いたものです。したがって、4線の乗降人員の単純合計とは一致しません。",
+   "url": "https://spec.api.metro.tokyo.lg.jp/spec/t000018d0000000030-d5e3d4a98f96a77e0d2857ff3ab150fd-0?lang=ja",
+   "read": "2026-11-09"
+  },
+  "matching": {
+   "rule": "路線は S12 の路線名から「N号線」を除いた名と公共交通オープンデータセンターの路線名の一致、駅は駅名の一致（全角半角・「ヶ」と「ケ」・空白の違いのみ同一視）",
+   "objects": 119,
+   "matched": 118,
+   "renamed": [],
+   "outsideWards": [
+    {
+     "line": "新宿線",
+     "station": "本八幡",
+     "id": "odpt.PassengerSurvey:Toei.Motoyawata",
+     "reason": "23区の外（公共交通オープンデータセンターの駅座標が23区のどの区ポリゴンにも入らない）"
+    }
+   ],
+   "unmatchedInsideWards": [],
+   "s12RowsWithoutObject": [],
+   "linesWithoutObjects": [
+    "荒川線"
+   ]
+  }
+ },
  "stations": [
   {
    "code": "003766",
@@ -1538,6 +1667,15 @@
      "operator": "東京地下鉄",
      "line": "4号線丸ノ内線",
      "text": "5号線東西線・9号線千代田線・11号線半蔵門線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 109600,
+     "s12": 61653
     }
    ]
   },
@@ -1678,6 +1816,22 @@
      "line": "6号線三田線",
      "text": "10号線新宿線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 123381,
+     "s12": null
+    },
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 139451,
+     "s12": 117291
+    }
    ]
   },
   {
@@ -1714,6 +1868,15 @@
      "operator": "東京地下鉄",
      "line": "5号線東西線",
      "text": "11号線半蔵門線、東京都・10号線新宿線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 111197,
+     "s12": null
     }
    ]
   },
@@ -1793,6 +1956,15 @@
      "rows": 1,
      "figureRows": 0,
      "passengers": null
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 90108,
+     "s12": 43945
     }
    ]
   },
@@ -1879,6 +2051,15 @@
      "operator": "東京地下鉄",
      "line": "2号線日比谷線",
      "text": "9号線千代田線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 85848,
+     "s12": 38566
     }
    ]
   },
@@ -2057,6 +2238,15 @@
      "figureRows": 1,
      "passengers": 39177
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 52330,
+     "s12": 39177
+    }
    ]
   },
   {
@@ -2076,6 +2266,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 37295
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 73254,
+     "s12": 37295
     }
    ]
   },
@@ -2237,6 +2436,15 @@
      "line": "5号線東西線",
      "text": "3号線銀座線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 94679,
+     "s12": 41410
+    }
    ]
   },
   {
@@ -2294,6 +2502,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 58099
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 85509,
+     "s12": 58099
     }
    ]
   },
@@ -2380,6 +2597,15 @@
      "figureRows": 1,
      "passengers": 30745
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 69362,
+     "s12": 30745
+    }
    ]
   },
   {
@@ -2409,6 +2635,15 @@
      "figureRows": 1,
      "passengers": 34171
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 54690,
+     "s12": 34171
+    }
    ]
   },
   {
@@ -2428,6 +2663,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 91189
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 91189,
+     "s12": 91189
     }
    ]
   },
@@ -2529,6 +2773,15 @@
      "figureRows": 1,
      "passengers": 46299
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 112233,
+     "s12": 46299
+    }
    ]
   },
   {
@@ -2629,6 +2882,15 @@
      "figureRows": 1,
      "passengers": 31022
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 31022,
+     "s12": 31022
+    }
    ]
   },
   {
@@ -2648,6 +2910,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 25398
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 79857,
+     "s12": 25398
     }
    ]
   },
@@ -2669,6 +2940,15 @@
      "figureRows": 1,
      "passengers": 23281
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 23281,
+     "s12": 23281
+    }
    ]
   },
   {
@@ -2688,6 +2968,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 21447
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 21447,
+     "s12": 21447
     }
    ]
   },
@@ -2782,6 +3071,15 @@
      "figureRows": 1,
      "passengers": 58257
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 88540,
+     "s12": 61689
+    }
    ]
   },
   {
@@ -2851,6 +3149,15 @@
      "figureRows": 1,
      "passengers": 73494
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 83043,
+     "s12": 73494
+    }
    ]
   },
   {
@@ -2917,6 +3224,15 @@
      "line": "3号線銀座線",
      "text": "11号線半蔵門線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 68934,
+     "s12": 24493
+    }
    ]
   },
   {
@@ -2965,6 +3281,22 @@
      "line": "1号線浅草線",
      "text": "6号線三田線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 107560,
+     "s12": 107560
+    },
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 105092,
+     "s12": null
+    }
    ]
   },
   {
@@ -2992,6 +3324,22 @@
      "operator": "東京都",
      "line": "1号線浅草線",
      "text": "12号線大江戸線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 116169,
+     "s12": null
+    },
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 103281,
+     "s12": 101853
     }
    ]
   },
@@ -3177,6 +3525,15 @@
      "figureRows": 1,
      "passengers": 27691
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 32029,
+     "s12": 27691
+    }
    ]
   },
   {
@@ -3226,6 +3583,15 @@
      "figureRows": 1,
      "passengers": 7782
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 39331,
+     "s12": 37899
+    }
    ]
   },
   {
@@ -3245,6 +3611,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 43230
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 43230,
+     "s12": 43230
     }
    ]
   },
@@ -3286,6 +3661,15 @@
      "figureRows": 1,
      "passengers": 38025
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 38025,
+     "s12": 38025
+    }
    ]
   },
   {
@@ -3305,6 +3689,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 37465
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 37465,
+     "s12": 37465
     }
    ]
   },
@@ -3342,6 +3735,15 @@
      "line": "7号線南北線",
      "text": "東京都・6号線三田線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 24798,
+     "s12": null
+    }
    ]
   },
   {
@@ -3377,6 +3779,15 @@
      "operator": "東京都",
      "line": "1号線浅草線",
      "text": "京浜急行電鉄・本線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 209882,
+     "s12": 33601
     }
    ]
   },
@@ -3417,6 +3828,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 28023
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 28023,
+     "s12": 28023
     }
    ]
   },
@@ -3474,6 +3894,15 @@
      "line": "7号線南北線",
      "text": "東京都、6号線三田線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 10310,
+     "s12": null
+    }
    ]
   },
   {
@@ -3493,6 +3922,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 13969
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 13969,
+     "s12": 13969
     }
    ]
   },
@@ -3643,6 +4081,15 @@
      "line": "中央線",
      "text": "山手線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 289400,
+     "s12": null
+    }
    ]
   },
   {
@@ -3717,6 +4164,15 @@
      "operator": "東京地下鉄",
      "line": "4号線丸ノ内線",
      "text": "13号線副都心線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 72667,
+     "s12": 46711
     }
    ]
   },
@@ -3882,6 +4338,15 @@
      "figureRows": 1,
      "passengers": 28073
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 37339,
+     "s12": 28073
+    }
    ]
   },
   {
@@ -3921,6 +4386,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 49779
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 49779,
+     "s12": 49779
     }
    ]
   },
@@ -3970,6 +4444,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 17393
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 25182,
+     "s12": 17393
     }
    ]
   },
@@ -4071,6 +4554,15 @@
      "figureRows": 1,
      "passengers": 36754
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 53643,
+     "s12": 36754
+    }
    ]
   },
   {
@@ -4090,6 +4582,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 36403
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 36403,
+     "s12": 36403
     }
    ]
   },
@@ -4111,6 +4612,15 @@
      "figureRows": 1,
      "passengers": 32776
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 32776,
+     "s12": 32776
+    }
    ]
   },
   {
@@ -4130,6 +4640,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 28849
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 28849,
+     "s12": 28849
     }
    ]
   },
@@ -4151,6 +4670,15 @@
      "figureRows": 1,
      "passengers": 27118
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 27118,
+     "s12": 27118
+    }
    ]
   },
   {
@@ -4170,6 +4698,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 19954
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 19954,
+     "s12": 19954
     }
    ]
   },
@@ -4191,6 +4728,15 @@
      "figureRows": 1,
      "passengers": 13711
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 13711,
+     "s12": 13711
+    }
    ]
   },
   {
@@ -4210,6 +4756,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 13686
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 13686,
+     "s12": 13686
     }
    ]
   },
@@ -4383,6 +4938,15 @@
      "figureRows": 1,
      "passengers": 19159
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 22043,
+     "s12": 19159
+    }
    ]
   },
   {
@@ -4410,6 +4974,22 @@
      "operator": "東京都",
      "line": "6号線三田線",
      "text": "12号線大江戸線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 60957,
+     "s12": null
+    },
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 71886,
+     "s12": 65361
     }
    ]
   },
@@ -4471,6 +5051,15 @@
      "figureRows": 1,
      "passengers": 48388
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 48388,
+     "s12": 48388
+    }
    ]
   },
   {
@@ -4511,6 +5100,15 @@
      "figureRows": 1,
      "passengers": 39624
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 47236,
+     "s12": 39624
+    }
    ]
   },
   {
@@ -4550,6 +5148,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 31304
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 31304,
+     "s12": 31304
     }
    ]
   },
@@ -4651,6 +5258,15 @@
      "figureRows": 1,
      "passengers": 18167
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 28807,
+     "s12": 18167
+    }
    ]
   },
   {
@@ -4732,6 +5348,15 @@
      "figureRows": 1,
      "passengers": 39076
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 59010,
+     "s12": 50125
+    }
    ]
   },
   {
@@ -4760,6 +5385,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 47864
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 60025,
+     "s12": 47864
     }
    ]
   },
@@ -4810,6 +5444,15 @@
      "figureRows": 1,
      "passengers": 35841
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 58639,
+     "s12": 35841
+    }
    ]
   },
   {
@@ -4830,6 +5473,22 @@
      "rows": 2,
      "figureRows": 2,
      "passengers": 53056
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 37966,
+     "s12": 24338
+    },
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 42345,
+     "s12": 28718
     }
    ]
   },
@@ -4970,6 +5629,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 34438
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 56630,
+     "s12": 34438
     }
    ]
   },
@@ -5119,6 +5787,15 @@
      "line": "押上線",
      "text": "東京都・1号線浅草線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 227566,
+     "s12": null
+    }
    ]
   },
   {
@@ -5188,6 +5865,15 @@
      "figureRows": 1,
      "passengers": 32508
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 34318,
+     "s12": 32508
+    }
    ]
   },
   {
@@ -5236,6 +5922,15 @@
      "figureRows": 1,
      "passengers": 24573
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 24573,
+     "s12": 24573
+    }
    ]
   },
   {
@@ -5255,6 +5950,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 21482
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 21482,
+     "s12": 21482
     }
    ]
   },
@@ -5496,6 +6200,15 @@
      "figureRows": 1,
      "passengers": 34676
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 81017,
+     "s12": 34676
+    }
    ]
   },
   {
@@ -5574,6 +6287,15 @@
      "figureRows": 1,
      "passengers": 22004
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 40727,
+     "s12": 22004
+    }
    ]
   },
   {
@@ -5603,6 +6325,15 @@
      "figureRows": 1,
      "passengers": 20037
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 41577,
+     "s12": 20037
+    }
    ]
   },
   {
@@ -5630,6 +6361,22 @@
      "operator": "東京都",
      "line": "10号線新宿線",
      "text": "12号線大江戸線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 74094,
+     "s12": 74094
+    },
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 65316,
+     "s12": null
     }
    ]
   },
@@ -5731,6 +6478,15 @@
      "figureRows": 1,
      "passengers": 31661
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 31661,
+     "s12": 31661
+    }
    ]
   },
   {
@@ -5771,6 +6527,15 @@
      "figureRows": 1,
      "passengers": 30424
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 30424,
+     "s12": 30424
+    }
    ]
   },
   {
@@ -5810,6 +6575,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 27698
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 27698,
+     "s12": 27698
     }
    ]
   },
@@ -6085,6 +6859,15 @@
      "line": "目黒線",
      "text": "東京地下鉄・7号線南北線、東京都・6号線三田線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 108156,
+     "s12": null
+    }
    ]
   },
   {
@@ -6122,6 +6905,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 59177
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 59177,
+     "s12": 59177
     }
    ]
   },
@@ -6275,6 +7067,15 @@
      "figureRows": 1,
      "passengers": 21435
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 27903,
+     "s12": 27903
+    }
    ]
   },
   {
@@ -6422,6 +7223,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 21299
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 21299,
+     "s12": 21299
     }
    ]
   },
@@ -7049,6 +7859,15 @@
      "figureRows": 1,
      "passengers": 43636
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 43636,
+     "s12": 43636
+    }
    ]
   },
   {
@@ -7225,6 +8044,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 26346
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "1号線浅草線",
+     "year": 2024,
+     "passengers": 26346,
+     "s12": 26346
     }
    ]
   },
@@ -8668,6 +9496,15 @@
      "line": "中央線",
      "text": "山手線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 32870,
+     "s12": 23738
+    }
    ]
   },
   {
@@ -9007,7 +9844,16 @@
      }
     ]
    },
-   "note": "乗降客数は新宿区の新宿駅（京王電鉄京王線、JR中央線）に含まれます"
+   "note": "乗降客数は新宿区の新宿駅（京王電鉄京王線、JR中央線）に含まれます",
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 128940,
+     "s12": null
+    }
+   ]
   },
   {
    "code": "003568",
@@ -9073,6 +9919,15 @@
      "figureRows": 1,
      "passengers": 24169
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 40469,
+     "s12": 24169
+    }
    ]
   },
   {
@@ -9101,6 +9956,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 18484
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 25362,
+     "s12": 18484
     }
    ]
   },
@@ -9742,6 +10606,15 @@
      "figureRows": 1,
      "passengers": 53999
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 88108,
+     "s12": 53999
+    }
    ]
   },
   {
@@ -9926,6 +10799,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 29560
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 29560,
+     "s12": 29560
     }
    ]
   },
@@ -10686,6 +11568,15 @@
      "figureRows": 1,
      "passengers": 19959
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 31946,
+     "s12": 19959
+    }
    ]
   },
   {
@@ -10731,6 +11622,15 @@
      "operator": "東日本旅客鉄道",
      "line": "常磐線",
      "text": "東北線を含む"
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 52085,
+     "s12": 32438
     }
    ]
   },
@@ -10840,6 +11740,15 @@
      "figureRows": 2,
      "passengers": 13313
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 8714,
+     "s12": 9390
+    }
    ]
   },
   {
@@ -10899,6 +11808,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 5630
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 5318,
+     "s12": 5630
     }
    ]
   },
@@ -11260,6 +12178,15 @@
      "figureRows": 1,
      "passengers": 37555
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 37555,
+     "s12": 37555
+    }
    ]
   },
   {
@@ -11279,6 +12206,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 34519
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 35514,
+     "s12": 34519
     }
    ]
   },
@@ -11300,6 +12236,15 @@
      "figureRows": 1,
      "passengers": 30150
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 30150,
+     "s12": 30150
+    }
    ]
   },
   {
@@ -11320,6 +12265,15 @@
      "figureRows": 1,
      "passengers": 30055
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 30055,
+     "s12": 30055
+    }
    ]
   },
   {
@@ -11339,6 +12293,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 27789
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 27789,
+     "s12": 27789
     }
    ]
   },
@@ -11380,6 +12343,15 @@
      "figureRows": 1,
      "passengers": 25605
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 25605,
+     "s12": 25605
+    }
    ]
   },
   {
@@ -11399,6 +12371,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 25190
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 25190,
+     "s12": 25190
     }
    ]
   },
@@ -11420,6 +12401,15 @@
      "figureRows": 1,
      "passengers": 24762
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 29972,
+     "s12": 24762
+    }
    ]
   },
   {
@@ -11439,6 +12429,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 19363
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 19363,
+     "s12": 19363
     }
    ]
   },
@@ -11480,6 +12479,15 @@
      "figureRows": 1,
      "passengers": 12970
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 12970,
+     "s12": 12970
+    }
    ]
   },
   {
@@ -11499,6 +12507,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 9534
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "6号線三田線",
+     "year": 2024,
+     "passengers": 9534,
+     "s12": 9534
     }
    ]
   },
@@ -11575,6 +12592,15 @@
      "line": "池袋線",
      "text": "西武有楽町線・豊島線を含む"
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 78323,
+     "s12": 52494
+    }
    ]
   },
   {
@@ -11634,6 +12660,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 56838
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 56838,
+     "s12": 56838
     }
    ]
   },
@@ -11784,6 +12819,15 @@
      "figureRows": 1,
      "passengers": 14294
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 14294,
+     "s12": 14294
+    }
    ]
   },
   {
@@ -11823,6 +12867,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 28904
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 28904,
+     "s12": 28904
     }
    ]
   },
@@ -11883,6 +12936,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 22655
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "12号線大江戸線",
+     "year": 2024,
+     "passengers": 22655,
+     "s12": 22655
     }
    ]
   },
@@ -12223,6 +13285,15 @@
      "figureRows": 1,
      "passengers": 13889
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 13251,
+     "s12": 13889
+    }
    ]
   },
   {
@@ -12262,6 +13333,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 12958
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 12626,
+     "s12": 12958
     }
    ]
   },
@@ -12303,6 +13383,15 @@
      "figureRows": 1,
      "passengers": 12405
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 11848,
+     "s12": 12405
+    }
    ]
   },
   {
@@ -12322,6 +13411,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 11064
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 10579,
+     "s12": 11064
     }
    ]
   },
@@ -12343,6 +13441,15 @@
      "figureRows": 1,
      "passengers": 10663
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 9914,
+     "s12": 10663
+    }
    ]
   },
   {
@@ -12363,6 +13470,15 @@
      "figureRows": 1,
      "passengers": 9542
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 9145,
+     "s12": 9542
+    }
    ]
   },
   {
@@ -12382,6 +13498,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 6635
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 6207,
+     "s12": 6635
     }
    ]
   },
@@ -12423,6 +13548,15 @@
      "figureRows": 1,
      "passengers": 5729
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 4820,
+     "s12": 5729
+    }
    ]
   },
   {
@@ -12462,6 +13596,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 3685
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "日暮里・舎人ライナー",
+     "year": 2023,
+     "passengers": 3596,
+     "s12": 3685
     }
    ]
   },
@@ -12829,6 +13972,15 @@
      "figureRows": 1,
      "passengers": 58409
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 58409,
+     "s12": 58409
+    }
    ]
   },
   {
@@ -12848,6 +14000,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 55028
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 55028,
+     "s12": 55028
     }
    ]
   },
@@ -12869,6 +14030,15 @@
      "figureRows": 1,
      "passengers": 43043
     }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 43043,
+     "s12": 43043
+    }
    ]
   },
   {
@@ -12888,6 +14058,15 @@
      "rows": 1,
      "figureRows": 1,
      "passengers": 39512
+    }
+   ],
+   "ownFigures": [
+    {
+     "operator": "東京都",
+     "line": "10号線新宿線",
+     "year": 2024,
+     "passengers": 39512,
+     "s12": 39512
     }
    ]
   },
