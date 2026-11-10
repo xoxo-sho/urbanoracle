@@ -88,7 +88,7 @@ function DepthBlock({ block, attr, region }: { block: DepthShares; attr: "flood"
         {block.classes.map((c, i) => (
           <li
             key={c.code}
-            className="flex items-center gap-1.5 text-[10px]"
+            className="flex items-center gap-1.5 text-xs"
             {...(attr === "flood" ? { "data-flood-class": "" } : { "data-tide-class": "" })}
             data-code={c.code}
             data-share={c.share}
@@ -99,7 +99,7 @@ function DepthBlock({ block, attr, region }: { block: DepthShares; attr: "flood"
           </li>
         ))}
       </ul>
-      <p className="mt-1 text-[10px] text-muted-foreground">区の面積に占める割合（区域内 計 {formatShare(block.share)}）</p>
+      <p className="mt-1 text-xs text-muted-foreground">区の面積に占める割合（区域内 計 {formatShare(block.share)}）</p>
     </>
   );
 }
@@ -143,7 +143,7 @@ export default function DisasterRiskPanel({
                 const counts = d.earthquake.ranks[key];
                 return (
                   <div key={key} data-quake-kind data-kind={key} data-ranks={counts.join(",")}>
-                    <div className="flex items-baseline justify-between text-[10px]">
+                    <div className="flex items-baseline justify-between text-xs">
                       <span className="text-foreground">{name}</span>
                       <span className="text-muted-foreground">町丁目数（全{d.earthquake.n.toLocaleString("ja-JP")}）</span>
                     </div>
@@ -152,7 +152,7 @@ export default function DisasterRiskPanel({
                         <div key={i} style={{ width: `${(c / d.earthquake.n) * 100}%`, ...RANK_STYLE[i] }} title={`ランク${i + 1}: ${c}`} />
                       ))}
                     </div>
-                    <div className="mt-0.5 flex justify-between text-[9px] tabular-nums text-muted-foreground">
+                    <div className="mt-0.5 flex justify-between text-xs tabular-nums text-muted-foreground">
                       {counts.map((c, i) => (
                         <span key={i}>
                           ランク{i + 1} <span className="text-foreground">{c}</span>
@@ -163,7 +163,7 @@ export default function DisasterRiskPanel({
                 );
               })}
             </div>
-            <p className="mt-2 text-[10px] text-muted-foreground">{d.earthquake.relative}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{d.earthquake.relative}</p>
             <SourceLine sources={disasterSources} hazard="earthquake" />
           </>
         )}
@@ -182,7 +182,7 @@ export default function DisasterRiskPanel({
                 <span className="text-muted-foreground">（区の面積に占める割合）</span>
               </p>
               <DepthBlock block={d.flood} attr="flood" region={region} />
-              <ul className="mt-2 space-y-0.5 text-[9px] leading-snug text-muted-foreground">
+              <ul className="source-note mt-2 space-y-0.5">
                 {A31_NOTICES.map((n) => (
                   <li key={n}>{n}</li>
                 ))}
@@ -202,12 +202,12 @@ export default function DisasterRiskPanel({
               <DepthBlock block={d.hightide} attr="tide" region={region} />
               {/* The 時点 the payload names (the revision), and what the classes are. */}
               {disasterSources.hightide ? (
-                <p className="mt-1 text-[10px] text-foreground" data-as-of data-as-of-text={disasterSources.hightide.table}>
+                <p className="source-note mt-1" data-as-of data-as-of-text={disasterSources.hightide.table}>
                   {TAKASHIO_AS_OF_LEAD}
                   {disasterSources.hightide.table}
                 </p>
               ) : null}
-              <p className="mt-1 text-[9px] leading-snug text-muted-foreground" data-class-note>
+              <p className="mt-1 text-xs leading-snug text-muted-foreground" data-class-note>
                 {TAKASHIO_CLASS_NOTE}
               </p>
               <SourceLine sources={disasterSources} hazard="hightide" />
@@ -223,7 +223,7 @@ export default function DisasterRiskPanel({
             <Pending status={disasterStatus} source={`土砂災害: ${SOURCES.ksj.label}`} />
           ) : (
             <>
-              <table className="w-full text-[10px]">
+              <table className="w-full text-xs">
                 <thead>
                   <tr className="text-muted-foreground">
                     <th className="text-left font-normal">現象</th>
@@ -241,8 +241,8 @@ export default function DisasterRiskPanel({
                   ))}
                 </tbody>
               </table>
-              <p className="mt-1 text-[10px] text-muted-foreground">区の範囲に掛かる区域の数（区域番号の数）。0 は該当する区域がないこと</p>
-              <p className="mt-1 text-[9px] leading-snug text-muted-foreground">{A33_NOTICE}</p>
+              <p className="mt-1 text-xs text-muted-foreground">区の範囲に掛かる区域の数（区域番号の数）。0 は該当する区域がないこと</p>
+              <p className="source-note mt-1">{A33_NOTICE}</p>
               <SourceLine sources={disasterSources} hazard="landslide" />
             </>
           )}
@@ -289,18 +289,18 @@ export default function DisasterRiskPanel({
               {legendTypes.map((t) => (
                 <div key={t.code} className="flex items-center gap-2" data-zoning-type data-code={t.code} data-name={t.name} data-share={t.share} data-m2={t.m2}>
                   <span className="h-2 w-2 rounded-full shrink-0" style={typeStyle(zoning.types.indexOf(t))} />
-                  <span className="text-[10px] text-muted-foreground truncate flex-1">{t.name}</span>
-                  <span className="text-[10px] tabular-nums text-foreground">{formatShare(t.share)}</span>
+                  <span className="text-xs text-muted-foreground truncate flex-1">{t.name}</span>
+                  <span className="text-xs tabular-nums text-foreground">{formatShare(t.share)}</span>
                 </div>
               ))}
               {zoning.types.length > LEGEND_N && (
-                <span className="text-[9px] text-muted-foreground">他 {zoning.types.length - LEGEND_N} 区分</span>
+                <span className="text-xs text-muted-foreground">他 {zoning.types.length - LEGEND_N} 区分</span>
               )}
             </div>
-            <p className="mt-2 text-[10px] text-foreground" data-designated data-share-of-ward={zoning.designatedShare}>
+            <p className="mt-2 text-xs text-foreground" data-designated data-share-of-ward={zoning.designatedShare}>
               {designatedLine(zoning, selectedWard)}
             </p>
-            <p className="text-[10px] text-muted-foreground" data-as-of data-as-of-date={zoning.asOf.date ?? ""}>
+            <p className="source-note" data-as-of data-as-of-date={zoning.asOf.date ?? ""}>
               {zoning.asOf.text}
             </p>
             <p className="source-note mt-2">

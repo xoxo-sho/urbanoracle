@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -15,7 +16,7 @@ import {
 import type { DemographicsData, FieldSources, LandPriceWard } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { hasValue } from "@/lib/format";
-import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE, AXIS_STYLE, CURSOR_STYLE, CHART_COLORS, Y_AXIS_MAN_WIDTH } from "@/lib/chart-theme";
 import { LAND_USE_LABEL, formatChange, industrialCount, manPrice, manY, priceGap, type LandUse } from "@/lib/land-price";
 import { censusLine, landPriceLine } from "@/lib/census-sources";
 import { ESTAT_SOURCE, LAND_PRICE_CHANGE_NOTE, LAND_PRICE_MEAN_NOTE } from "@/lib/credits";
@@ -57,6 +58,45 @@ interface LandPriceChartProps {
 /** In the 23-ward view the bar shows this many wards; the selected ward is added when outside them. */
 const TOP_N = 10;
 
+/**
+ * A ward name under its bar. Level where the bar's band is wide enough for the
+ * longest name; otherwise set vertically (縦書き, one character per line), so on
+ * a phone every bar keeps its label at 12px and no two names run into each
+ * other (follow-up 2: level 12px names did not fit ten bands at 390px).
+ */
+function WardTick({
+  x = 0,
+  y = 0,
+  payload,
+  className,
+  vertical,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value?: unknown };
+  className?: string;
+  vertical: boolean;
+}) {
+  const name = String(payload?.value ?? "").replace("区", "");
+  const text = { className, fill: AXIS_STYLE.tick.fill, fontSize: AXIS_STYLE.fontSize, textAnchor: "middle" as const };
+  if (!vertical) {
+    return (
+      <text x={x} y={y} dy="0.71em" {...text}>
+        {name}
+      </text>
+    );
+  }
+  return (
+    <text x={x} y={y} {...text}>
+      {[...name].map((ch, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? "0.71em" : "1.1em"}>
+          {ch}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 export default function LandPriceChart({
   wards,
   status,
@@ -89,6 +129,11 @@ export default function LandPriceChart({
   }));
   const gap = priceGap(wards, landUse);
   const cut = wards.length > shown.length;
+  // Ward names stand level when each bar's band fits the longest of them.
+  const [barWidth, setBarWidth] = useState(0);
+  const longest = Math.max(1, ...barData.map((b) => b.region.replace("区", "").length));
+  const band = barWidth > 0 ? (barWidth - Y_AXIS_MAN_WIDTH - 10) / Math.max(1, barData.length) : Infinity;
+  const verticalNames = band < longest * AXIS_STYLE.fontSize + 6;
 
   // Scatter: all wards that both payloads cover; the y domain from every ward
   // of the 地価 payload, never from the one point a selection would leave.
@@ -128,7 +173,7 @@ export default function LandPriceChart({
             区別平均価格（{use}）
           </h4>
           {gap && !landPending && (
-            <span className="text-[10px] text-muted-foreground" data-gap>
+            <span className="text-xs text-muted-foreground" data-gap>
               格差 <span className="text-foreground font-bold">{gap.ratio}倍</span>
               <span className="ml-1">({gap.top.replace("区", "")} vs {gap.bottom.replace("区", "")})</span>
             </span>
@@ -138,10 +183,18 @@ export default function LandPriceChart({
           <StateNotice status={status} source={landSourceName} />
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={verticalNames ? 180 + (longest - 1) * 14 : 180} onResize={(w) => setBarWidth(w)}>
               <BarChart data={barData} barCategoryGap="18%">
-                <XAxis dataKey="region" {...AXIS_STYLE} tickFormatter={(v) => String(v).replace("区", "")} />
-                <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={40} tickFormatter={(v) => `${(Number(v) / 10000).toFixed(0)}万`} />
+                {/* Every bar keeps its ward label (interval 0): Recharts would otherwise drop
+                    labels it judges too close, half of them at 12px on a phone. */}
+                <XAxis
+                  dataKey="region"
+                  {...AXIS_STYLE}
+                  interval={0}
+                  height={verticalNames ? 30 + (longest - 1) * 14 : 30}
+                  tick={<WardTick vertical={verticalNames} />}
+                />
+                <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={Y_AXIS_MAN_WIDTH} tickFormatter={(v) => `${(Number(v) / 10000).toFixed(0)}万`} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
                   cursor={CURSOR_STYLE}
@@ -210,7 +263,7 @@ export default function LandPriceChart({
           <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             密度 vs 地価（{use}）
           </h4>
-          <span className="text-[9px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             円の大きさ = 人口
           </span>
         </div>
@@ -221,7 +274,7 @@ export default function LandPriceChart({
             <ResponsiveContainer width="100%" height={180}>
               <ScatterChart>
                 <XAxis dataKey="x" type="number" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} tickFormatter={(v) => `${(Number(v) / 1000).toFixed(0)}k`} />
-                <YAxis dataKey="y" type="number" domain={[0, yMax]} {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} tickFormatter={(v) => `${Number(v).toFixed(0)}万`} width={40} />
+                <YAxis dataKey="y" type="number" domain={[0, yMax]} {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} tickFormatter={(v) => `${Number(v).toFixed(0)}万`} width={Y_AXIS_MAN_WIDTH} />
                 <ZAxis dataKey="z" range={[30, 180]} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}

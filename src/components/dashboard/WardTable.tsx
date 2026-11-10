@@ -143,7 +143,7 @@ export default function WardTable({
                       ) : price ? (
                         <>
                           {manPrice(price.meanPrice)}
-                          <span className="ml-1 text-[9px] text-muted-foreground">n={price.n}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">n={price.n}</span>
                         </>
                       ) : (
                         NO_DATA

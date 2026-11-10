@@ -58,7 +58,7 @@ function ForgotPasswordScreen() {
   return (
     <main className="min-h-dvh flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t.resetEyebrow}</p>
+        <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">{t.resetEyebrow}</p>
 
         {sent ? (
           <div data-testid="reset-confirmation">

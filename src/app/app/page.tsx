@@ -275,7 +275,10 @@ export default function Home() {
       {/* Header */}
       <VerificationBanner />
       <header className="shrink-0 border-b border-border/50 bg-card px-4 md:px-6 py-2 md:py-3">
-        <div className="flex items-center justify-between gap-2">
+        {/* Wraps: where the wordmark, the ward selector and the account bar do not
+            fit on one line (a phone), the account bar takes a second line, right-
+            aligned, instead of being drawn over the wordmark (follow-up 2). */}
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
               <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-sm bg-primary/15">
@@ -292,7 +295,7 @@ export default function Home() {
               onSelect={setSelectedWard}
             />
           </div>
-          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+          <div className="ml-auto flex min-w-0 items-center gap-2 md:gap-3">
             <SignOutButton />
             <ThemeToggle />
           </div>
@@ -325,7 +328,7 @@ export default function Home() {
                 censusStops={censusStops}
               />
               <div className="absolute top-3 left-3 z-10">
-                <div className="map-overlay rounded-sm px-2.5 py-1 text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
+                <div className="map-overlay rounded-sm px-2.5 py-1 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                   {selectedWard ?? "全エリア"}
                 </div>
               </div>
@@ -351,13 +354,13 @@ export default function Home() {
               <div className="key-metric">
                 <TrendingUp className="h-4 w-4 text-up-text" />
                 <span className="text-xl font-bold tabular-nums">{growthTile}</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                <span className="text-xs text-muted-foreground text-center leading-tight">
                   {selectedWard ? "成長率" : "成長率1位"}
                   {!selectedWard && topGrowth && <><br />{topGrowth.region}</>}
                 </span>
                 {/* K1's own source line: the table the figure came from, as the payload
                     says — in the dashboard's provenance size (.source-note, 11px), never a
-                    smaller ad-hoc one: the 9px caption above it is already logged as unreadable. */}
+                    smaller ad-hoc one. The caption above it is the caption size (text-xs, 12px). */}
                 {growthSource && !isPending(demographics.status) && (
                   <span data-source={GROWTH_FIELD} title={growthSource.label} className="source-note text-center">
                     {tileSourceLine(growthSource)}
@@ -367,7 +370,7 @@ export default function Home() {
               <div className="key-metric" data-surface="disaster-k2">
                 <Shield className="h-4 w-4 text-down-text" />
                 <span className="text-xl font-bold tabular-nums">{k2Tile}</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">{K2_LABEL}</span>
+                <span className="text-xs text-muted-foreground text-center leading-tight">{K2_LABEL}</span>
                 {/* K2's own source line (real-data plan PR 7): the survey and its year
                     as the payload names them, in the dashboard's provenance size. */}
                 {k2Source && !isPending(disasterRisks.status) && (
@@ -379,7 +382,7 @@ export default function Home() {
               <div className="key-metric">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xl font-bold tabular-nums">{passengersTile}</span>
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
+                <span className="text-xs text-muted-foreground text-center leading-tight">日間<br />乗降客</span>
                 {/* K3's own source line (real-data plan PR 4): the year and table the
                     payload names, and what the figure is — each operator's count summed,
                     JR東日本's being 乗車人員 doubled — in the dashboard's provenance size. */}

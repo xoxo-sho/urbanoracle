@@ -3,7 +3,7 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import type { FieldSources, OperatorFigures, OwnFigure, RidershipTrend, TransportStation } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
-import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS, Y_AXIS_MAN_WIDTH } from "@/lib/chart-theme";
 import { NO_DATA, byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
@@ -152,7 +152,7 @@ export default function TransportPanel({ stations, trend, selectedWard, status, 
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-sm font-medium">
                           {station.name}
-                          {!selectedWard && station.ward ? <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">{station.ward}</span> : null}
+                          {!selectedWard && station.ward ? <span className="ml-1.5 text-xs font-normal text-muted-foreground">{station.ward}</span> : null}
                         </span>
                         {/* A station S12 counts on another row says so — データなし is
                             for a figure that does not exist (PR 1), and this one does. */}
@@ -162,12 +162,12 @@ export default function TransportPanel({ stations, trend, selectedWard, status, 
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {station.lines.slice(0, 3).map((line) => (
-                          <span key={line} className="rounded-md bg-secondary px-1.5 py-0.5 text-[9px] text-muted-foreground">
+                          <span key={line} className="rounded-md bg-secondary px-1.5 py-0.5 text-xs text-muted-foreground">
                             {line}
                           </span>
                         ))}
                         {station.lines.length > 3 && (
-                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[9px] text-muted-foreground">+{station.lines.length - 3}</span>
+                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs text-muted-foreground">+{station.lines.length - 3}</span>
                         )}
                       </div>
                       {/* Where the figure is counted, when S12 names the row. */}
@@ -307,7 +307,7 @@ function RidershipTrendSection({
             </linearGradient>
           </defs>
           <XAxis dataKey="year" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} />
-          <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={44} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
+          <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={Y_AXIS_MAN_WIDTH} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
           <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => (typeof v === "number" ? `${v.toLocaleString()}人/日` : v)} />
           {/* connectNulls off: the line stops at a year left out and starts again after it. */}
           <Area

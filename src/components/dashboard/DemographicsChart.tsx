@@ -14,7 +14,7 @@ import {
 import type { DemographicsData, FieldSources, PopulationTrend } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { censusLine, trendLine, type CensusField } from "@/lib/census-sources";
-import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS, Y_AXIS_MAN_WIDTH } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
 import { ESTAT_TREND_EDITED } from "@/lib/credits";
@@ -180,9 +180,9 @@ export default function DemographicsChart({
           {trendState === null && hasValue(latestPop) && (
             <div className="text-right">
               <span className="text-base font-bold">{(latestPop / 10000).toFixed(0)}</span>
-              <span className="text-[10px] text-muted-foreground">万人</span>
+              <span className="text-xs text-muted-foreground">万人</span>
               {hasValue(recentGrowth) && (
-                <span className="ml-1.5 text-[10px] font-medium" style={{ color: recentGrowth >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
+                <span className="ml-1.5 text-xs font-medium" style={{ color: recentGrowth >= 0 ? "var(--up-text)" : "var(--down-text)" }}>
                   {recentGrowth > 0 ? "+" : ""}{recentGrowth.toFixed(1)}%
                 </span>
               )}
@@ -202,7 +202,7 @@ export default function DemographicsChart({
                 </linearGradient>
               </defs>
               <XAxis dataKey="year" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} />
-              <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={36} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} domain={["dataMin - 300000", "dataMax + 200000"]} />
+              <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={Y_AXIS_MAN_WIDTH} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} domain={["dataMin - 300000", "dataMax + 200000"]} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => typeof v === "number" ? `${v.toLocaleString()}人` : v} />
               <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.upside} strokeWidth={2} fill="url(#demoPopGrad)" />
             </AreaChart>
@@ -233,18 +233,18 @@ export default function DemographicsChart({
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-sm border py-2 px-1" style={{ background: "var(--up-fill)", borderColor: "var(--chart-section-border)" }}>
               <div className="text-sm font-bold tabular-nums" style={{ color: "var(--up-text)" }}>{growthFailed ? FAILED_TEXT : fastestGrowing ? `${fastestGrowing.growthRate! > 0 ? "+" : ""}${fastestGrowing.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">{growthFailed ? "" : fastestGrowing?.region ?? ""}</div>
-              <div className="text-[8px] text-muted-foreground">最大成長</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{growthFailed ? "" : fastestGrowing?.region ?? ""}</div>
+              <div className="text-xs text-muted-foreground">最大成長</div>
             </div>
             <div className="rounded-sm border py-2 px-1" style={{ background: "var(--down-fill)", borderColor: "var(--chart-section-border)" }}>
               <div className="text-sm font-bold tabular-nums" style={{ color: "var(--down-text)" }}>{growthFailed ? FAILED_TEXT : fastestDeclining ? `${fastestDeclining.growthRate!.toFixed(1)}%` : NO_DATA}</div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">{growthFailed ? "" : fastestDeclining?.region ?? ""}</div>
-              <div className="text-[8px] text-muted-foreground">最大減少</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{growthFailed ? "" : fastestDeclining?.region ?? ""}</div>
+              <div className="text-xs text-muted-foreground">最大減少</div>
             </div>
             <div className="rounded-sm border py-2 px-1" style={{ borderColor: "var(--chart-section-border)" }}>
               <div className="text-sm font-bold tabular-nums">{mostAged ? formatPct(mostAged.ageGroups.elderly) : NO_DATA}</div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">{mostAged?.region ?? ""}</div>
-              <div className="text-[8px] text-muted-foreground">高齢化率1位</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{mostAged?.region ?? ""}</div>
+              <div className="text-xs text-muted-foreground">高齢化率1位</div>
             </div>
           </div>
           {censusNote("%", ALL_AREA_FIELDS)}
@@ -254,9 +254,9 @@ export default function DemographicsChart({
             <ResponsiveContainer width="100%" height={150}>
               <BarChart data={ageData} barCategoryGap="20%" layout="vertical">
                 <XAxis type="number" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                <YAxis type="category" dataKey="name" {...AXIS_STYLE} width={36} />
+                <YAxis type="category" dataKey="name" {...AXIS_STYLE} width={48} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Legend iconSize={6} wrapperStyle={{ fontSize: "9px", color: "var(--muted-foreground)" }} />
+                <Legend iconSize={6} wrapperStyle={{ fontSize: "12px", color: "var(--muted-foreground)" }} />
                 <Bar dataKey="0-14歳" stackId="a" fill="var(--chart-5)" radius={0} />
                 <Bar dataKey="15-64歳" stackId="a" fill="var(--chart-4)" radius={0} />
                 <Bar dataKey="65歳+" stackId="a" fill="var(--chart-3)" radius={0} />
@@ -274,9 +274,9 @@ export default function DemographicsChart({
 function MetricCard({ label, value, sub, positive }: { label: string; value: string; sub: string; positive: boolean }) {
   return (
     <div className="chart-section text-center py-3">
-      <div className="text-[10px] text-muted-foreground mb-1">{label}</div>
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
       <div className="text-lg font-bold">{value}</div>
-      <div className="text-[9px] mt-0.5" style={{ color: positive ? "var(--up-text)" : "var(--down-text)" }}>{sub}</div>
+      <div className="text-xs mt-0.5" style={{ color: positive ? "var(--up-text)" : "var(--down-text)" }}>{sub}</div>
     </div>
   );
 }
@@ -298,16 +298,16 @@ function AgeBar({
 
   return (
     <div>
-      <div className="text-[10px] text-muted-foreground mb-1.5">{label}</div>
+      <div className="text-xs text-muted-foreground mb-1.5">{label}</div>
       <div className="flex h-3 rounded-full overflow-hidden">
         <div style={{ width: width(young), background: "var(--chart-5)" }} />
         <div style={{ width: width(working), background: "var(--chart-4)" }} />
         <div style={{ width: width(elderly), background: "var(--chart-3)" }} />
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-muted-foreground">年少{formatPct(young)}</span>
-        <span className="text-[9px] text-muted-foreground">生産{formatPct(working)}</span>
-        <span className="text-[9px] text-muted-foreground">高齢{formatPct(elderly)}</span>
+        <span className="text-xs text-muted-foreground">年少{formatPct(young)}</span>
+        <span className="text-xs text-muted-foreground">生産{formatPct(working)}</span>
+        <span className="text-xs text-muted-foreground">高齢{formatPct(elderly)}</span>
       </div>
     </div>
   );

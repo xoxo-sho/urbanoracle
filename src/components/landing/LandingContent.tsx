@@ -143,7 +143,7 @@ export default function LandingContent() {
       <main className="flex-1">
         {/* ── Hero: the symmetry itself, in real numbers ── */}
         <section className="mx-auto max-w-5xl px-6 py-12 sm:py-16">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t.heroEyebrow}</p>
+          <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">{t.heroEyebrow}</p>
           <h1 className="heading mt-3 text-3xl leading-snug sm:text-4xl">
             {t.heroTitle1}
             <br />
@@ -184,7 +184,7 @@ export default function LandingContent() {
                 }}
               >
                 <p
-                  className="text-[10px] tracking-[0.2em] uppercase"
+                  className="text-xs tracking-[0.2em] uppercase"
                   style={{ color: cap.side === "up" ? "var(--up-text)" : "var(--down-text)" }}
                 >
                   {t[cap.label]}
@@ -223,7 +223,7 @@ export default function LandingContent() {
               </thead>
               <tbody data-provenance="live">
                 <tr style={{ borderBottom: "1px solid var(--rule)" }}>
-                  <th colSpan={3} className="pt-4 pb-1 text-left text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                  <th colSpan={3} className="pt-4 pb-1 text-left text-xs tracking-[0.2em] uppercase text-muted-foreground">
                     {t.groupLive}
                   </th>
                 </tr>
