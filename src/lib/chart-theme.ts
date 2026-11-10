@@ -21,6 +21,13 @@ export const AXIS_STYLE = {
 export const CURSOR_STYLE = { fill: "var(--cursor-fill)" };
 
 /**
+ * Width of a Y axis whose ticks read in 万 (「1200万」): four digits and 万 at
+ * the 12px axis size plus Recharts' 8px tick offset, with room for the wider
+ * glyphs Linux renders (a 40px axis cut 「900万」 in CI, not on macOS).
+ */
+export const Y_AXIS_MAN_WIDTH = 56;
+
+/**
  * Series colours (design-spec-v1 §2, §10(b)).
  *
  * `upside`/`downside` are the only chromatic series. Everything else is a

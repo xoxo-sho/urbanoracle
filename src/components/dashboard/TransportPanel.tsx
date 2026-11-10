@@ -3,7 +3,7 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import type { FieldSources, OperatorFigures, OwnFigure, RidershipTrend, TransportStation } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
-import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS, Y_AXIS_MAN_WIDTH } from "@/lib/chart-theme";
 import { NO_DATA, byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
@@ -307,7 +307,7 @@ function RidershipTrendSection({
             </linearGradient>
           </defs>
           <XAxis dataKey="year" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} />
-          <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={52} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
+          <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={Y_AXIS_MAN_WIDTH} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
           <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => (typeof v === "number" ? `${v.toLocaleString()}人/日` : v)} />
           {/* connectNulls off: the line stops at a year left out and starts again after it. */}
           <Area

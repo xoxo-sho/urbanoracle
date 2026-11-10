@@ -14,7 +14,7 @@ import {
 import type { DemographicsData, FieldSources, PopulationTrend } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { censusLine, trendLine, type CensusField } from "@/lib/census-sources";
-import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
+import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS, Y_AXIS_MAN_WIDTH } from "@/lib/chart-theme";
 import { NO_DATA, averageOf, byValueDesc, formatK, formatMan, formatPct, hasValue } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
 import { ESTAT_TREND_EDITED } from "@/lib/credits";
@@ -202,7 +202,7 @@ export default function DemographicsChart({
                 </linearGradient>
               </defs>
               <XAxis dataKey="year" {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} />
-              <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={52} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} domain={["dataMin - 300000", "dataMax + 200000"]} />
+              <YAxis {...AXIS_STYLE} tick={AXIS_STYLE.tickMuted} width={Y_AXIS_MAN_WIDTH} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} domain={["dataMin - 300000", "dataMax + 200000"]} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => typeof v === "number" ? `${v.toLocaleString()}人` : v} />
               <Area type="monotone" dataKey="人口" stroke={CHART_COLORS.upside} strokeWidth={2} fill="url(#demoPopGrad)" />
             </AreaChart>
