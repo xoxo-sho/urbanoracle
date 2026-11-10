@@ -203,6 +203,36 @@ describe("styles/fonts.css — the stylesheet the root layout imports", () => {
   });
 });
 
+describe("src/app/fonts — the two heading subsets carry their licences", () => {
+  // Source Serif 4 and Zen Old Mincho are OFL 1.1 fonts, committed as heading
+  // subsets (db76f3f, 2026-08-05) and loaded with next/font/local. The OFL
+  // asks that the licence travel with every copy; until PR 27 nothing did.
+  const HEADING = join(ROOT, "src", "app", "fonts");
+
+  it("holds the two subsets, one licence each, and the README that names their sources", () => {
+    expect(readdirSync(HEADING).sort()).toEqual(
+      ["OFL-SourceSerif4.md", "OFL-ZenOldMincho.txt", "README.md", "SourceSerif4-700-subset.woff2", "ZenOldMincho-700-subset.woff2"].sort(),
+    );
+  });
+
+  it("each licence is the OFL 1.1 and names the font's copyright holder", () => {
+    const serif = readFileSync(join(HEADING, "OFL-SourceSerif4.md"), "utf8");
+    expect(serif).toContain("SIL OPEN FONT LICENSE Version 1.1");
+    expect(serif).toContain("Adobe");
+    expect(serif).toContain("Reserved Font Name 'Source'");
+    const mincho = readFileSync(join(HEADING, "OFL-ZenOldMincho.txt"), "utf8");
+    expect(mincho).toContain("SIL OPEN FONT LICENSE Version 1.1");
+    expect(mincho).toContain("The Zen Old Mincho Project Authors");
+  });
+
+  it("the README records each file's sha256", () => {
+    const readme = readFileSync(join(HEADING, "README.md"), "utf8");
+    for (const f of ["SourceSerif4-700-subset.woff2", "ZenOldMincho-700-subset.woff2", "OFL-SourceSerif4.md", "OFL-ZenOldMincho.txt"]) {
+      expect(readme, f).toContain(sha256(join(HEADING, f)));
+    }
+  });
+});
+
 describe("src/app/_og-fonts — the fonts of the OG card", () => {
   it("the files are the ones the lock records, with their licences", () => {
     const og = lock().og;
