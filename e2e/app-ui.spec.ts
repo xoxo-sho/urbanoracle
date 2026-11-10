@@ -119,6 +119,54 @@ async function textBelowFloor(page: Page) {
   }, FLOOR_PX);
 }
 
+/**
+ * Larger text must not cost legibility elsewhere: every chart's axis labels sit
+ * inside their chart and do not run into each other, and no text is cut to an
+ * ellipsis (the signed-in e-mail in the header excepted: it truncates by design,
+ * with the whole address as its title).
+ */
+async function legibilityProblems(page: Page) {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    let ticksChecked = 0;
+    const where = (el: Element) => el.closest("[data-surface]")?.getAttribute("data-surface") ?? "?";
+    for (const svg of document.querySelectorAll<SVGSVGElement>("svg.recharts-surface")) {
+      if (!svg.checkVisibility()) continue;
+      const box = svg.getBoundingClientRect();
+      // Recharts 3 draws each axis's labels in their own group (…-tick-labels).
+      for (const axis of svg.querySelectorAll(".recharts-cartesian-axis-tick-labels")) {
+        const ticks = [...axis.querySelectorAll<SVGTextElement>("text.recharts-cartesian-axis-tick-value")].map((t) => ({
+          text: t.textContent ?? "",
+          r: t.getBoundingClientRect(),
+        }));
+        ticksChecked += ticks.length;
+        for (const { text, r } of ticks) {
+          if (r.left < box.left - 0.5 || r.right > box.right + 0.5 || r.top < box.top - 0.5 || r.bottom > box.bottom + 0.5) {
+            out.push(`[${where(svg)}] axis label 「${text}」 is cut off by the chart's edge`);
+          }
+        }
+        for (let i = 0; i < ticks.length; i++) {
+          for (let j = i + 1; j < ticks.length; j++) {
+            const a = ticks[i].r;
+            const b = ticks[j].r;
+            if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5) {
+              out.push(`[${where(svg)}] axis labels 「${ticks[i].text}」 and 「${ticks[j].text}」 overlap`);
+            }
+          }
+        }
+      }
+    }
+    for (const el of document.querySelectorAll<HTMLElement>("body *")) {
+      if (el.closest('[data-testid="account-bar"]') || !el.checkVisibility()) continue;
+      const cs = getComputedStyle(el);
+      if (cs.textOverflow === "ellipsis" && el.scrollWidth > el.clientWidth + 1) {
+        out.push(`[${where(el)}] 「${(el.textContent ?? "").trim().slice(0, 30)}」 is cut to an ellipsis`);
+      }
+    }
+    return { problems: out, ticksChecked };
+  });
+}
+
 async function overflow(page: Page) {
   return page.evaluate(() => {
     const panel = document.querySelector('[role="tabpanel"]:not([hidden])') as HTMLElement | null;
@@ -178,6 +226,33 @@ test("/app: no rendered text below 11px on any of the five tabs, and nothing ove
     expect(o.document, `${tab}: the page overflows sideways`).toBeLessThanOrEqual(1);
   }
   expect([...new Set(found)], `${found.length} text node(s) below ${FLOOR_PX}px`).toEqual([]);
+});
+
+test("/app: at the larger sizes, chart axis labels stay inside their charts and apart, every bar of 区別平均価格 keeps its ward label, and no text is cut to an ellipsis", async ({ page, context }) => {
+  await signedInDashboard(context);
+  await page.goto("/app");
+  await expect(page.locator(".key-metric")).toHaveCount(3, { timeout: 30_000 });
+  const found: string[] = [];
+  // Tabs with charts: 地価 (bar, scatter), 人口 (trend, age), 交通 (ridership trend).
+  const charted = new Set(["地価", "人口", "交通"]);
+  for (const tab of TABS) {
+    await openTab(page, tab);
+    const { problems, ticksChecked } = await legibilityProblems(page);
+    if (charted.has(tab)) expect(ticksChecked, `${tab}: no axis label was found to check`).toBeGreaterThan(0);
+    for (const line of problems) found.push(`${tab}: ${line}`);
+  }
+  for (const use of ["住宅地", "商業地"]) {
+    await openTab(page, "地価");
+    await page.locator("[data-land-use-switch]").getByRole("button", { name: use, exact: true }).click();
+    await page.waitForTimeout(800);
+    for (const line of (await legibilityProblems(page)).problems) found.push(`地価 ${use}: ${line}`);
+    const bar = page.locator('[data-surface="land-price-bar"]');
+    const bars = await bar.locator(".recharts-bar-rectangle").count();
+    const labels = await bar.locator(".recharts-xAxis-tick-labels text.recharts-cartesian-axis-tick-value").count();
+    expect(bars, `地価 ${use}: no bars drawn`).toBeGreaterThan(0);
+    expect(labels, `地価 ${use}: ${bars} bars but ${labels} ward labels`).toBe(bars);
+  }
+  expect([...new Set(found)]).toEqual([]);
 });
 
 for (const route of ["/", "/login", "/forgot-password"]) {

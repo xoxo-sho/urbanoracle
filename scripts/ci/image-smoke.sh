@@ -113,7 +113,7 @@ start_db() {
 
 step_boot() {
   current=boot
-  local out code n routes route fonts font dir checked=0
+  local out code n routes route fonts font dir page length checked=0
   start_db
   # As deploy.yml starts it, minus the three secrets: no ESTAT_API_KEY, no
   # RESEND_API_KEY, and a database that is not production's.
@@ -174,10 +174,10 @@ for r in app.routes:
   for page in / /login /app; do
     out="$(get "$page")"
     [[ $out == "200 text/html"* ]] || fail "GET $page answered '$out', expected 200 text/html"
-    n="$(wc -c < "$tmp/body" | tr -d ' ')"
+    length="$(wc -c < "$tmp/body" | tr -d ' ')"
     out="$(head_req "$page")"
     [[ $out == "200 text/html"* ]] || fail "HEAD $page answered '$out', expected 200 text/html"
-    [[ "$(header content-length)" == "$n" ]] || fail "HEAD $page says Content-Length '$(header content-length)', GET sent $n bytes"
+    [[ "$(header content-length)" == "$length" ]] || fail "HEAD $page says Content-Length '$(header content-length)', GET sent $length bytes"
   done
   font="$(head -1 <<<"$fonts")"
   out="$(head_req "$font")"
