@@ -282,6 +282,29 @@ FONT_REFS
 fi
 
 # --------------------------------------------------------------------------
+# 4e. Every file type in the bundle has a stated Content-Type
+# --------------------------------------------------------------------------
+# backend/core/spa.py serves the bundle with the types in its MEDIA_TYPES
+# mapping and nothing else: the production image has no system type table, so
+# an extension missing there goes out as application/octet-stream (before the
+# mapping existed, fonts went out as text/plain and no check noticed). A new
+# file type in the export has to be listed there first.
+SPA_PY="${SPA_PY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/backend/core/spa.py}"
+if [ ! -f "$SPA_PY" ]; then
+  fail "content types: ${SPA_PY} not found — cannot read the MEDIA_TYPES mapping"
+else
+  untyped=""
+  for ext in $(find "$DIR" -type f -name '*.*' | sed 's/.*\.//' | tr '[:upper:]' '[:lower:]' | sort -u); do
+    grep -qF "\".${ext}\": \"" "$SPA_PY" || untyped="${untyped} .${ext}"
+  done
+  if [ -n "$untyped" ]; then
+    fail "content types: the bundle has file type(s) with no entry in MEDIA_TYPES (backend/core/spa.py):${untyped}"
+  else
+    pass "content types: every file extension in the bundle is in MEDIA_TYPES"
+  fi
+fi
+
+# --------------------------------------------------------------------------
 # 5. The landing page
 # --------------------------------------------------------------------------
 LP_INDEX="$DIR/index.html"

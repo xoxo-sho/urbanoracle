@@ -330,6 +330,11 @@ build_fixture "$WORK/f56"
 printf 'const IDENTITY="https://identitytoolkit.googleapis.com/v1",TOKEN="https://securetoken.googleapis.com/v1";\n' >> "$WORK/f56/_next/static/chunks/config.js"
 expect_pass "identitytoolkit / securetoken on googleapis.com are not Google Fonts" "$WORK/f56"
 
+# --- content types (every extension in the bundle is in MEDIA_TYPES) -------
+build_fixture "$WORK/f57"
+printf 'II*\0' > "$WORK/f57/_next/static/chunks/photo.tiff"
+expect_fail_line "a file type the backend has no Content-Type for" "$WORK/f57" 'content types: the bundle has file type(s) with no entry in MEDIA_TYPES (backend/core/spa.py): .tiff'
+
 # --- landing page ---------------------------------------------------------
 build_fixture "$WORK/f13"
 sedi 's#<h1>[^<]*</h1>#<div id="root"></div>#' "$WORK/f13/index.html"

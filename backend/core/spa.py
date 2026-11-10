@@ -19,7 +19,6 @@ every typo look like a valid page to a crawler. If the dashboard ever gains
 client-side routing, a fallback under /app can be added then — not before.
 """
 
-import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -66,22 +65,64 @@ def sniff_image_type(path: Path) -> str | None:
     return None
 
 
+# ---------------------------------------------------------------------------
+# Content types, stated here — not asked of the host
+# ---------------------------------------------------------------------------
+# Python's mimetypes answers from the operating system's table. The production
+# image (python:3.11-slim) has none, and there every .woff2 and the ward
+# GeoJSON went out as text/plain, under X-Content-Type-Options: nosniff, while
+# the tests passed on machines whose table knows them. One mapping, used by
+# every static mount, for every extension the export has; a new file type in
+# the export needs a line here (an unlisted one is served as a download, never
+# as text).
+MEDIA_TYPES: dict[str, str] = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript",
+    ".json": "application/json",
+    ".geojson": "application/geo+json",
+    ".txt": "text/plain; charset=utf-8",
+    # Some platforms' tables say text/xml; sitemap consumers expect this one.
+    ".xml": "application/xml",
+    ".svg": "image/svg+xml",
+    ".ico": "image/vnd.microsoft.icon",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".webp": "image/webp",
+    ".woff2": "font/woff2",
+}
+UNLISTED_MEDIA_TYPE = "application/octet-stream"
+
+
+def media_type_for(path: str | Path) -> str:
+    """The Content-Type of a file in the export, from MEDIA_TYPES alone."""
+    return MEDIA_TYPES.get(Path(path).suffix.lower(), UNLISTED_MEDIA_TYPE)
+
+
 def _file_response(
     path: Path,
     headers: dict[str, str] | None = None,
     status_code: int = 200,
 ) -> FileResponse:
-    media_type = None
-    if path.suffix == ".xml":
-        # Some platforms' mimetypes return text/xml for .xml; sitemap
-        # consumers expect application/xml, so state it deterministically.
-        media_type = "application/xml"
-    elif mimetypes.guess_type(path.name)[0] is None:
-        media_type = sniff_image_type(path)
+    if path.suffix:
+        media_type = media_type_for(path)
+    else:
+        # Extensionless metadata routes (opengraph-image): by magic bytes.
+        media_type = sniff_image_type(path) or UNLISTED_MEDIA_TYPE
     return FileResponse(path, media_type=media_type, headers=headers, status_code=status_code)
 
 
-class HashedAssets(StaticFiles):
+class TypedStaticFiles(StaticFiles):
+    """StaticFiles whose Content-Type comes from MEDIA_TYPES."""
+
+    async def get_response(self, path: str, scope):  # type: ignore[override]
+        response = await super().get_response(path, scope)
+        if response.status_code in (200, 206):
+            response.headers["Content-Type"] = media_type_for(path)
+        return response
+
+
+class HashedAssets(TypedStaticFiles):
     """/_next/static filenames carry a content hash, so they cache forever."""
 
     async def get_response(self, path: str, scope):  # type: ignore[override]
@@ -90,7 +131,7 @@ class HashedAssets(StaticFiles):
         return response
 
 
-class VendoredFonts(StaticFiles):
+class VendoredFonts(TypedStaticFiles):
     """/fonts — the vendored web fonts (public/fonts, scripts/vendor-fonts.mjs).
 
     A .woff2 name carries a hash of its content (asserted by
