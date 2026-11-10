@@ -58,7 +58,7 @@ export interface QuakeRanks {
   relative: string;
 }
 
-/** One depth class of 洪水 (A31a 浸水深ランク) or 高潮 (A49): its area in the ward and its share of the ward's area. */
+/** One depth class of 洪水 (A31a 浸水深ランク) or 高潮 (東京都 高潮浸水想定区域図): its area in the ward and its share of the ward's area. */
 export interface DepthClass {
   code: number;
   label: string;
@@ -129,6 +129,36 @@ export interface TransportStation {
   countedElsewhere?: CountedElsewhere;
   /** Where the figure is counted, as a sentence — present when the source names the row. */
   note?: string;
+  /**
+   * The figure an operator publishes itself for one of its lines at this
+   * station, shown beside the source's and in no sum (follow-up 3: 東京都交通局
+   * for 都営地下鉄 and 日暮里・舎人ライナー).
+   */
+  ownFigures?: OwnFigure[];
+}
+
+export interface OwnFigure {
+  /** The operator as the source names it (S12_002), and its line there (S12_003). */
+  operator: string;
+  line: string;
+  /** The 年度 of the operator's figure — its latest published one. */
+  year: number;
+  /** The operator's 1日平均乗降人員. */
+  passengers: number;
+  /** The source's own figure for the same rows; null when it writes the figure on another row. */
+  s12: number | null;
+}
+
+/** What /api/v1/transport sends about the operators' own figures (its `total.operatorFigures`). */
+export interface OperatorFigures {
+  publisher: string;
+  years: { name: string; year: number }[];
+  stationLines: number;
+  below: { rows: number; subway: number; liner: number; s12Year: number };
+  /** The sentences the transport notice gains, as the snapshot states them. */
+  notice: string[];
+  /** The provider's credit in its modified-use form. */
+  credit: string;
 }
 
 export interface StationRemark {
@@ -166,11 +196,12 @@ export interface RidershipTrend {
   views: RidershipTrendView[];
 }
 
-/** The /transport `total`: the 23区 record carrying 乗降客数推移. */
+/** The /transport `total`: the 23区 record carrying 乗降客数推移 and the operators' own figures' notice. */
 export interface TransportTotal {
   code: string;
   name: string;
   trend?: RidershipTrend;
+  operatorFigures?: OperatorFigures;
 }
 
 /** An attribute's area-weighted mean and the min–max of the polygon values (%). */

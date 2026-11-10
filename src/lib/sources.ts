@@ -23,6 +23,16 @@ export const SOURCES = {
     label: "東京都 地震に関する地域危険度測定調査（都市整備局）",
     href: "https://www.toshiseibi.metro.tokyo.lg.jp/",
   },
+  // Follow-up 3 (Architect decision B): the 高潮 figures.
+  tokyoTakashio: {
+    label: "東京都 高潮浸水想定区域図（港湾局・建設局）",
+    href: "https://www.kouwan.metro.tokyo.lg.jp/jishin_kouwankyoku_oshirase/takashio/shinsuisoutei",
+  },
+  // Follow-up 3 (Architect decision A): 東京都交通局's own figures beside S12's.
+  toei: {
+    label: "東京都交通局 乗降者数情報（公共交通オープンデータセンター）",
+    href: "https://ckan.odpt.org/dataset/r_passenger_survey-toei",
+  },
   disastershield: {
     label: "DisasterShield（Beta）",
     href: "",

@@ -6,14 +6,19 @@ Four steps, nothing typed by hand:
             committed N03 ward polygons of PR 4 → committed excerpts under
             backend/tests/fixtures/disaster/:
               - the 東京都 地域危険度 第9回 CSV, whole (all2.csv, cp932, as published);
-              - 洪水 (A31a-25 想定最大規模) and 高潮 (A49-20): per ward and depth
-                class, the area of the ward polygon inside that class, where
-                overlapping polygons (several rivers) are resolved by the
-                deepest class — one CSV row per (ward, class);
-              - the same resolved class geometry of one guard ward per hazard
-                (the smallest file covering ≥ 2 classes), as GeoJSON — the
-                guards re-derive that ward's rows from it with the standard
-                library;
+              - 洪水 (A31a-25 想定最大規模): per ward and depth class, the area
+                of the ward polygon inside that class, where overlapping
+                polygons (several rivers) are resolved by the deepest class —
+                one CSV row per (ward, class) — and the same resolved class
+                geometry of one guard ward (the smallest file covering ≥ 2
+                classes), as GeoJSON: the guards re-derive that ward's rows
+                from it with the standard library;
+              - 高潮 (東京都 高潮浸水想定区域図, 令和6年12月改定): per ward and
+                depth class, the area of the 10 m cells inside the ward
+                polygon — one CSV row per (ward, class) — and every cell of
+                one guard ward (the ward with the fewest cells covering ≥ 2
+                classes) as CSV: the guards re-derive that ward's rows from
+                the cells with the standard library;
               - 土砂 (A33-25): one CSV row per (zone polygon, ward) the polygon
                 reaches, with its 区域番号, 現象, 区分 and the area inside the ward;
               - 津波 (A40-23): the file's extent and per-ward hit counts, with the
@@ -26,9 +31,10 @@ Four steps, nothing typed by hand:
   hero      backend/data/land_prices.json + backend/data/disaster_risks.json →
             src/data/hero-spread.json, the LP hero's six rows (public page, so
             a static file, not a gated route). Standard library only.
-  verify    re-derives the guard wards' 洪水 and 高潮 class areas from the
-            committed GeoJSON with the standard library and compares them with
-            the CSVs.
+  verify    re-derives the guard wards' class areas with the standard
+            library — 洪水 from the committed GeoJSON, 高潮 by clipping the
+            ward polygon to each committed cell — and compares them with the
+            CSVs.
 
 Sources (Architect decisions 1, 8, 11 and sub-decisions, 2026-11-05)
 ------------------------------------------------------------------------------
@@ -49,15 +55,22 @@ Sources (Architect decisions 1, 8, 11 and sub-decisions, 2026-11-05)
      地域づくり法 第8条第1項) was set for the 島しょ部 only — the 都's 解説 and
      国土交通省's 令和5年7月28日 paper (「東京都の区部を除いて設定済み」) — so
      the wards are 対象外 on that basis, not 0 %.
-高潮  国土数値情報 高潮浸水想定区域データ A49-20, 2020年度（令和2年度）版, 東京都
-     (想定最大規模). 7 depth classes as the file labels them.
+高潮  東京都港湾局・建設局「高潮浸水想定区域図」（令和6年12月改定）［想定最大規模］
+     （浸水深）, shape(depth).zip from the 東京都オープンデータカタログ record
+     t000015d1700000007 (Architect decision B, 2026-11-09; it replaces 国土数値情報
+     A49-20, whose 東京都 file predates the revision): 90 shapefiles of 10 m
+     cells on 平面直角座標系 第IX系 (JGD2011), each with its 浸水深 ``DepthM`` in
+     metres. The cells are put into the seven depth classes A49-20 labelled —
+     0.3m未満 … 10m以上20m未満 — by those classes' own boundaries.
 N03  国土数値情報 行政区域データ 2026年（令和8年）1月1日時点 — PR 4's committed
      ward polygons; every share's denominator is the N03 polygon's area.
 
 Areas: 平面直角座標系 第IX系 (EPSG:6677) by etl/zoning.py's standard-library
 Gauss-Krüger formula and the shoelace formula, measured on geometry rounded to
 9 decimals of a degree. The geometry operations of extract (union,
-difference, intersection) run on JGD2011 lon/lat with shapely.
+difference, intersection) run on JGD2011 lon/lat with shapely — except 高潮,
+whose cells are already on 第IX系: there the ward polygons are projected with
+the same formula and each cell is intersected with them in metres.
 
 Run (from the repo root, with -I so nothing in the download dir is imported):
 
@@ -74,10 +87,13 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
+import struct
 import sys
 import zipfile
 from collections import Counter, defaultdict
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -226,17 +242,38 @@ TSUNAMI_BASIS = [
     },
 ]
 
-# --- 高潮: A49-20 ----------------------------------------------------------------------
+# --- 高潮: 東京都 高潮浸水想定区域図（令和6年12月改定） --------------------------------------
+#
+# Architect decision B (2026-11-09). 国土数値情報 A49-20, the source until then,
+# is 東京都's file as of 2021-03 (its metadata's date); 東京都港湾局・建設局 revised
+# the map on 2024-12-19 and publish the revision as 10 m cells with the depth
+# in metres. The classes stay the seven A49-20 labelled, cut at the same
+# boundaries — read from the labels below, so they are written once.
 
-A49_ID = "A49-20"
-A49_EDITION = "2020年度（令和2年度）版"
-A49_YEAR = 2020
-A49_PAGE = "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-2024.html"
-A49_DOWNLOAD_DIR = DOWNLOADS / "ksj_A49-20_13"
-A49_ZIP = "A49-20_13_GML.zip"
-A49_SHA256 = "cec46df37c0d8cabc660fc85f8ec6f0cac78b6754a5387f7be21b7a599810390"
-A49_MEMBER = "A49-20_13.geojson"
-A49_CLASS = "A49_003"
+TAKASHIO_TITLE = "高潮浸水想定区域図［想定最大規模］（浸水深）"
+TAKASHIO_MAP = "高潮浸水想定区域図"
+TAKASHIO_PUBLISHER = "東京都港湾局・建設局"
+TAKASHIO_REVISION = "令和6年12月改定"
+TAKASHIO_REVISED = "2024-12-19"
+TAKASHIO_YEAR = 2024
+TAKASHIO_ID = "東京都 高潮浸水想定区域図（令和6年12月改定）"
+TAKASHIO_URL = "https://data.storage.data.metro.tokyo.lg.jp/kouwan/shape(depth).zip"
+TAKASHIO_ZIP = "shape(depth).zip"
+TAKASHIO_SHA256 = "1ea3b9788eec769711b4574635058cf66debf4ace128e090088ae0757c5fae9c"
+TAKASHIO_BYTES = 44_703_942
+TAKASHIO_MEMBER_DIR = "shape(depth)/"
+TAKASHIO_DOWNLOAD_DIR = DOWNLOADS / "tokyo_takashio_r6"
+TAKASHIO_PAGE = "https://www.kouwan.metro.tokyo.lg.jp/jishin_kouwankyoku_oshirase/takashio/shinsuisoutei"
+TAKASHIO_SITE_POLICY = "https://www.kouwan.metro.tokyo.lg.jp/policy"
+TAKASHIO_EXPLANATION = "https://www.kouwan.metro.tokyo.lg.jp/documents/d/kouwan/r7_takashio_setsumeishiryou"
+TAKASHIO_LAYOUT = "https://data.storage.data.metro.tokyo.lg.jp/kouwan/takashioshinsuisouteizukaku.pdf"
+TAKASHIO_CATALOG_ID = "t000015d1700000007"
+TAKASHIO_CATALOG = f"https://catalog.data.metro.tokyo.lg.jp/dataset/{TAKASHIO_CATALOG_ID}"
+TAKASHIO_MIRROR = f"https://search.ckan.jp/backend/api/package_show?id=catalog.data.metro.tokyo.lg.jp__dataset:{TAKASHIO_CATALOG_ID}"
+TAKASHIO_PRJ = "JGD_2011_Japan_Zone_9"
+TAKASHIO_CELL_M = 10
+TAKASHIO_DBF_RECORD = 50  # deletion flag 1, X 10, Y 10, CX 5, CY 5, DepthM 19
+TAKASHIO_DBF_FIELDS = [("X", "N", 10, 0), ("Y", "N", 10, 0), ("CX", "N", 5, 0), ("CY", "N", 5, 0), ("DepthM", "F", 19, 11)]
 HIGHTIDE_CLASSES = [
     (1, "0.3m未満"),
     (2, "0.3m以上0.5m未満"),
@@ -246,8 +283,34 @@ HIGHTIDE_CLASSES = [
     (6, "5m以上10m未満"),
     (7, "10m以上20m未満"),
 ]
-HIGHTIDE_EXCERPT = "ksj_A49-20_tokyo23.csv"
-HIGHTIDE_GEOJSON = "ksj_A49-20_guard.geojson"
+HIGHTIDE_CLASSES_FROM = "国土数値情報 高潮浸水想定区域データ A49-20（2020年度版）"
+
+
+def _class_bounds_cm(labels: list[tuple[int, str]]) -> list[tuple[int, int, int]]:
+    """(class, from cm, below cm) read from the labels: 「0.3m未満」 is [0, 30),
+    「1m以上3m未満」 [100, 300). Each class must begin where the one before ends."""
+    out: list[tuple[int, int, int]] = []
+    for code, label in labels:
+        m = re.fullmatch(r"(?:([0-9.]+)m以上)?([0-9.]+)m未満", label)
+        if not m:
+            raise ValueError(f"depth class label {label!r}")
+        lo = round(float(m.group(1)) * 100) if m.group(1) else 0
+        hi = round(float(m.group(2)) * 100)
+        if lo >= hi or lo != (out[-1][2] if out else 0):
+            raise ValueError(f"depth classes are not contiguous at {label!r}")
+        out.append((code, lo, hi))
+    return out
+
+
+HIGHTIDE_BOUNDS_CM = _class_bounds_cm(HIGHTIDE_CLASSES)
+HIGHTIDE_BOUNDARIES = "・".join(label.split("m未満")[0].split("m以上")[-1] + "m" for _, label in HIGHTIDE_CLASSES)
+HIGHTIDE_EXCERPT = "tokyo_takashio_r6_tokyo23.csv"
+HIGHTIDE_GUARD = "tokyo_takashio_r6_guard.csv"
+HIGHTIDE_COLUMNS = ["code", "ward", "class", "label", "m2", "cells"]
+HIGHTIDE_GUARD_COLUMNS = ["file", "x", "y", "depth_m"]
+# A guard figure may differ from the excerpt's by the last digit the CSV keeps:
+# extract intersects with shapely, verify clips with the standard library.
+GUARD_TOLERANCE_M2 = 0.002
 
 META = "ksj.meta.json"
 CLASS_COLUMNS = ["code", "ward", "class", "label", "m2", "parts"]
@@ -270,8 +333,23 @@ LICENCE = {
         ),
     },
     "ksj": {
-        "name": "国土数値情報 利用規約（PDL1.0準拠）— A31a（2021年度以降）「オープンデータ（CC_BY_4.0）」; A33・A40・A49 は「オープンデータ（CC_BY_4.0（一部制限））」で東京都は「商用利用可・再配信可」; N03「オープンデータ（CC_BY_4.0）」",
+        "name": "国土数値情報 利用規約（PDL1.0準拠）— A31a（2021年度以降）「オープンデータ（CC_BY_4.0）」; A33・A40 は「オープンデータ（CC_BY_4.0（一部制限））」で東京都は「商用利用可・再配信可」; N03「オープンデータ（CC_BY_4.0）」",
         "url": KSJ_TERMS,
+    },
+    "hightide": {
+        "name": "クリエイティブ・コモンズ・ライセンス 表示4.0国際（CC BY 4.0）— 東京都オープンデータ利用規約",
+        "url": TOKYO_OD_TERMS,
+        "basis": (
+            "東京都オープンデータカタログのレコード " + TAKASHIO_CATALOG_ID + "「" + TAKASHIO_MAP + "」（東京都港湾局、" + TAKASHIO_CATALOG + "）の"
+            "ライセンスは CC-BY-4.0「クリエイティブ・コモンズ 表示（CC BY）」。カタログ本体はこの環境から HTTP 403（CloudFront の地域制限）で読めないため、"
+            "このライセンス欄はカタログのミラー（" + TAKASHIO_MIRROR + "、ミラーのクロール 2025-12-12、2026-11-09 読了）で読んだもので、"
+            "カタログのページを直接読んだものではない。東京都オープンデータ利用規約（" + TOKYO_OD_TERMS + "、2026-11-09 直接読了）は、"
+            "本サイトの著作物を「クリエイティブ・コモンズ・ライセンス表示 4.0 国際」で許諾し（複製・翻案等を自由に、商用可）、"
+            "「コンテンツが、コンテンツ提供者の他のサイトにおいても公開されている場合には、他のサイトの利用規約…と本利用規約が異なるときは、"
+            "本利用規約が優先するものとします。」と定める。東京都港湾局サイトポリシー（" + TAKASHIO_SITE_POLICY + "）の"
+            "「無断で複製・転用することはできません」は同局サイト一般の定めであり、同じデータがオープンデータとして公開されている本データには、"
+            "上記の定めによりオープンデータ利用規約が優先する。"
+        ),
     },
 }
 CREDIT = {
@@ -283,9 +361,13 @@ CREDIT = {
     "edited_a31": f"「国土数値情報（洪水浸水想定区域データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
     "edited_a33": f"「国土数値情報（土砂災害警戒区域データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
     "edited_a40": f"「国土数値情報（津波浸水想定データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
-    "edited_a49": f"「国土数値情報（高潮浸水想定区域データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
     "edited_n03": f"「国土数値情報（行政区域データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
-    "pages": {"A31a": A31_PAGE, "A33": A33_PAGE, "A40": A40_PAGE, "A49": A49_PAGE, "kikendo": KIKENDO_API_PAGE},
+    # 高潮 (Architect decision B, 2026-11-09): the same 東京都オープンデータ利用規約
+    # 2(1)ア / イ form as 地域危険度 — the title, 東京都, the licence; and for the
+    # modified use (cells put into classes and summed per ward) the 改変 sentence.
+    "takashio": f"{TAKASHIO_TITLE}、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（{CC_BY_JA}）",
+    "takashio_edited": f"このサービスは、以下の著作物を改変して利用しています。{TAKASHIO_TITLE}、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（{CC_BY_JA}）",
+    "pages": {"A31a": A31_PAGE, "A33": A33_PAGE, "A40": A40_PAGE, "takashio": TAKASHIO_PAGE, "kikendo": KIKENDO_API_PAGE},
 }
 NOTES = {
     "earthquake": RELATIVE_NOTE + "。区の値は、その区の町丁目のうち各ランクに当たる町丁目の数。災害時活動困難度は困難係数のみでランクがないため扱わない",
@@ -293,7 +375,11 @@ NOTES = {
     "flood": "想定最大規模の洪水浸水想定区域のうち、区（行政区域データ N03-20260101 の区ポリゴン）の面積に占める浸水深の区分ごとの割合。複数の河川の区域が重なる所は最も深い区分で数える。都管理河川（東京都）と国管理河川（関東地方整備局：荒川・江戸川・綾瀬川・多摩川・利根川など）を含む",
     "landslide": "区の範囲に掛かる土砂災害警戒区域・特別警戒区域の数（区域番号の数、現象ごと）。区の境をまたぐ区域は両方の区で数える。0 は該当する区域がないこと",
     "tsunami": TSUNAMI_TEXT,
-    "hightide": "想定最大規模の高潮浸水想定区域のうち、区の面積に占める浸水深の区分ごとの割合（区分は国土数値情報 A49 の表記のまま）",
+    "hightide": "想定最大規模の高潮浸水想定区域のうち、区の面積に占める浸水深の区分ごとの割合。東京都の10mメッシュ（1メッシュ100㎡）の浸水深を区分に分け、区ポリゴンの中にある面積を合計",
+    # What the surface says about the classes (Architect decision B): the
+    # boundaries are the ones the classes had before — read from the labels.
+    "hightide_classes": f"浸水深の区分は、これまでと同じ7区分の境界（{HIGHTIDE_BOUNDARIES}）を、東京都のデータの浸水深（10mメッシュごと、m単位）に当てはめたものです",
+    "hightide_as_of": f"時点：{TAKASHIO_REVISION}",
     "area": "面積は平面直角座標系第IX系（EPSG:6677、JGD2011）上で計算。区の面積は行政区域データ N03-20260101 の区ポリゴン（河川・海面・埋立地を含む）",
 }
 # The A33 page's 【重要：データ利用時の注意事項】 bullet that applies to every figure here (2026-11-04).
@@ -501,29 +587,182 @@ def extract_flood(wards: dict, bbox) -> dict:
     return {"guard_ward": guard, "guard_sizes": sizes, "zips": zips, "polygons_kept": len(features), "polygons_per_class": per_class, "rivers": dict(sorted(rivers.items()))}
 
 
-def extract_hightide(wards: dict, bbox) -> dict:
-    from shapely.geometry import shape
+def depth_class(depth_cm: int) -> int:
+    """The class of a 浸水深 in whole centimetres, by the classes' own boundaries."""
+    for code, lo, hi in HIGHTIDE_BOUNDS_CM:
+        if lo <= depth_cm < hi:
+            return code
+    raise ValueError(f"浸水深 {depth_cm} cm is outside every class {HIGHTIDE_BOUNDS_CM}")
 
-    path = A49_DOWNLOAD_DIR / A49_ZIP
-    _check_sha(path, A49_SHA256)
-    code_of = {label: c for c, label in HIGHTIDE_CLASSES}
-    features = []
-    with zipfile.ZipFile(path) as zf:
-        gj = json.loads(zf.read(A49_MEMBER).decode("utf-8"))
+
+def _depth_cm(text: str) -> int:
+    """「1.23000000000e+00」 → 123. The file writes every depth to the centimetre."""
+    value = Decimal(text) * 100
+    if value != value.to_integral_value() or value <= 0:
+        raise ValueError(f"DepthM {text!r} is not a positive whole number of centimetres")
+    return int(value)
+
+
+def read_takashio_cells(zip_path: Path):
+    """Every cell of the 90 shapefiles, from the DBFs alone: (member, X, Y, depth cm).
+
+    A cell is the 10 m square centred on (X, Y) — 平面直角座標系 第IX系, JGD2011,
+    as each .prj says. The .shp polygons are those squares (the 図郭割 PDF and
+    the first and last record of every file, checked here against the DBF),
+    so the DBF carries everything the area needs.
+    """
+    half = TAKASHIO_CELL_M / 2
+    with zipfile.ZipFile(zip_path) as zf:
+        names = sorted(i.filename for i in zf.infolist() if i.filename.startswith(TAKASHIO_MEMBER_DIR) and i.filename.endswith(".dbf"))
+        if not names:
+            raise ValueError(f"{zip_path.name}: no DBF under {TAKASHIO_MEMBER_DIR}")
+        for name in names:
+            stem = name[: -len(".dbf")]
+            if TAKASHIO_PRJ not in zf.read(stem + ".prj").decode("ascii"):
+                raise ValueError(f"{stem}.prj is not {TAKASHIO_PRJ}")
+            raw = zf.read(name)
+            count, header_len, record_len = struct.unpack("<4xIHH", raw[:12])
+            fields = []
+            for off in range(32, header_len - 1, 32):
+                d = raw[off : off + 32]
+                fields.append((d[:11].split(b"\0", 1)[0].decode("ascii"), chr(d[11]), d[16], d[17]))
+            if fields != TAKASHIO_DBF_FIELDS or record_len != TAKASHIO_DBF_RECORD:
+                raise ValueError(f"{name}: fields {fields}, record length {record_len}")
+            # The first and the last polygon of the .shp are the squares the DBF describes.
+            shp = zf.read(stem + ".shp")
+            for index in (0, count - 1):
+                r = header_len + index * record_len
+                x, y = int(raw[r + 1 : r + 11]), int(raw[r + 11 : r + 21])
+                offset = 100 if index == 0 else len(shp) - 136
+                if struct.unpack("<i", shp[offset + 8 : offset + 12])[0] != 5:
+                    raise ValueError(f"{stem}.shp: record {index} is not a polygon")
+                if struct.unpack("<4d", shp[offset + 12 : offset + 44]) != (x - half, y - half, x + half, y + half):
+                    raise ValueError(f"{stem}.shp: record {index} is not the {TAKASHIO_CELL_M} m square centred on ({x}, {y})")
+            member = stem[len(TAKASHIO_MEMBER_DIR) :]
+            for i in range(count):
+                r = header_len + i * record_len
+                if raw[r : r + 1] != b" ":
+                    raise ValueError(f"{name}: record {i} is flagged deleted")
+                yield member, int(raw[r + 1 : r + 11]), int(raw[r + 11 : r + 21]), _depth_cm(raw[r + 31 : r + 50].decode("ascii").strip())
+
+
+def _ward_shapes_m():
+    """The 23 N03 ward polygons on 第IX系 in metres — etl/zoning.py's formula, the
+    one every ward area in the snapshots is measured with."""
+    from shapely.geometry import shape
+    from shapely.ops import transform, unary_union
+
+    gj = _load(N03_FIXTURES / N03_EXCERPT)
+    parts: dict[str, list] = defaultdict(list)
     for f in gj["features"]:
-        label = f["properties"][A49_CLASS]
-        if label not in code_of:
-            raise ValueError(f"A49 class {label!r} not in {list(code_of)}")
-        g = shape(f["geometry"])
-        if g.intersects(bbox):
-            features.append((g, code_of[label]))
-    resolved, per_class = resolve_classes(features, [c for c, _ in HIGHTIDE_CLASSES], wards)
+        code = f["properties"].get(N03_CODE)
+        if code in WARD_NAMES:
+            parts[code].append(transform(lambda x, y, z=None: Z.tm_project(x, y), shape(f["geometry"])))
+    if sorted(parts) != WARD_CODES:
+        raise ValueError("N03 excerpt does not hold the 23 wards")
+    return {code: unary_union(parts[code]) for code in WARD_CODES}
+
+
+def extract_hightide() -> dict:
+    """東京都 高潮浸水想定区域図（令和6年12月改定）: per ward and depth class the area
+    of the cells inside the ward polygon, and the guard ward's cells."""
+    import numpy as np
+    import shapely
+
+    path = TAKASHIO_DOWNLOAD_DIR / TAKASHIO_ZIP
+    _check_sha(path, TAKASHIO_SHA256)
+    if path.stat().st_size != TAKASHIO_BYTES:
+        raise ValueError(f"{path.name}: {path.stat().st_size} bytes, expected {TAKASHIO_BYTES}")
+    cells = list(read_takashio_cells(path))
+    members = sorted({c[0] for c in cells})
+    x = np.array([c[1] for c in cells], dtype=float)
+    y = np.array([c[2] for c in cells], dtype=float)
+    depth = np.array([c[3] for c in cells], dtype=np.int64)
+    cls = np.array([depth_class(int(d)) for d in np.unique(depth)], dtype=np.int64)[np.searchsorted(np.unique(depth), depth)]
+    if len({(c[1], c[2]) for c in cells}) != len(cells):
+        raise ValueError("two cells share a centre")
+    half = TAKASHIO_CELL_M / 2
+    if not (((np.abs(x) % TAKASHIO_CELL_M) == half).all() and ((np.abs(y) % TAKASHIO_CELL_M) == half).all()):
+        raise ValueError("a cell centre is off the 10 m lattice")
+    print(f"  {len(cells)} cells in {len(members)} files; 浸水深 {int(depth.min())}–{int(depth.max())} cm", flush=True)
+
+    reach = half * 2**0.5 + 0.01  # a cell whose centre is this far inside the ward lies wholly inside it
+    wards = _ward_shapes_m()
     labels = dict(HIGHTIDE_CLASSES)
-    _write_csv(FIXTURES / HIGHTIDE_EXCERPT, CLASS_COLUMNS, _class_rows(resolved, labels))
-    guard, gj, sizes = _guard_geojson(resolved, labels, f"{A49_ID} 高潮浸水想定区域 浸水深区分別（最も深い区分）")
-    (FIXTURES / HIGHTIDE_GEOJSON).write_text(json.dumps(gj, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"  guard ward {WARD_NAMES[guard]} ({sizes[guard]} B)", flush=True)
-    return {"guard_ward": guard, "guard_sizes": sizes, "file": A49_ZIP, "url": f"{KSJ_DATA}/A49/A49-20/{A49_ZIP}", "bytes": path.stat().st_size, "sha256": A49_SHA256, "member": A49_MEMBER, "polygons_in_file": len(gj["features"]), "polygons_kept": len(features), "polygons_per_class": per_class}
+    rows: list[dict] = []
+    in_ward: dict[str, tuple] = {}
+    counted = np.zeros(len(cells))
+    for code, ward in wards.items():
+        x0, y0, x1, y1 = ward.bounds
+        idx = np.nonzero((x > x0 - TAKASHIO_CELL_M) & (x < x1 + TAKASHIO_CELL_M) & (y > y0 - TAKASHIO_CELL_M) & (y < y1 + TAKASHIO_CELL_M))[0]
+        m2 = np.zeros(len(idx))
+        if len(idx):
+            inner, outer = ward.buffer(-reach), ward.buffer(reach)
+            px, py = x[idx], y[idx]
+            full = shapely.contains_xy(inner, px, py) if not inner.is_empty else np.zeros(len(idx), dtype=bool)
+            near = shapely.contains_xy(outer, px, py) & ~full
+            m2[full] = float(TAKASHIO_CELL_M**2)
+            if near.any():
+                squares = shapely.box(px[near] - half, py[near] - half, px[near] + half, py[near] + half)
+                m2[near] = shapely.area(shapely.intersection(squares, ward))
+        counted[idx] += m2
+        keep = m2 > 0
+        in_ward[code] = (idx[keep], m2[keep])
+        for c, label in HIGHTIDE_CLASSES:
+            sel = keep & (cls[idx] == c)
+            rows.append({"code": code, "ward": WARD_NAMES[code], "class": c, "label": labels[c], "m2": f"{float(m2[sel].sum()):.3f}", "cells": int(sel.sum())})
+        print(f"  {WARD_NAMES[code]}: {int(keep.sum())} cells", flush=True)
+    _write_csv(FIXTURES / HIGHTIDE_EXCERPT, HIGHTIDE_COLUMNS, rows)
+
+    # The guard: the ward with the fewest cells that still covers ≥ 2 classes.
+    sizes = {code: int(len(in_ward[code][0])) for code in WARD_CODES}
+    classes_in = {code: len({int(c) for c in cls[in_ward[code][0]]}) for code in WARD_CODES}
+    candidates = [code for code in WARD_CODES if classes_in[code] >= GEOJSON_MIN_CLASSES]
+    if not candidates:
+        raise ValueError(f"高潮: no ward covers {GEOJSON_MIN_CLASSES} classes")
+    guard = min(candidates, key=lambda code: (sizes[code], code))
+    guard_rows = sorted(
+        ({"file": cells[i][0], "x": cells[i][1], "y": cells[i][2], "depth_m": f"{cells[i][3] / 100:.2f}"} for i in in_ward[guard][0]),
+        key=lambda r: (r["file"], r["y"], r["x"]),
+    )
+    _write_csv(FIXTURES / HIGHTIDE_GUARD, HIGHTIDE_GUARD_COLUMNS, guard_rows)
+    print(f"  guard ward {WARD_NAMES[guard]} ({len(guard_rows)} cells)", flush=True)
+    per_class = {str(c): int((cls == c).sum()) for c, _ in HIGHTIDE_CLASSES}
+    return {
+        "id": TAKASHIO_ID,
+        "title": TAKASHIO_TITLE,
+        "publisher": TAKASHIO_PUBLISHER,
+        "revision": TAKASHIO_REVISION,
+        "revised": TAKASHIO_REVISED,
+        "year": TAKASHIO_YEAR,
+        "page": TAKASHIO_PAGE,
+        "explanation": TAKASHIO_EXPLANATION,
+        "layout": TAKASHIO_LAYOUT,
+        "catalog": TAKASHIO_CATALOG,
+        "catalog_record": TAKASHIO_CATALOG_ID,
+        "catalog_licence": "CC-BY-4.0（クリエイティブ・コモンズ 表示（CC BY））— read via the mirror, the catalogue is geo-blocked from here",
+        "catalog_mirror": TAKASHIO_MIRROR,
+        "terms": TOKYO_OD_TERMS,
+        "file": TAKASHIO_ZIP,
+        "url": TAKASHIO_URL,
+        "bytes": path.stat().st_size,
+        "sha256": TAKASHIO_SHA256,
+        "last_modified": "Fri, 13 Dec 2024 02:21:07 GMT",
+        "members": len(members),
+        "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）— " + TAKASHIO_PRJ,
+        "cell_m": TAKASHIO_CELL_M,
+        "cells": len(cells),
+        "cells_m2_in_wards": f"{float(counted.sum()):.3f}",
+        "cells_m2_outside_wards": f"{float(len(cells) * TAKASHIO_CELL_M**2 - counted.sum()):.3f}",
+        "depth_cm_min": int(depth.min()),
+        "depth_cm_max": int(depth.max()),
+        "classes_from": HIGHTIDE_CLASSES_FROM,
+        "class_bounds_cm": [[c, lo, hi] for c, lo, hi in HIGHTIDE_BOUNDS_CM],
+        "cells_per_class": per_class,
+        "guard_ward": guard,
+        "guard_cells": len(guard_rows),
+        "cells_per_ward": sizes,
+    }
 
 
 def extract_landslide(wards: dict) -> dict:
@@ -619,7 +858,8 @@ def extract(today: date | None = None, only: set[str] | None = None) -> None:
     if "flood" in want:
         meta["A31a"] = {"id": A31_ID, "edition": A31_EDITION, "year": A31_YEAR, "page": A31_PAGE, "member_dir": A31_MEMBER_DIR, "codelist": {"url": FLOOD_CODELIST, "sha256": FLOOD_CODELIST_SHA256}, **extract_flood(wards, bbox)}
     if "hightide" in want:
-        meta["A49"] = {"id": A49_ID, "edition": A49_EDITION, "year": A49_YEAR, "page": A49_PAGE, **extract_hightide(wards, bbox)}
+        meta.pop("A49", None)  # the source until Architect decision B (2026-11-09)
+        meta["takashio"] = {**extract_hightide(), "fetched": (today or date.today()).isoformat()}
     if "landslide" in want:
         meta["A33"] = {"id": A33_ID, "edition": A33_EDITION, "year": A33_YEAR, "page": A33_PAGE, **extract_landslide(wards)}
     if "tsunami" in want:
@@ -632,8 +872,16 @@ def extract(today: date | None = None, only: set[str] | None = None) -> None:
         "excerpt_sha256": sha256(N03_FIXTURES / N03_EXCERPT),
         "ward_area_m2": {code: f"{areas[code]:.3f}" for code in WARD_CODES},
     }
-    meta["fetched"] = (today or date.today()).isoformat()
-    meta["projection"] = {"crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）", "method": "etl/zoning.py tm_project + shoelace on geometry rounded to 9 decimals; set operations on JGD2011 lon/lat (shapely, grid 1e-9°)"}
+    if only is None or "fetched" not in meta:
+        # One hazard re-cut on its own keeps the date the others were fetched on (its own is in its block).
+        meta["fetched"] = (today or date.today()).isoformat()
+    meta["projection"] = {
+        "crs": "EPSG:6677 平面直角座標系第IX系（JGD2011）",
+        "method": (
+            "etl/zoning.py tm_project + shoelace on geometry rounded to 9 decimals; set operations on JGD2011 lon/lat (shapely, grid 1e-9°); "
+            "高潮: the cells are on 第IX系 already — the N03 ward polygons are projected with tm_project and each 10 m cell is intersected with them in metres"
+        ),
+    }
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"wrote excerpts and {meta_path}")
 
@@ -764,7 +1012,9 @@ def build(fixtures: Path = FIXTURES, n03_fixtures: Path = N03_FIXTURES) -> dict:
     # A zone that straddles two wards counts once in the 23区 total.
     total["landslide"] = _landslide_counts(slides)
 
-    a31, a33, a49, k = meta["A31a"], meta["A33"], meta["A49"], meta["kikendo"]
+    a31, a33, tk, k = meta["A31a"], meta["A33"], meta["takashio"], meta["kikendo"]
+    if tk["sha256"] != TAKASHIO_SHA256 or tk["url"] != TAKASHIO_URL or tk["class_bounds_cm"] != [[c, lo, hi] for c, lo, hi in HIGHTIDE_BOUNDS_CM]:
+        raise ValueError("the 高潮 excerpt was not cut from the pinned file with these class boundaries")
     return {
         "region": REGION,
         "sources": {
@@ -773,7 +1023,9 @@ def build(fixtures: Path = FIXTURES, n03_fixtures: Path = N03_FIXTURES) -> dict:
             "landslide": {"year": A33_YEAR, "table": A33_ID, "label": f"国土数値情報 土砂災害警戒区域データ {A33_EDITION}（東京都 2025年7月30日時点）"},
             # The table rides in `table`; the panel prints it once after the label (real-data plan PR 8).
             "tsunami": {"year": 2023, "table": A40_ID, "label": "国土数値情報 津波浸水想定データ（東京都）"},
-            "hightide": {"year": A49_YEAR, "table": A49_ID, "label": f"国土数値情報 高潮浸水想定区域データ {A49_EDITION} 東京都 想定最大規模"},
+            # `table` is the 時点 (Architect decision B): the revision, as the 都 names it. The panel
+            # prints it once after the label, so the label does not repeat it.
+            "hightide": {"year": TAKASHIO_YEAR, "table": TAKASHIO_REVISION, "label": f"{TAKASHIO_PUBLISHER}「{TAKASHIO_MAP}」想定最大規模・浸水深（10mメッシュ）"},
             "wards": {"year": int(meta["N03"]["id"][4:8]), "table": meta["N03"]["id"], "label": f"国土数値情報 行政区域データ {meta['N03']['edition']} 東京都（区の面積）"},
         },
         "hazards": {
@@ -781,12 +1033,28 @@ def build(fixtures: Path = FIXTURES, n03_fixtures: Path = N03_FIXTURES) -> dict:
             "flood": {"classes": [{"code": c, "label": label} for c, label in FLOOD_CLASSES], "deepFrom": FLOOD_DEEP_FROM, "deepLabel": "浸水深3m以上"},
             "landslide": {"phenomena": [{"code": c, "name": n} for c, n in PHENOMENA.items()], "zones": [{"code": c, "name": n} for c, n in ZONES.items()]},
             "tsunami": {"status": "notCovered", "text": TSUNAMI_TEXT, "basis": TSUNAMI_BASIS},
-            "hightide": {"classes": [{"code": c, "label": label} for c, label in HIGHTIDE_CLASSES]},
+            "hightide": {
+                "classes": [{"code": c, "label": label} for c, label in HIGHTIDE_CLASSES],
+                "classesFrom": HIGHTIDE_CLASSES_FROM,
+                "boundsCm": [{"code": c, "from": lo, "below": hi} for c, lo, hi in HIGHTIDE_BOUNDS_CM],
+                "asOf": {"text": TAKASHIO_REVISION, "date": TAKASHIO_REVISED},
+            },
         },
         "inputs": {
             KIKENDO_EXCERPT: {"path": f"backend/tests/fixtures/disaster/{KIKENDO_EXCERPT}", "sha256": KIKENDO_SHA256, "cut_from": k},
             FLOOD_EXCERPT: {"path": f"backend/tests/fixtures/disaster/{FLOOD_EXCERPT}", "sha256": sha256(fixtures / FLOOD_EXCERPT), "cut_from": {kk: a31[kk] for kk in ("id", "edition", "year", "page", "zips", "member_dir", "polygons_kept", "codelist")}},
-            HIGHTIDE_EXCERPT: {"path": f"backend/tests/fixtures/disaster/{HIGHTIDE_EXCERPT}", "sha256": sha256(fixtures / HIGHTIDE_EXCERPT), "cut_from": {kk: a49[kk] for kk in ("id", "edition", "year", "page", "file", "url", "bytes", "sha256", "polygons_kept")}},
+            HIGHTIDE_EXCERPT: {
+                "path": f"backend/tests/fixtures/disaster/{HIGHTIDE_EXCERPT}",
+                "sha256": sha256(fixtures / HIGHTIDE_EXCERPT),
+                "cut_from": {
+                    kk: tk[kk]
+                    for kk in (
+                        "id", "title", "publisher", "revision", "revised", "year", "page", "explanation", "layout", "catalog", "catalog_record",
+                        "catalog_licence", "catalog_mirror", "terms", "file", "url", "bytes", "sha256", "last_modified", "members", "crs", "cell_m",
+                        "cells", "classes_from", "class_bounds_cm",
+                    )
+                },
+            },
             LANDSLIDE_EXCERPT: {"path": f"backend/tests/fixtures/disaster/{LANDSLIDE_EXCERPT}", "sha256": sha256(fixtures / LANDSLIDE_EXCERPT), "cut_from": {kk: a33[kk] for kk in ("id", "edition", "year", "page", "file", "url", "bytes", "sha256", "rows_kept", "tokyo_asof")}},
             TSUNAMI_EXCERPT: {"path": f"backend/tests/fixtures/disaster/{TSUNAMI_EXCERPT}", "sha256": sha256(fixtures / TSUNAMI_EXCERPT), "cut_from": coverage["source"]},
             N03_EXCERPT: {"path": meta["N03"]["excerpt"], "sha256": meta["N03"]["excerpt_sha256"], "cut_from": {kk: meta["N03"][kk] for kk in ("id", "edition", "page", "url", "file", "bytes", "sha256")}},
@@ -842,10 +1110,77 @@ def hero(land_prices: dict, disaster: dict) -> dict:
 # --- verify ---------------------------------------------------------------------------
 
 
+def clip_ring(ring: list, x0: float, y0: float, x1: float, y1: float) -> list:
+    """Sutherland–Hodgman: a ring (projected, metres) clipped to an axis-aligned
+    box. The box is convex, so the result — even where a concave ring leaves
+    zero-width bridges along the box's edges — has the shoelace area of the
+    ring's part inside the box."""
+    out = ring[:-1] if len(ring) > 1 and ring[0] == ring[-1] else list(ring)
+    for axis, bound, keep_above in ((0, x0, True), (0, x1, False), (1, y0, True), (1, y1, False)):
+        if not out:
+            return []
+        src, out = out, []
+        prev = src[-1]
+        prev_in = prev[axis] >= bound if keep_above else prev[axis] <= bound
+        for cur in src:
+            cur_in = cur[axis] >= bound if keep_above else cur[axis] <= bound
+            if cur_in != prev_in:
+                t = (bound - prev[axis]) / (cur[axis] - prev[axis])
+                cross = (bound, prev[1] + t * (cur[1] - prev[1])) if axis == 0 else (prev[0] + t * (cur[0] - prev[0]), bound)
+                out.append(cross)
+            if cur_in:
+                out.append(cur)
+            prev, prev_in = cur, cur_in
+    return out
+
+
+def cell_area_in_ward(polygons: list, x: float, y: float) -> float:
+    """Area (m²) of the 10 m cell centred on (x, y) inside a ward — its projected
+    polygons, each a list of rings (the outer one first, then its holes)."""
+    half = TAKASHIO_CELL_M / 2
+    box = (x - half, y - half, x + half, y + half)
+    total = 0.0
+    for rings in polygons:
+        outer = clip_ring(rings[0], *box)
+        if len(outer) < 3:
+            continue
+        total += Z.ring_area(outer) - sum(Z.ring_area(c) for c in (clip_ring(h, *box) for h in rings[1:]) if len(c) >= 3)
+    return total
+
+
+def ward_polygons_m(code: str, n03_fixtures: Path = N03_FIXTURES) -> list:
+    """One ward's N03 polygons on 第IX系 (metres), ring by ring — standard library only."""
+    polygons = []
+    for f in _load(n03_fixtures / N03_EXCERPT)["features"]:
+        if f["properties"].get(N03_CODE) != code:
+            continue
+        g = f["geometry"]
+        for rings in [g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]:
+            polygons.append([[Z.tm_project(lon, lat) for lon, lat in ring] for ring in rings])
+    if not polygons:
+        raise ValueError(f"N03 excerpt has no polygon for {code}")
+    return polygons
+
+
+def guard_hightide_areas(fixtures: Path = FIXTURES, n03_fixtures: Path = N03_FIXTURES) -> tuple[str, dict[int, float], dict[int, int]]:
+    """The guard ward's 高潮 class areas and cell counts, re-derived from its committed cells."""
+    guard = _load(fixtures / META)["takashio"]["guard_ward"]
+    polygons = ward_polygons_m(guard, n03_fixtures)
+    m2: dict[int, float] = {c: 0.0 for c, _ in HIGHTIDE_CLASSES}
+    cells: dict[int, int] = {c: 0 for c, _ in HIGHTIDE_CLASSES}
+    for r in csv.DictReader((fixtures / HIGHTIDE_GUARD).read_text(encoding="utf-8").splitlines()):
+        area = cell_area_in_ward(polygons, float(r["x"]), float(r["y"]))
+        c = depth_class(_depth_cm(r["depth_m"]))
+        m2[c] += area
+        cells[c] += area > 0
+    return guard, m2, cells
+
+
 def verify(fixtures: Path = FIXTURES) -> list[str]:
-    """Re-derive the guard ward's 洪水 and 高潮 class areas from the committed GeoJSON."""
+    """Re-derive the guard wards' class areas: 洪水 from the committed GeoJSON,
+    高潮 from the committed cells of its guard ward."""
     problems = []
-    for gj_name, csv_name, labels in ((FLOOD_GEOJSON, FLOOD_EXCERPT, FLOOD_CLASSES), (HIGHTIDE_GEOJSON, HIGHTIDE_EXCERPT, HIGHTIDE_CLASSES)):
+    for gj_name, csv_name, labels in ((FLOOD_GEOJSON, FLOOD_EXCERPT, FLOOD_CLASSES),):
         rows = {(r["code"], int(r["class"])): r for r in csv.DictReader((fixtures / csv_name).read_text(encoding="utf-8").splitlines())}
         seen = set()
         features = _load(fixtures / gj_name)["features"]
@@ -867,6 +1202,15 @@ def verify(fixtures: Path = FIXTURES) -> list[str]:
         for c, _ in labels:
             if c not in seen and float(rows[(guard, c)]["m2"]) != 0:
                 problems.append(f"{gj_name}: class {c} has area in the CSV but no geometry")
+
+    rows = {(r["code"], int(r["class"])): r for r in csv.DictReader((fixtures / HIGHTIDE_EXCERPT).read_text(encoding="utf-8").splitlines())}
+    guard, m2, cells = guard_hightide_areas(fixtures)
+    if sum(1 for c in cells.values() if c) < GEOJSON_MIN_CLASSES:
+        problems.append(f"{HIGHTIDE_GUARD}: the guard ward covers fewer than {GEOJSON_MIN_CLASSES} classes")
+    for c, _ in HIGHTIDE_CLASSES:
+        row = rows[(guard, c)]
+        if abs(m2[c] - float(row["m2"])) > GUARD_TOLERANCE_M2 or cells[c] != int(row["cells"]):
+            problems.append(f"{HIGHTIDE_GUARD}: class {c} cells give {m2[c]:.3f} m² / {cells[c]} cells, CSV says {row['m2']} / {row['cells']}")
     return problems
 
 
@@ -886,7 +1230,7 @@ def main(argv: list[str]) -> int:
         print(f"wrote {HERO}: " + ", ".join(f"{r['region']} {r['change']:+.2f}%" for r in h["rows"]))
     elif argv[1:] == ["verify"]:
         problems = verify()
-        print("\n".join(problems) if problems else "verify: each guard GeoJSON re-derives its ward's 洪水 / 高潮 rows")
+        print("\n".join(problems) if problems else "verify: the guard GeoJSON re-derives its ward's 洪水 rows and the guard cells their ward's 高潮 rows")
         return 1 if problems else 0
     else:
         print(__doc__)

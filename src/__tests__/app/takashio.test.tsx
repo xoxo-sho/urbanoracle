@@ -152,7 +152,7 @@ describe("高潮 — the 都's 令和6年12月改定 on the surface", () => {
   });
 
   it("shows 「時点：令和6年12月改定」 from the payload, the sentence about the classes, the source line and the 都's credit; nothing names A49", async () => {
-    const { container } = await renderSettled();
+    await renderSettled();
     const tide = tideSurface(openTab("災害"));
     const asOf = tide.querySelector<HTMLElement>("[data-as-of]");
     expect(asOf?.dataset.asOfText).toBe(SOURCES.hightide.table);

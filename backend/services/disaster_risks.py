@@ -16,7 +16,12 @@ its source's own classes (Architect decisions 1, 8, 11 and sub-decisions,
   landslide   国土数値情報 A33-25: 警戒区域 / 特別警戒区域 per 現象 (0 is a zero);
   tsunami     対象外 with its basis: 東京都's 津波浸水想定 covers the 島しょ部 only
               and A40-23 has no polygon in the 23 wards;
-  hightide    国土数値情報 A49-20 (2020年度): the share of the ward area per class.
+  hightide    東京都港湾局・建設局「高潮浸水想定区域図」（令和6年12月改定）, 10 m
+              cells with their 浸水深 (follow-up 3, Architect decision B,
+              2026-11-09; it replaces 国土数値情報's 2020年度 file): the share
+              of the ward area per class — the seven classes the figures had
+              before, cut at the same boundaries — with the revision as the
+              時点 and the 都's CC BY credit in its modified-use form.
 
 No ``level`` field and no scale of ours. The route has no upstream, so the
 only thing that can be wrong is the file itself — checked when the app module
@@ -42,7 +47,12 @@ FLOOD_CODES = list(range(1, 7))
 HIGHTIDE_CODES = list(range(1, 8))
 FLOOD_DEEP_FROM = 3
 PHENOMENA = ["急傾斜地の崩壊", "土石流", "地滑り"]
-EDITED_CREDITS = ("edited_a31", "edited_a33", "edited_a40", "edited_a49", "edited_n03")
+EDITED_CREDITS = ("edited_a31", "edited_a33", "edited_a40", "edited_n03")
+# The two 東京都 open-data works (地域危険度, 高潮浸水想定区域図): the CC BY credit
+# and the same credit behind the 改変 sentence.
+TOKYO_CREDITS = ("kikendo", "takashio")
+EDITED_WORDS = "改変して利用しています"
+REQUIRED_NOTES = ("hightide", "hightide_classes", "hightide_as_of")
 # A 対象外 must carry its basis (Architect, 2026-11-05: never a bare 0 or 対象外).
 TSUNAMI_BASIS_WORDS = ("対象外", "島しょ部", "A40")
 CC_BY_WORDS = "クリエイティブ・コモンズ・ライセンス 表示4.0国際"
@@ -228,13 +238,24 @@ def validate(snapshot: Any) -> None:
         if not text.endswith("を加工して作成") or "をもとに" in text:
             raise SnapshotError(f"credit.{key}: not the 加工 form without an editor name")
     _text(credit.get("source"), "credit.source")
-    if CC_BY_WORDS not in _text(credit.get("kikendo"), "credit.kikendo") or "東京都" not in credit["kikendo"]:
-        raise SnapshotError("credit.kikendo: not the 東京都 CC BY credit")
-    if "改変して利用しています" not in _text(credit.get("kikendo_edited"), "credit.kikendo_edited"):
-        raise SnapshotError("credit.kikendo_edited: no 改変 statement")
+    for key in TOKYO_CREDITS:
+        if CC_BY_WORDS not in _text(credit.get(key), f"credit.{key}") or "東京都" not in credit[key]:
+            raise SnapshotError(f"credit.{key}: not the 東京都 CC BY credit")
+        edited = _text(credit.get(f"{key}_edited"), f"credit.{key}_edited")
+        if EDITED_WORDS not in edited or not edited.endswith(credit[key]):
+            raise SnapshotError(f"credit.{key}_edited: not the 改変 statement followed by the credit")
     licence = _obj(s["licence"], "licence")
     _text(_obj(licence.get("earthquake"), "licence.earthquake").get("basis"), "licence.earthquake.basis")
     _text(_obj(licence.get("ksj"), "licence.ksj").get("url"), "licence.ksj.url")
+    hightide_licence = _obj(licence.get("hightide"), "licence.hightide")
+    for key in ("name", "url", "basis"):
+        _text(hightide_licence.get(key), f"licence.hightide.{key}")
+    notes = _obj(s["notes"], "notes")
+    for key in REQUIRED_NOTES:
+        _text(notes.get(key), f"notes.{key}")
+    # The 高潮 時点 is what the source's `table` carries and the note states.
+    if s["sources"]["hightide"]["table"] not in notes["hightide_as_of"]:
+        raise SnapshotError("notes.hightide_as_of does not state the 時点 sources.hightide names")
     tsunami = _obj(_obj(s["hazards"], "hazards").get("tsunami"), "hazards.tsunami")
     basis = tsunami.get("basis")
     if not isinstance(basis, list) or not basis or not all(isinstance(b, dict) and b.get("url") and b.get("quote") for b in basis):

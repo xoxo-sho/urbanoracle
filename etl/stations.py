@@ -52,9 +52,33 @@ committed excerpt:
   statement that S12 names none;
 * S12's own notice on what the operators' figures are, verbatim.
 
+Follow-up 3 (Architect decision A, 2026-11-09) adds 東京都交通局's own figures
+beside S12's, for every 都営地下鉄 and 日暮里・舎人ライナー station-line of the 23
+wards. Every sum stays on S12 — 日間乗降客, 事業者別, 乗降客数推移 — and no
+number in them changes; the 交通局 figure is shown, never added.
+
+  extract-toei  the three raw responses of the 公共交通オープンデータセンター's
+                public endpoint (git-ignored downloads; no key, no account)
+                → the 乗降者数情報 response committed whole, a cut of the
+                station and railway names and coordinates, and a sidecar
+                meta with each response's URL, retrieval time, size and
+                sha256
+
+Source: 東京都交通局 乗降者数情報 (odpt:PassengerSurvey, odpt.Operator:Toei),
+https://ckan.odpt.org/dataset/r_passenger_survey-toei — CC BY 4.0, 「コンテンツ等
+の提供者名: 東京都交通局・公共交通オープンデータ協議会」. One object per line and
+station with a 1日平均乗降人員 per 年度: 都営地下鉄 2017–2024, 日暮里・舎人ライナー
+2017–2023 (the latest open figure). A station-line is matched to S12's 東京都
+row of the same line and station name; build fails on a station-line inside
+the 23 wards that matches none, and the snapshot lists every renamed or
+out-of-scope case. S12 was the sole ridership source until then (decision 3,
+2026-11-02) and remains the only one any sum uses; the live client and its
+key stay retired — the snapshot is built from a committed file.
+
 Run (from the repo root, with -I so nothing in the download dir is imported):
 
   python -I etl/stations.py extract
+  python -I etl/stations.py extract-toei
   python -I etl/stations.py build
 """
 
@@ -64,6 +88,7 @@ import hashlib
 import json
 import math
 import sys
+import unicodedata
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -134,16 +159,64 @@ COUNTED_ELSEWHERE_UNNAMED = "他の行に計上（国土数値情報に記載先
 # reader knows by a short name, the rest as the source names them.
 NOTE_OPERATORS = {"東日本旅客鉄道": "JR", "東京地下鉄": "東京メトロ", "東京都": "都営"}
 
+# --- 東京都交通局の公表値 (follow-up 3, Architect decision A) ------------------------------
+
+ODPT_DOWNLOAD_DIR = DOWNLOADS / "odpt_toei"
+ODPT_API = "https://api-public.odpt.org/api/v4/"
+ODPT_OPERATOR = "odpt.Operator:Toei"
+ODPT_SURVEY = "odpt_PassengerSurvey_Toei.json"
+ODPT_STATIONS_RAW = "odpt_Station_Toei.json"
+ODPT_RAILWAYS_RAW = "odpt_Railway_Toei.json"
+ODPT_RETRIEVED = "retrieved_at.txt"
+ODPT_URLS = {
+    ODPT_SURVEY: f"{ODPT_API}odpt:PassengerSurvey?odpt:operator={ODPT_OPERATOR}",
+    ODPT_STATIONS_RAW: f"{ODPT_API}odpt:Station?odpt:operator={ODPT_OPERATOR}",
+    ODPT_RAILWAYS_RAW: f"{ODPT_API}odpt:Railway?odpt:operator={ODPT_OPERATOR}",
+}
+ODPT_TITLES = "odpt_toei_titles.json"
+ODPT_META = "odpt.meta.json"
+ODPT_CATALOG = "https://ckan.odpt.org/dataset/r_passenger_survey-toei"
+ODPT_FAQ = "https://developer.odpt.org/ja/faq-info"
+ODPT_PROVIDER = "東京都交通局・公共交通オープンデータ協議会"
+ODPT_CONTENT = "東京都交通局 乗降者数情報"
+ODPT_TABLE = "odpt:PassengerSurvey"
+TOEI_OPERATOR = "東京都"
+TOEI_PUBLISHER = "東京都交通局"
+TOEI_LINER = "日暮里・舎人ライナー"
+TOEI_SUBWAY = "都営地下鉄"
+CC_BY_JA = "https://creativecommons.org/licenses/by/4.0/deed.ja"
+# The credit in the form the センター's FAQ prescribes (ODPT_FAQ, read 2026-11-09):
+# 1 「【コンテンツ等の提供者名】、【コンテンツ等の名称】、クリエイティブ・コモンズ・
+# ライセンス　表示4.0国際（URL）」 and, for a modified use, 2 「この【作品・アプリ・
+# データベース等】は、以下の著作物を改変して利用しています。」 before it. The
+# provider name is the one the dataset's catalogue page gives (ODPT_CATALOG).
+ODPT_CREDIT = f"{ODPT_PROVIDER}、{ODPT_CONTENT}、クリエイティブ・コモンズ・ライセンス　表示4.0国際（{CC_BY_JA}）"
+ODPT_CREDIT_EDITED = f"このサービスは、以下の著作物を改変して利用しています。 {ODPT_CREDIT}"  # the FAQ sets a space after the sentence
+TOEI_TRANSFERS_PAGE = "https://spec.api.metro.tokyo.lg.jp/spec/t000018d0000000030-d5e3d4a98f96a77e0d2857ff3ab150fd-0?lang=ja"
+TOEI_TRANSFERS_QUOTE = "（注）「一日平均乗降人員」は、浅草線、三田線、新宿線、大江戸線の乗降人員の合計から、都営線相互の乗り換え客数を引いたものです。したがって、4線の乗降人員の単純合計とは一致しません。"
+
 REGION = "東京23区"
 LICENCE = {
     "name": "国土数値情報 利用規約（PDL1.0準拠）— 駅別乗降客数データ・行政区域データはいずれも「オープンデータ（CC_BY_4.0）」",
     "url": KSJ_TERMS,
+    "operatorFigures": {
+        "name": "クリエイティブ・コモンズ・ライセンス 表示4.0国際（CC BY 4.0）",
+        "url": CC_BY_JA,
+        "basis": (
+            "公共交通オープンデータセンター データカタログサイトの当該データセットのページ（" + ODPT_CATALOG + "、2026-11-09 直接読了）が"
+            "「ライセンス Creative Commons Attribution 4.0 International (CC BY 4.0)」「※本コンテンツ等はCC BY 4.0の下でライセンスされています。」"
+            "「コンテンツ等の提供者名: " + ODPT_PROVIDER + "」と記す。クレジットの形は開発者サイトの FAQ（" + ODPT_FAQ + "、同日直接読了）に従う。"
+            "取得はアクセストークンの要らない公開エンドポイント（api-public）から行い、アクセストークンもユーザ登録も使っていない。"
+        ),
+    },
 }
 CREDIT = {
     "source": f"出典：国土交通省国土数値情報ダウンロードサイト（{KSJ_SITE}）",
     "edited_s12": f"「国土数値情報（駅別乗降客数データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
     "edited_n03": f"「国土数値情報（行政区域データ）」（国土交通省）（{KSJ_SITE}）を加工して作成",
-    "pages": {"S12": S12_PAGE, "N03": N03_PAGE},
+    "toei": ODPT_CREDIT,
+    "toei_edited": ODPT_CREDIT_EDITED,
+    "pages": {"S12": S12_PAGE, "N03": N03_PAGE, "toei": ODPT_CATALOG},
 }
 NOTES = {
     "definition": "事業者ごとの駅別乗降客数の合計（乗換客は事業者ごとに数えられます）",
@@ -301,6 +374,83 @@ def extract(out_dir: Path = FIXTURES, today: date | None = None) -> None:
     }
     (out_dir / META).write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"wrote {out_dir / S12_EXCERPT} ({len(kept)} rows), {out_dir / N03_EXCERPT} ({len(wards)} features) and {out_dir / META}")
+
+
+def _name_key(name: str) -> str:
+    """Station names compared without the differences of writing only: width
+    (NFKC), the small ヶ against ケ, and spaces."""
+    return unicodedata.normalize("NFKC", name).replace("ヶ", "ケ").replace(" ", "")
+
+
+def extract_toei(out_dir: Path = FIXTURES) -> None:
+    """The three raw public-endpoint responses → the committed 乗降者数情報 (whole),
+    the names cut, and the meta. Nothing is fetched here: the files are
+    downloaded beforehand, with the UTC time of the download beside them."""
+    raw = {name: (ODPT_DOWNLOAD_DIR / name).read_bytes() for name in ODPT_URLS}
+    retrieved = (ODPT_DOWNLOAD_DIR / ODPT_RETRIEVED).read_text(encoding="utf-8").strip()
+    survey, stations, railways = (json.loads(raw[name].decode("utf-8")) for name in (ODPT_SURVEY, ODPT_STATIONS_RAW, ODPT_RAILWAYS_RAW))
+    wanted_stations: set[str] = set()
+    wanted_railways: set[str] = set()
+    for obj in survey:
+        if obj.get("odpt:operator") != ODPT_OPERATOR or obj.get("odpt:includeAlighting") is not True:
+            raise ValueError(f"{obj.get('owl:sameAs')}: not a {ODPT_OPERATOR} 乗降人員 object")
+        if len(obj["odpt:station"]) != 1 or len(obj["odpt:railway"]) != 1:
+            raise ValueError(f"{obj['owl:sameAs']}: expected one station and one railway")
+        wanted_stations.add(obj["odpt:station"][0])
+        wanted_railways.add(obj["odpt:railway"][0])
+    station_by_id = {x["owl:sameAs"]: x for x in stations}
+    railway_by_id = {x["owl:sameAs"]: x for x in railways}
+    missing = sorted(wanted_stations - set(station_by_id)) + sorted(wanted_railways - set(railway_by_id))
+    if missing:
+        raise ValueError(f"the names of {missing} are not in the station / railway responses")
+    titles = {
+        "railways": {rid: {"title": railway_by_id[rid]["odpt:railwayTitle"]["ja"]} for rid in sorted(wanted_railways)},
+        "stations": {
+            sid: {
+                "title": station_by_id[sid]["odpt:stationTitle"]["ja"],
+                "railway": station_by_id[sid]["odpt:railway"],
+                "lat": station_by_id[sid]["geo:lat"],
+                "lng": station_by_id[sid]["geo:long"],
+            }
+            for sid in sorted(wanted_stations)
+        },
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / ODPT_SURVEY).write_bytes(raw[ODPT_SURVEY])
+    (out_dir / ODPT_TITLES).write_text(json.dumps(titles, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    years = sorted({o["odpt:surveyYear"] for obj in survey for o in obj["odpt:passengerSurveyObject"]})
+    meta = {
+        "retrieved": retrieved,
+        "endpoint": "公共交通オープンデータセンター 公開エンドポイント（api-public.odpt.org）— アクセストークン不要、ユーザ登録不要",
+        "catalog": ODPT_CATALOG,
+        "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "licence_url": CC_BY_JA,
+        "provider": ODPT_PROVIDER,
+        "content": ODPT_CONTENT,
+        "credit_form": ODPT_FAQ,
+        "survey": {
+            "file": ODPT_SURVEY,
+            "url": ODPT_URLS[ODPT_SURVEY],
+            "bytes": len(raw[ODPT_SURVEY]),
+            "sha256": hashlib.sha256(raw[ODPT_SURVEY]).hexdigest(),
+            "objects": len(survey),
+            "years": years,
+            "dc_dates": sorted({obj["dc:date"] for obj in survey}),
+            "committed": "whole, byte for byte",
+        },
+        "titles": {
+            "file": ODPT_TITLES,
+            "cut": "the Japanese title of every railway and station the 乗降者数情報 names, each station's railway and its coordinates (geo:lat / geo:long)",
+            "from": [
+                {"file": name, "url": ODPT_URLS[name], "bytes": len(raw[name]), "sha256": hashlib.sha256(raw[name]).hexdigest()}
+                for name in (ODPT_STATIONS_RAW, ODPT_RAILWAYS_RAW)
+            ],
+            "stations": len(titles["stations"]),
+            "railways": len(titles["railways"]),
+        },
+    }
+    (out_dir / ODPT_META).write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"wrote {out_dir / ODPT_SURVEY} ({len(survey)} objects, 年度 {years[0]}–{years[-1]}), {out_dir / ODPT_TITLES} and {out_dir / ODPT_META}")
 
 
 # --- build ------------------------------------------------------------------------
@@ -516,6 +666,139 @@ def _trend(fixtures: Path, rows: list[dict], wards: list[dict], names: dict[str,
     return trend, record
 
 
+def _operator_figures(fixtures: Path, rows: list[dict], station_of: dict[tuple[str, str], dict], index: WardIndex, year: int) -> tuple[dict, dict]:
+    """東京都交通局's own figure for every 都営 station-line of the 23 wards
+    (follow-up 3): (the snapshot's ``operatorFigures``, its input records).
+
+    Each object of the 乗降者数情報 — one line at one station — is matched to
+    S12's 東京都 rows of the same line (S12's 「1号線浅草線」 is the センター's
+    「浅草線」) and station name. Its latest 年度 goes to the station those rows
+    belong to, with the rows' own S12 figure of the snapshot's year beside it
+    (None where S12 writes the figure on another row). Nothing is added to
+    any sum. Refused here, so a file that no longer fits cannot build: an
+    object inside the 23 wards (by the センター's coordinates) that matches no
+    row; a 東京都 row of a matched line that no object names; a station-line
+    whose rows lie in two stations; two latest 年度 on one line.
+    """
+    meta = _load(fixtures / ODPT_META)
+    if sha256(fixtures / ODPT_SURVEY) != meta["survey"]["sha256"]:
+        raise ValueError(f"{ODPT_SURVEY} is not the file its meta was written for")
+    survey, titles = _load(fixtures / ODPT_SURVEY), _load(fixtures / ODPT_TITLES)
+
+    toei_rows = [r for r in rows if r["props"][OPERATOR] == TOEI_OPERATOR]
+    line_of_short: dict[str, str] = {}
+    for r in toei_rows:
+        line = r["props"][LINE]
+        if line_of_short.setdefault(_short_line(line), line) != line:
+            raise ValueError(f"two 東京都 lines shorten to {_short_line(line)}")
+
+    figures: list[dict] = []
+    renamed: list[dict] = []
+    outside: list[dict] = []
+    latest_of_line: dict[str, int] = {}
+    named: set[int] = set()
+    for obj in sorted(survey, key=lambda o: o["owl:sameAs"]):
+        station_id, railway_id = obj["odpt:station"][0], obj["odpt:railway"][0]
+        station, railway = titles["stations"][station_id], titles["railways"][railway_id]["title"]
+        if station["railway"] != railway_id:
+            raise ValueError(f"{obj['owl:sameAs']}: station {station_id} is not on {railway_id}")
+        by_year = {o["odpt:surveyYear"]: o["odpt:passengerJourneys"] for o in obj["odpt:passengerSurveyObject"]}
+        latest = max(by_year)
+        value = by_year[latest]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError(f"{obj['owl:sameAs']}: {latest}年度 {value!r}")
+        line = line_of_short.get(railway)
+        matches = [r for r in toei_rows if r["props"][LINE] == line and _name_key(r["props"][NAME]) == _name_key(station["title"])]
+        if not matches:
+            if index.ward_of(station["lng"], station["lat"]) is not None:
+                raise ValueError(f"{railway} {station['title']}: inside the 23 wards by its coordinates, but no 東京都 row of S12 matches it")
+            outside.append({"line": railway, "station": station["title"], "id": obj["owl:sameAs"], "reason": "23区の外（公共交通オープンデータセンターの駅座標が23区のどの区ポリゴンにも入らない）"})
+            continue
+        if latest_of_line.setdefault(line, latest) != latest:
+            raise ValueError(f"{line}: the latest 年度 is {latest_of_line[line]} at one station and {latest} at {station['title']}")
+        homes = {id(station_of[(r["props"][GROUP_CODE], r["ward"][0])]) for r in matches}
+        if len(homes) != 1:
+            raise ValueError(f"{line} {station['title']}: its S12 rows lie in {len(homes)} stations")
+        home = station_of[(matches[0]["props"][GROUP_CODE], matches[0]["ward"][0])]
+        s12_name = matches[0]["props"][NAME]
+        if s12_name != station["title"]:
+            renamed.append({"line": line, "s12": s12_name, "odpt": station["title"]})
+        own = [v for v in (_figure(r["props"], year) for r in matches) if v is not None]
+        named.update(r["feature"] for r in matches)
+        figures.append(
+            {
+                "home": home,
+                "liner": railway == TOEI_LINER,
+                "figure": {"operator": TOEI_OPERATOR, "line": line, "year": latest, "passengers": value, "s12": sum(own) if own else None},
+                "rows": len(matches),
+                "s12Rows": len(own),
+            }
+        )
+    unnamed = [r for r in toei_rows if r["props"][LINE] in latest_of_line and r["feature"] not in named]
+    if unnamed:
+        raise ValueError(f"{len(unnamed)} 東京都 rows of S12 have no 乗降者数情報 object, e.g. {unnamed[0]['props'][LINE]} {unnamed[0]['props'][NAME]}")
+
+    for f in figures:
+        f["home"].setdefault("ownFigures", []).append(f["figure"])
+    for st in {id(f["home"]): f["home"] for f in figures}.values():
+        st["ownFigures"].sort(key=lambda g: g["line"])
+
+    subway = [f for f in figures if not f["liner"]]
+    liner = [f for f in figures if f["liner"]]
+    subway_years, liner_years = {f["figure"]["year"] for f in subway}, {f["figure"]["year"] for f in liner}
+    if len(subway_years) != 1 or len(liner_years) != 1:
+        raise ValueError(f"the latest 年度: {TOEI_SUBWAY} {sorted(subway_years)}, {TOEI_LINER} {sorted(liner_years)}")
+    subway_year, liner_year = subway_years.pop(), liner_years.pop()
+
+    def below(group: list[dict]) -> int:
+        """S12 rows carrying a figure of their own that is smaller than the 交通局 figure shown beside it."""
+        return sum(f["s12Rows"] for f in group if f["figure"]["s12"] is not None and f["figure"]["s12"] < f["figure"]["passengers"])
+
+    def with_own(group: list[dict]) -> int:
+        return sum(f["s12Rows"] for f in group)
+
+    below_subway, below_liner = below(subway), below(liner)
+    notice = [
+        "日間乗降客・事業者別・乗降客数推移・23区の中での位置の値は、国土数値情報（駅別乗降客数データ）の値で計算しています。",
+        (
+            f"{TOEI_SUBWAY}と{TOEI_LINER}の駅は、駅一覧に{TOEI_PUBLISHER}の公表値（{TOEI_SUBWAY} {subway_year}年度、{TOEI_LINER} {liner_year}年度）も併記しています。"
+            f"{TOEI_SUBWAY}の公表値は路線ごとの値で、{TOEI_SUBWAY}の路線どうしの乗り換えは両方の路線で数えられています。"
+        ),
+        (
+            f"国土数値情報の{year}年度の値が、併記した{TOEI_PUBLISHER}の公表値より小さい行は{below_subway + below_liner}行です"
+            f"（{TOEI_SUBWAY}{below_subway}行、{TOEI_LINER}{below_liner}行）。"
+        ),
+    ]
+    block = {
+        "publisher": TOEI_PUBLISHER,
+        "provider": ODPT_PROVIDER,
+        "content": ODPT_CONTENT,
+        "retrieved": meta["retrieved"],
+        "years": [{"name": TOEI_SUBWAY, "year": subway_year}, {"name": TOEI_LINER, "year": liner_year}],
+        "stationLines": len(figures),
+        "stations": len({id(f["home"]) for f in figures}),
+        "s12Rows": {"matched": len(named), "withOwnFigure": with_own(figures)},
+        "below": {"rows": below_subway + below_liner, "subway": below_subway, "liner": below_liner, "s12Year": year},
+        "notice": notice,
+        "transfersBasis": {"quote": TOEI_TRANSFERS_QUOTE, "url": TOEI_TRANSFERS_PAGE, "read": "2026-11-09"},
+        "matching": {
+            "rule": "路線は S12 の路線名から「N号線」を除いた名と公共交通オープンデータセンターの路線名の一致、駅は駅名の一致（全角半角・「ヶ」と「ケ」・空白の違いのみ同一視）",
+            "objects": len(survey),
+            "matched": len(figures),
+            "renamed": renamed,
+            "outsideWards": outside,
+            "unmatchedInsideWards": [],
+            "s12RowsWithoutObject": [],
+            "linesWithoutObjects": sorted({r["props"][LINE] for r in toei_rows} - set(latest_of_line)),
+        },
+    }
+    inputs = {
+        ODPT_SURVEY: {"path": f"backend/tests/fixtures/stations/{ODPT_SURVEY}", "sha256": sha256(fixtures / ODPT_SURVEY), "cut_from": {**meta["survey"], **{k: meta[k] for k in ("retrieved", "endpoint", "catalog", "licence", "licence_url", "provider", "content", "credit_form")}}},
+        ODPT_TITLES: {"path": f"backend/tests/fixtures/stations/{ODPT_TITLES}", "sha256": sha256(fixtures / ODPT_TITLES), "cut_from": {**meta["titles"], "retrieved": meta["retrieved"]}},
+    }
+    return block, inputs
+
+
 def build(fixtures: Path = FIXTURES) -> dict:
     meta = json.loads((fixtures / META).read_text(encoding="utf-8"))
     n03, s12 = _load(fixtures / N03_EXCERPT), _load(fixtures / S12_EXCERPT)
@@ -637,6 +920,11 @@ def build(fixtures: Path = FIXTURES) -> dict:
                 if st.get("remarks"):
                     raise ValueError(f"{name}: a folded group carries a 備考")
                 folded.add(st["code"] + "/" + ward_code)
+    # Which station a row's (group, ward) ended up in — itself, or the one it was folded into.
+    station_of: dict[tuple[str, str], dict] = {(st["code"], st["wardCode"]): st for st in stations}
+    for m in merged:
+        ward_code = next(st["wardCode"] for st in stations if st["code"] == m["into"] and st["ward"] == m["ward"])
+        station_of[(m["code"], ward_code)] = station_of[(m["into"], ward_code)]
     stations = [st for st in stations if st["code"] + "/" + st["wardCode"] not in folded]
     for st in stations:
         st["operators"].sort(key=lambda o: (-(o["passengers"] or 0), o["name"]))
@@ -658,6 +946,10 @@ def build(fixtures: Path = FIXTURES) -> dict:
         )
 
     trend, panel_input = _trend(fixtures, rows, wards, index.names, year)
+    # 東京都交通局's own figures, shown beside S12's (follow-up 3): attached to the
+    # stations after every sum above is fixed, so no sum can take them in.
+    operator_figures, operator_inputs = _operator_figures(fixtures, rows, station_of, index, year)
+    subway_year, liner_year = (y["year"] for y in operator_figures["years"])
 
     return {
         "region": REGION,
@@ -688,6 +980,12 @@ def build(fixtures: Path = FIXTURES) -> dict:
                     + "（1日平均、人/日）— 全年度を同じ基準で比べられる行の合計"
                 ),
             },
+            # Shown beside S12's figure in 駅一覧, in no sum (follow-up 3). `year` is the 都営地下鉄 年度.
+            "operatorFigures": {
+                "year": subway_year,
+                "table": ODPT_TABLE,
+                "label": f"{ODPT_CONTENT}（公共交通オープンデータセンター）1日平均乗降人員：{TOEI_SUBWAY} {subway_year}年度・{TOEI_LINER} {liner_year}年度",
+            },
         },
         "inputs": {
             S12_EXCERPT: {
@@ -701,6 +999,7 @@ def build(fixtures: Path = FIXTURES) -> dict:
                 "cut_from": meta["N03"],
             },
             PANEL: panel_input,
+            **operator_inputs,
         },
         "licence": LICENCE,
         "credit": CREDIT,
@@ -710,6 +1009,7 @@ def build(fixtures: Path = FIXTURES) -> dict:
         "mergedGroups": merged,
         "wards": wards,
         "trend": trend,
+        "operatorFigures": operator_figures,
         "stations": stations,
     }
 
@@ -717,13 +1017,17 @@ def build(fixtures: Path = FIXTURES) -> dict:
 def main(argv: list[str]) -> int:
     if argv[1:] == ["extract"]:
         extract()
+    elif argv[1:] == ["extract-toei"]:
+        extract_toei()
     elif argv[1:] == ["build"]:
         snapshot = build()
         SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
         SNAPSHOT.write_text(json.dumps(snapshot, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         print(
             f"wrote {SNAPSHOT} ({len(snapshot['stations'])} stations in {len(snapshot['wards'])} wards, "
-            f"{len(snapshot['straddlingRows'])} straddling rows, {len(snapshot['droppedRows'])} dropped, {len(snapshot['mergedGroups'])} merged)"
+            f"{len(snapshot['straddlingRows'])} straddling rows, {len(snapshot['droppedRows'])} dropped, {len(snapshot['mergedGroups'])} merged; "
+            f"東京都交通局の公表値 {snapshot['operatorFigures']['stationLines']} station-lines at {snapshot['operatorFigures']['stations']} stations, "
+            f"S12 below it at {snapshot['operatorFigures']['below']['rows']} rows)"
         )
     else:
         print(__doc__)

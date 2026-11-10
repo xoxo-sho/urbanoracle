@@ -7,7 +7,8 @@ import { SOURCES } from "@/lib/sources";
 import { zoningLine } from "@/lib/census-sources";
 import { designatedLine, formatShare, topTypes, typeStyle } from "@/lib/zoning";
 import { DEEP_LABEL, K2_LABEL, QUAKE_KINDS, countOf, hazardLine } from "@/lib/disaster";
-import { A31_NOTICES, A33_NOTICE } from "@/lib/credits";
+import { A31_NOTICES, A33_NOTICE, TAKASHIO_AS_OF_LEAD, TAKASHIO_CLASS_NOTE } from "@/lib/credits";
+import { TakashioCredits } from "@/components/dashboard/RequiredCredits";
 import { StateNotice, isPending } from "@/components/dashboard/DataState";
 import { NO_DATA } from "@/lib/format";
 
@@ -21,7 +22,10 @@ import { NO_DATA } from "@/lib/format";
  *          said to be a relative evaluation among the 都's 町丁目;
  *   洪水   国土数値情報 A31a-25 想定最大規模: the share of the ward's area per
  *          浸水深 class, and the share with 浸水深 3 m 以上;
- *   高潮   国土数値情報 A49-20: the share of the ward's area per class;
+ *   高潮   東京都港湾局・建設局「高潮浸水想定区域図」（令和6年12月改定）: the share
+ *          of the ward's area per class — the classes the figures had before,
+ *          at the same boundaries — with its 時点, that statement about the
+ *          classes and the 都's credit (follow-up 3, Architect decision B);
  *   土砂   国土数値情報 A33-25: 警戒区域 / 特別警戒区域 per 現象 (0 is a zero);
  *   津波   the 対象外 statement with its basis;
  *   用途地域 (D2) the A55-24 composition (real-data plan PR 6), unchanged.
@@ -188,15 +192,26 @@ export default function DisasterRiskPanel({
           )}
         </section>
 
-        {/* 高潮 — A49-20 */}
+        {/* 高潮 — 東京都 高潮浸水想定区域図（令和6年12月改定） */}
         <section className="chart-section" data-surface="disaster-hightide">
           <Title>高潮（想定最大規模）</Title>
           {d === null ? (
-            <Pending status={disasterStatus} source={`高潮: ${SOURCES.ksj.label}`} />
+            <Pending status={disasterStatus} source={`高潮: ${SOURCES.tokyoTakashio.label}`} />
           ) : (
             <>
               <DepthBlock block={d.hightide} attr="tide" region={region} />
+              {/* The 時点 the payload names (the revision), and what the classes are. */}
+              {disasterSources.hightide ? (
+                <p className="mt-1 text-[10px] text-foreground" data-as-of data-as-of-text={disasterSources.hightide.table}>
+                  {TAKASHIO_AS_OF_LEAD}
+                  {disasterSources.hightide.table}
+                </p>
+              ) : null}
+              <p className="mt-1 text-[9px] leading-snug text-muted-foreground" data-class-note>
+                {TAKASHIO_CLASS_NOTE}
+              </p>
               <SourceLine sources={disasterSources} hazard="hightide" />
+              <TakashioCredits />
             </>
           )}
         </section>

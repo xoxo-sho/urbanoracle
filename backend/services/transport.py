@@ -28,6 +28,14 @@ which says 他路線駅に記載 (``countedElsewhere`` and its ``note``), and S1
 notice on what the operators' figures are (``notes.source_notice``). The
 route sends the trend beside ``data`` as ``total``.
 
+Follow-up 3 (Architect decision A, 2026-11-09): every 都営地下鉄 and 日暮里・
+舎人ライナー station-line of the 23 wards also carries the figure its operator
+publishes itself — 東京都交通局's 1日平均乗降人員 of its latest 年度, from a
+committed file — beside S12's (``ownFigures`` on the station; the notice, the
+年度 and the credit beside ``data`` in ``total.operatorFigures``). It is shown,
+never summed: 日間乗降客, 事業者別 and 乗降客数推移 stay on S12, and ``validate``
+refuses a snapshot whose sums took an operator's own figure in.
+
 The route has no upstream, so the only thing that can be wrong is the file
 itself — checked when the app module is imported (``check_at_startup``): a
 missing or malformed snapshot stops the process, Cloud Run refuses the
@@ -44,9 +52,13 @@ from pathlib import Path
 from typing import Any
 
 WARD_CODES = [f"131{n:02d}" for n in range(1, 24)]
-REQUIRED_KEYS = ("region", "year", "sources", "inputs", "licence", "credit", "notes", "wards", "trend", "stations")
-REQUIRED_SOURCES = ("ridership", "stations", "wards", "trend")
-REQUIRED_CREDITS = ("source", "edited_s12", "edited_n03")
+REQUIRED_KEYS = ("region", "year", "sources", "inputs", "licence", "credit", "notes", "wards", "trend", "operatorFigures", "stations")
+REQUIRED_SOURCES = ("ridership", "stations", "wards", "trend", "operatorFigures")
+REQUIRED_CREDITS = ("source", "edited_s12", "edited_n03", "toei", "toei_edited")
+# What a credit under CC BY 4.0 must carry, and what its modified-use form adds.
+CC_BY_WORDS = "クリエイティブ・コモンズ・ライセンス"
+CC_BY_URL = "https://creativecommons.org/licenses/by/4.0/"
+EDITED_WORDS = "改変して利用しています"
 REQUIRED_NOTES = ("definition", "jr_east", "source_notice", "source_notice_at")
 TOTAL_CODE = "13100"
 # What the 駅一覧 cell of a station counted on another row reads: with the row
@@ -122,6 +134,7 @@ def validate(snapshot: Any) -> None:
     seen: set[tuple[str, str]] = set()
     per_ward_total: dict[str, int] = {}
     per_ward_count: dict[str, int] = {}
+    own_lines = own_stations = 0
     for i, station in enumerate(stations):
         where = f"stations[{i}]"
         if not isinstance(station, dict):
@@ -184,6 +197,9 @@ def validate(snapshot: Any) -> None:
                     _text(target.get(key), f"{where}.countedElsewhere.targets[{j}].{key}")
         elif "note" in station:
             raise SnapshotError(f"{where}.note: a note without the row it explains (countedElsewhere)")
+        if "ownFigures" in station:
+            own_lines += _own_figures(station["ownFigures"], operators, f"{where}.ownFigures")
+            own_stations += 1
         per_ward_total[ward_code] = per_ward_total.get(ward_code, 0) + (total or 0)
         per_ward_count[ward_code] = per_ward_count.get(ward_code, 0) + 1
 
@@ -208,6 +224,7 @@ def validate(snapshot: Any) -> None:
         raise SnapshotError("credit: not an object")
     for key in REQUIRED_CREDITS:
         _text(credit.get(key), f"credit.{key}")
+    _validate_operator_figures(snapshot["operatorFigures"], credit, snapshot["licence"], sources, year, own_lines, own_stations)
     for key in ("edited_s12", "edited_n03"):
         if not credit[key].endswith("を加工して作成") or "をもとに" in credit[key]:
             raise SnapshotError(f"credit.{key}: not the 加工 form without an editor name")
@@ -220,6 +237,87 @@ def validate(snapshot: Any) -> None:
     if not isinstance(licence, dict):
         raise SnapshotError("licence: not an object")
     _text(licence.get("url"), "licence.url")
+
+
+def _own_figures(figures: Any, operators: list[dict], where: str) -> int:
+    """A station's ``ownFigures``: per line of one of its operators, the figure
+    that operator publishes itself with its 年度, and S12's own figure for the
+    same rows (None where S12 writes it on another row). Returns their number."""
+    if not isinstance(figures, list) or not figures:
+        raise SnapshotError(f"{where}: expected a non-empty list")
+    lines_of = {op["name"]: set(op["lines"]) for op in operators}
+    seen: set[tuple[str, str]] = set()
+    for j, figure in enumerate(figures):
+        w = f"{where}[{j}]"
+        if not isinstance(figure, dict):
+            raise SnapshotError(f"{w}: not an object")
+        operator, line = _text(figure.get("operator"), f"{w}.operator"), _text(figure.get("line"), f"{w}.line")
+        if line not in lines_of.get(operator, ()):
+            raise SnapshotError(f"{w}: {operator} {line} is not a line of this station")
+        if (operator, line) in seen:
+            raise SnapshotError(f"{w}: {operator} {line} twice")
+        seen.add((operator, line))
+        year = figure.get("year")
+        if isinstance(year, bool) or not isinstance(year, int):
+            raise SnapshotError(f"{w}.year: {year!r}")
+        if _count(figure.get("passengers"), f"{w}.passengers") is None:
+            raise SnapshotError(f"{w}.passengers: an operator's own figure cannot be null")
+        if "s12" not in figure:
+            raise SnapshotError(f"{w}.s12: missing (null where S12 writes the figure on another row)")
+        s12 = _count(figure["s12"], f"{w}.s12")
+        mine = next(op for op in operators if op["name"] == operator)
+        if s12 is not None and (mine.get("passengers") is None or s12 > mine["passengers"]):
+            raise SnapshotError(f"{w}.s12: {s12} is more than the operator's S12 figure at this station")
+    return len(figures)
+
+
+def _validate_operator_figures(block: Any, credit: dict, licence: Any, sources: dict, year: int, own_lines: int, own_stations: int) -> None:
+    """``operatorFigures``: whose figures the stations' ``ownFigures`` are, their
+    年度, the counts the notice states and the notice itself; the credit in the
+    CC BY form naming the provider; the licence with its basis."""
+    if not isinstance(block, dict):
+        raise SnapshotError("operatorFigures: not an object")
+    _text(block.get("publisher"), "operatorFigures.publisher")
+    provider = _text(block.get("provider"), "operatorFigures.provider")
+    years = block.get("years")
+    if not isinstance(years, list) or not years:
+        raise SnapshotError("operatorFigures.years: expected a non-empty list")
+    for i, entry in enumerate(years):
+        if not isinstance(entry, dict):
+            raise SnapshotError(f"operatorFigures.years[{i}]: not an object")
+        _text(entry.get("name"), f"operatorFigures.years[{i}].name")
+        _int(entry.get("year"), f"operatorFigures.years[{i}].year")
+    if sources["operatorFigures"]["year"] != years[0]["year"]:
+        raise SnapshotError("sources.operatorFigures.year is not the first 年度 of operatorFigures.years")
+    if (_int(block.get("stationLines"), "operatorFigures.stationLines"), _int(block.get("stations"), "operatorFigures.stations")) != (own_lines, own_stations):
+        raise SnapshotError(f"operatorFigures: {block.get('stationLines')} station-lines at {block.get('stations')} stations, the stations carry {own_lines} at {own_stations}")
+    below = block.get("below")
+    if not isinstance(below, dict):
+        raise SnapshotError("operatorFigures.below: not an object")
+    rows = _int(below.get("rows"), "operatorFigures.below.rows")
+    if rows != _int(below.get("subway"), "operatorFigures.below.subway") + _int(below.get("liner"), "operatorFigures.below.liner"):
+        raise SnapshotError("operatorFigures.below: rows is not subway + liner")
+    if below.get("s12Year") != year:
+        raise SnapshotError(f"operatorFigures.below.s12Year {below.get('s12Year')!r} != year {year}")
+    notice = block.get("notice")
+    if not isinstance(notice, list) or not notice:
+        raise SnapshotError("operatorFigures.notice: expected a non-empty list of sentences")
+    for i, sentence in enumerate(notice):
+        _text(sentence, f"operatorFigures.notice[{i}]")
+    if not any(f"{rows}行" in sentence for sentence in notice):
+        raise SnapshotError(f"operatorFigures.notice: no sentence states the {rows} rows of operatorFigures.below")
+    if not isinstance(block.get("matching"), dict):
+        raise SnapshotError("operatorFigures.matching: the matching report is missing")
+    for key in ("toei", "toei_edited"):
+        if provider not in credit[key] or CC_BY_WORDS not in credit[key] or CC_BY_URL not in credit[key]:
+            raise SnapshotError(f"credit.{key}: not the provider's CC BY credit")
+    if EDITED_WORDS not in credit["toei_edited"] or EDITED_WORDS in credit["toei"]:
+        raise SnapshotError("credit.toei_edited: the modified-use sentence belongs to it, and only to it")
+    own = licence.get("operatorFigures") if isinstance(licence, dict) else None
+    if not isinstance(own, dict):
+        raise SnapshotError("licence.operatorFigures: missing")
+    for key in ("name", "url", "basis"):
+        _text(own.get(key), f"licence.operatorFigures.{key}")
 
 
 def _int(value: Any, where: str) -> int:
@@ -352,6 +450,8 @@ def rows(snapshot: dict) -> list[dict]:
             record["countedElsewhere"] = deepcopy(s["countedElsewhere"])
         if s.get("note"):
             record["note"] = s["note"]
+        if s.get("ownFigures"):
+            record["ownFigures"] = deepcopy(s["ownFigures"])
         out.append(record)
     return out
 
@@ -370,9 +470,19 @@ def total(snapshot: dict) -> dict:
             "gaps": [{"year": g["year"], "text": g["text"]} for g in trend["gaps"]],
             "views": deepcopy(trend["views"]),
         },
+        # Follow-up 3: whose figures the records' ``ownFigures`` are, their 年度,
+        # the counts and the notice the screen prints, and the credit.
+        "operatorFigures": {
+            "publisher": snapshot["operatorFigures"]["publisher"],
+            "years": deepcopy(snapshot["operatorFigures"]["years"]),
+            "stationLines": snapshot["operatorFigures"]["stationLines"],
+            "below": deepcopy(snapshot["operatorFigures"]["below"]),
+            "notice": list(snapshot["operatorFigures"]["notice"]),
+            "credit": snapshot["credit"]["toei_edited"],
+        },
     }
 
 
 def sources(snapshot: dict) -> dict[str, dict]:
-    """Per field (ridership, stations, wards, trend): the year, table and label — the /demographics ``sources`` shape."""
+    """Per field (ridership, stations, wards, trend, operatorFigures): the year, table and label — the /demographics ``sources`` shape."""
     return deepcopy(snapshot["sources"])

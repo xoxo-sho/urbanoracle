@@ -1,16 +1,24 @@
 "use client";
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import type { FieldSources, RidershipTrend, TransportStation } from "@/types";
+import type { FieldSources, OperatorFigures, OwnFigure, RidershipTrend, TransportStation } from "@/types";
 import type { DataStatus } from "@/lib/use-gated-data";
 import { TOOLTIP_STYLE, AXIS_STYLE, CHART_COLORS } from "@/lib/chart-theme";
 import { NO_DATA, byValueDesc, formatMan, hasValue } from "@/lib/format";
 import { Train } from "lucide-react";
 import SourceNote from "@/components/dashboard/SourceNote";
-import { KsjCredits, S12Notice } from "@/components/dashboard/RequiredCredits";
+import { KsjCredits, OperatorFiguresNotice, S12Notice, ToeiCredits } from "@/components/dashboard/RequiredCredits";
 import { StateNotice, isPending } from "@/components/dashboard/DataState";
 import { SOURCES } from "@/lib/sources";
-import { RIDERSHIP_DEFINITION_NOTE, RIDERSHIP_JR_NOTE, RIDERSHIP_OPERATORS_TITLE, RIDERSHIP_TREND_UNIT_NOTE } from "@/lib/credits";
+import {
+  OWN_FIGURE_PUBLISHER,
+  OWN_FIGURE_S12,
+  OWN_FIGURE_S12_ELSEWHERE,
+  RIDERSHIP_DEFINITION_NOTE,
+  RIDERSHIP_JR_NOTE,
+  RIDERSHIP_OPERATORS_TITLE,
+  RIDERSHIP_TREND_UNIT_NOTE,
+} from "@/lib/credits";
 import { ridershipSource, ridershipTrendLine } from "@/lib/census-sources";
 import { trendChartRows, trendCoverageText, trendShare, trendView, trendYearsLabel } from "@/lib/ridership-trend";
 
@@ -21,6 +29,12 @@ import { trendChartRows, trendCoverageText, trendShare, trendView, trendYearsLab
  * (Architect decision 13) — and 乗降客数推移, the sum of a fixed panel of S12
  * units over 2018 and 2020–2024 with 2019 left out (real-data plan PR 4b,
  * Architect decisions 2026-11-09).
+ *
+ * Follow-up 3 (Architect decision A, 2026-11-09): under a station, each of its
+ * 都営地下鉄 and 日暮里・舎人ライナー lines shows the figure 東京都交通局 publishes
+ * itself, with its 年度, beside S12's for the same rows. It is shown and never
+ * summed — the bar, the rank, 事業者別 and 乗降客数推移 stay on S12 — and the
+ * notice says so in the payload's own sentences.
  *
  * Every year, table and figure named here is read from the payload; a payload
  * that names none gets none claimed for it. Each surface that shows a figure
@@ -37,13 +51,46 @@ interface TransportPanelProps {
   status: DataStatus;
   /** The payload's `sources`: per field, the 国土数値情報 edition and its year. */
   sources?: FieldSources;
+  /** The payload's `total.operatorFigures`: the notice and credit of the operators' own figures; null when the answer has none. */
+  operatorFigures?: OperatorFigures | null;
+}
+
+/** How an operator is written before a line name, as in the line chips (backend line_label). */
+const OPERATOR_PREFIX: Record<string, string> = { 東日本旅客鉄道: "JR", 東京地下鉄: "メトロ", 東京都: "都営" };
+
+/**
+ * One 都営 line of a station: 「都営 1号線浅草線 — 東京都交通局の公表値（2024年度）：209,882
+ * ／ 国土数値情報（2024年度）：33,601」. Where S12 writes the line's figure on
+ * another row, its side says so instead of a number.
+ */
+function OwnFigureLine({ figure, s12Year }: { figure: OwnFigure; s12Year?: number }) {
+  const s12Label = s12Year ? `${OWN_FIGURE_S12}（${s12Year}年度）` : OWN_FIGURE_S12;
+  return (
+    <p
+      className="source-note mt-1"
+      data-own-figure
+      data-operator={figure.operator}
+      data-line={figure.line}
+      data-year={figure.year}
+      data-passengers={figure.passengers}
+      data-s12={hasValue(figure.s12) ? figure.s12 : ""}
+    >
+      {OPERATOR_PREFIX[figure.operator] ?? figure.operator} {figure.line} — <span data-own-figure-value>{OWN_FIGURE_PUBLISHER}の公表値（{figure.year}年度）：{figure.passengers.toLocaleString("ja-JP")}</span>
+      {" ／ "}
+      <span data-own-figure-s12>
+        {s12Label}：{hasValue(figure.s12) ? figure.s12.toLocaleString("ja-JP") : OWN_FIGURE_S12_ELSEWHERE}
+      </span>
+    </p>
+  );
 }
 
 /** In the 23-ward view the list is cut to this many; the cut is stated. */
 const TOP_N = 20;
 
-export default function TransportPanel({ stations, trend, selectedWard, status, sources }: TransportPanelProps) {
+export default function TransportPanel({ stations, trend, selectedWard, status, sources, operatorFigures = null }: TransportPanelProps) {
   const ridership = ridershipSource(sources);
+  const ownNotice = operatorFigures?.notice ?? null;
+  const showsOwnFigures = stations.some((s) => (s.ownFigures ?? []).length > 0);
   const sourceYear = ridership ? `${ridership.year}年度 国土数値情報 駅別乗降客数データ（${ridership.table}）` : undefined;
   const pendingSource = `駅別乗降客数・駅の位置: ${SOURCES.ksj.label}`;
 
@@ -142,6 +189,10 @@ export default function TransportPanel({ stations, trend, selectedWard, status, 
                           {remark.operator} {remark.line}の備考：{remark.text}
                         </p>
                       ))}
+                      {/* The operator's own published figure for each of its lines here, beside S12's (follow-up 3). */}
+                      {(station.ownFigures ?? []).map((figure) => (
+                        <OwnFigureLine key={`${figure.operator}-${figure.line}`} figure={figure} s12Year={ridership?.year} />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -154,7 +205,9 @@ export default function TransportPanel({ stations, trend, selectedWard, status, 
             ) : null}
             <SourceNote source="ksj" unit="乗降客数 人/日" year={sourceYear} note={`${RIDERSHIP_DEFINITION_NOTE}。${RIDERSHIP_JR_NOTE}`} />
             <S12Notice />
+            <OperatorFiguresNotice sentences={ownNotice} />
             <KsjCredits />
+            {showsOwnFigures || ownNotice ? <ToeiCredits /> : null}
           </>
         )}
       </div>
@@ -183,12 +236,13 @@ export default function TransportPanel({ stations, trend, selectedWard, status, 
             </p>
             <SourceNote source="ksj" unit="人/日" year={sourceYear} note={RIDERSHIP_DEFINITION_NOTE} />
             <S12Notice />
+            <OperatorFiguresNotice sentences={ownNotice} />
           </>
         )}
       </div>
 
       {/* T3: 乗降客数推移 — the panel's sum for the view (real-data plan PR 4b) */}
-      <RidershipTrendSection trend={trend} selectedWard={selectedWard} status={status} sources={sources} pendingSource={pendingSource} />
+      <RidershipTrendSection trend={trend} selectedWard={selectedWard} status={status} sources={sources} pendingSource={pendingSource} ownNotice={ownNotice} />
     </div>
   );
 }
@@ -206,12 +260,14 @@ function RidershipTrendSection({
   status,
   sources,
   pendingSource,
+  ownNotice,
 }: {
   trend: RidershipTrend | null;
   selectedWard: string | null;
   status: DataStatus;
   sources?: FieldSources;
   pendingSource: string;
+  ownNotice: readonly string[] | null;
 }) {
   const view = isPending(status) ? null : trendView(trend, selectedWard);
   const title = "乗降客数推移";
@@ -294,6 +350,7 @@ function RidershipTrendSection({
       </p>
       <SourceNote source="ksj" unit="人/日（1日平均）" year={ridershipTrendLine(sources, yearsLabel)} />
       <S12Notice />
+      <OperatorFiguresNotice sentences={ownNotice} />
     </div>
   );
 }

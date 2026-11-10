@@ -163,18 +163,22 @@ for host in $RETIRED_HOSTS; do
 done
 
 # --------------------------------------------------------------------------
-# 4b. Retired data sources
+# 4b. Retired live client
 # --------------------------------------------------------------------------
 # Real-data plan PR 4 (Architect decision 3, 2026-11-02): ridership comes from
 # the committed 国土数値情報 S12 snapshot and the ODPT client left the code
-# path. Its name surviving in a bundle means a credit, a notice or a source
-# label still claims a source nothing fetches.
-RETIRED_SOURCES="${RETIRED_SOURCES:-ODPT odpt 公共交通オープンデータ}"
+# path. Follow-up 3 (Architect decision A, 2026-11-09) brought the センター's
+# name back into the bundle on purpose — 東京都交通局's own figures, committed
+# from its public endpoint, are shown beside S12's with the credit its licence
+# prescribes — so the name is no longer the signal. What must never be in a
+# bundle is the client: the API hosts (keyed or public), the token parameter
+# and the key's variable name. Any of them means a request at run time.
+RETIRED_SOURCES="${RETIRED_SOURCES:-api.odpt.org api-public.odpt.org consumerKey ODPT_API_KEY}"
 for source in $RETIRED_SOURCES; do
   if grep -rqF "$source" "$DIR" 2>/dev/null; then
-    fail "retired data source '${source}' still named in the bundle"
+    fail "retired ridership client '${source}' still referenced in the bundle"
   else
-    pass "no reference to retired data source: ${source}"
+    pass "no reference to the retired ridership client: ${source}"
   fi
 done
 

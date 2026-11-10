@@ -1,0 +1,52 @@
+{
+ "retrieved": "2026-11-09T14:35:38Z",
+ "endpoint": "公共交通オープンデータセンター 公開エンドポイント（api-public.odpt.org）— アクセストークン不要、ユーザ登録不要",
+ "catalog": "https://ckan.odpt.org/dataset/r_passenger_survey-toei",
+ "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+ "licence_url": "https://creativecommons.org/licenses/by/4.0/deed.ja",
+ "provider": "東京都交通局・公共交通オープンデータ協議会",
+ "content": "東京都交通局 乗降者数情報",
+ "credit_form": "https://developer.odpt.org/ja/faq-info",
+ "survey": {
+  "file": "odpt_PassengerSurvey_Toei.json",
+  "url": "https://api-public.odpt.org/api/v4/odpt:PassengerSurvey?odpt:operator=odpt.Operator:Toei",
+  "bytes": 105446,
+  "sha256": "72ec43dae65535685e8344cacc7ab033264fa4a34267fe1f7c80d524c8cd4e63",
+  "objects": 119,
+  "years": [
+   2017,
+   2018,
+   2019,
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "dc_dates": [
+   "2025-09-29T08:00:00+09:00",
+   "2026-01-05T11:00:00+09:00"
+  ],
+  "committed": "whole, byte for byte"
+ },
+ "titles": {
+  "file": "odpt_toei_titles.json",
+  "cut": "the Japanese title of every railway and station the 乗降者数情報 names, each station's railway and its coordinates (geo:lat / geo:long)",
+  "from": [
+   {
+    "file": "odpt_Station_Toei.json",
+    "url": "https://api-public.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Toei",
+    "bytes": 142181,
+    "sha256": "dcf17c03668fb2021811553f97dffcb7f0958beab1df748fb3857beae9def7bf"
+   },
+   {
+    "file": "odpt_Railway_Toei.json",
+    "url": "https://api-public.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Toei",
+    "bytes": 22948,
+    "sha256": "2bdfb82cf5f33c2f440981158df6701fbe6b25c45cb77b61304205978c44c691"
+   }
+  ],
+  "stations": 119,
+  "railways": 5
+ }
+}

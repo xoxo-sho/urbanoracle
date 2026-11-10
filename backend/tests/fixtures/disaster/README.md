@@ -8,7 +8,7 @@ test suite checks it against a fresh build; so is the LP hero's
 `src/data/hero-spread.json` (`etl/disaster.py hero`, from that snapshot and
 `backend/data/land_prices.json`). The excerpts are cut from the official files
 by `etl/disaster.py extract` (shapely); `ksj.meta.json` records every raw
-file's URL, size, sha256 and edition. The committed files total 1,401,490
+file's URL, size, sha256 and edition. The committed files total 1,390,674
 bytes. Raw downloads stay git-ignored under
 `etl/_downloads/`.
 
@@ -51,14 +51,27 @@ bytes. Raw downloads stay git-ignored under
 | licence | 「オープンデータ（CC_BY_4.0（一部制限））」; 東京都 「商用利用可・再配信可」 (KsjTmplt-A40-2024.html, read 2026-11-04) |
 | `ksj_A40-23_tokyo23_coverage.json` | the file's 33,124 polygons lie between 26.60°N and 34.80°N (伊豆・小笠原諸島); 0 intersect the 23区 bbox or any ward polygon. Basis that the 区部 has no 津波浸水想定: 国土交通省 令和5年7月28日 資料7-1 p.4 「津波浸水想定は、東京都の区部を除いて設定済み。」 and 東京都「東京都の津波浸水想定について（解説）」 p.1 「…第 8 条第１項に基づいて、東京都の島しょ部を対象として実施しました。」 (URLs and sha256 in the file). The screen says 「対象外：…（国土数値情報 A40 に23区の区域なし）」 |
 
-## 高潮 — 国土数値情報 高潮浸水想定区域データ A49-20, 2020年度（令和2年度）版, 東京都
+## 高潮 — 東京都港湾局・建設局「高潮浸水想定区域図」（令和6年12月改定）［想定最大規模］（浸水深）
+
+Follow-up 3 (Architect decision B, 2026-11-09). It replaces 国土数値情報 A49-20
+(東京都's file as of 2021-03 by its metadata; the 都 revised the map on
+2024-12-19). The seven depth classes and their boundaries are A49-20's,
+applied to the 都's 浸水深.
 
 | item | value |
 |---|---|
-| download | https://nlftp.mlit.go.jp/ksj/gml/data/A49/A49-20/A49-20_13_GML.zip — 31,712,745 B, sha256 `cec46df37c0d8cabc660fc85f8ec6f0cac78b6754a5387f7be21b7a599810390` (the 東京都 file the A49-2024 page lists) |
-| licence | 「オープンデータ（CC_BY_4.0（一部制限））」; 東京都 「商用利用可・再配信可」 |
-| classes | `A49_003` as the file labels them: 0.3m未満 … 10m以上20m未満 |
-| `ksj_A49-20_tokyo23.csv` / `ksj_A49-20_guard.geojson` | as for 洪水; the guard ward is 目黒区 (25,895 B) |
+| page | https://www.kouwan.metro.tokyo.lg.jp/jishin_kouwankyoku_oshirase/takashio/shinsuisoutei (更新日 2024年12月19日; 「令和６年12月に区域図を改定しました」); 説明資料 令和７年４月（改定）https://www.kouwan.metro.tokyo.lg.jp/documents/d/kouwan/r7_takashio_setsumeishiryou |
+| catalogue | 東京都オープンデータカタログ record t000015d1700000007 「高潮浸水想定区域図」（東京都港湾局）, https://catalog.data.metro.tokyo.lg.jp/dataset/t000015d1700000007 — **HTTP 403 (CloudFront geo-block) from the build machine**; its licence field `CC-BY-4.0`「クリエイティブ・コモンズ 表示（CC BY）」 was read through the mirror https://search.ckan.jp/backend/api/package_show?id=catalog.data.metro.tokyo.lg.jp__dataset:t000015d1700000007 (mirror crawl 2025-12-12, read 2026-11-09), not on the catalogue itself |
+| download | https://data.storage.data.metro.tokyo.lg.jp/kouwan/shape(depth).zip — 44,703,942 B, sha256 `1ea3b9788eec769711b4574635058cf66debf4ace128e090088ae0757c5fae9c`, Last-Modified Fri, 13 Dec 2024 02:21:07 GMT; no account, no key |
+| content | 90 shapefiles (`shape(depth)/NNNN.shp/.dbf/.prj/.shx`, 2 km × 3 km sheets; 図郭割 https://data.storage.data.metro.tokyo.lg.jp/kouwan/takashioshinsuisouteizukaku.pdf), 1,856,039 cells; each a 10 m square centred on (X, Y) with `DepthM` 浸水深 [m] (0.01–19.36, to the centimetre); `.prj` JGD_2011_Japan_Zone_9 = EPSG:6677, the 第IX系 every area here is measured on |
+| classes | A49-20's seven, cut at the same boundaries read from the labels: 1 0.3m未満 [0, 30 cm) · 2 0.3m以上0.5m未満 · 3 0.5m以上1m未満 · 4 1m以上3m未満 · 5 3m以上5m未満 · 6 5m以上10m未満 · 7 10m以上20m未満 [1000, 2000 cm) |
+| method | a cell wholly inside the N03 ward polygon (projected by `etl/zoning.py`'s formula) counts 100 m²; a cell on the edge counts its intersection; share = Σ class area ÷ polygon area (the method of every other hazard). 184.84 km² of cells lie inside the 23 ward polygons, 0.77 km² outside; 2026-11-09 cross-check: 中央区 38.2 / 8.1 / 1.1, 台東区 56.3 / 17.8 / 0.0, 江戸川区 76.5 / 75.5 / 40.3, 23区 29.7 / 21.9 / 9.1 (any / ≥ 1 m / ≥ 3 m %) |
+| licence | 東京都オープンデータ利用規約 (https://portal.data.metro.tokyo.lg.jp/terms/, read directly 2026-11-09): CC BY 4.0, 商用利用可, and it prevails over another site's terms 「コンテンツが、コンテンツ提供者の他のサイトにおいても公開されている場合には…本利用規約が優先するものとします」 — 港湾局's own site policy (https://www.kouwan.metro.tokyo.lg.jp/policy 「無断で複製・転用することはできません」) therefore does not govern this data |
+| credit | 2(1)イ modified-use form: 「このサービスは、以下の著作物を改変して利用しています。高潮浸水想定区域図［想定最大規模］（浸水深）、東京都、クリエイティブ・コモンズ・ライセンス 表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）」 |
+| 時点 | 「令和6年12月改定」 (`sources.hightide.table`, shown on the surface) |
+| `tokyo_takashio_r6_tokyo23.csv` | one row per (ward, class): code, ward, class, label, m2 (3 decimals), cells |
+| `tokyo_takashio_r6_guard.csv` | every cell with area in the guard ward — 目黒区, the ward with the fewest cells covering ≥ 2 classes (391 cells): file, x, y, depth_m. `etl/disaster.py verify` and the guards re-derive 目黒区's rows from it with the standard library (Sutherland–Hodgman clip of the projected ward rings to each cell) |
+| full rebuild | `shape(depth).zip` under `etl/_downloads/tokyo_takashio_r6/`, then `python -I etl/disaster.py extract hightide` (shapely + numpy, ~3 s) and `python -I etl/disaster.py build` |
 
 ## 行政区域 N03 — 2026年（令和8年）1月1日時点 東京都
 

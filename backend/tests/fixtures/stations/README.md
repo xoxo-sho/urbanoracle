@@ -69,6 +69,24 @@ committed here. The 2019 gap needs none of them: on every 東日本旅客鉄道 
 the panel, S12's 乗降客数2019 equals its 乗降客数2018 — the builder checks it
 and writes the count into the snapshot.
 
+## 東京都交通局 乗降者数情報 — the operator's own figures beside S12's (follow-up 3)
+
+Architect decision A (2026-11-09, option 3): every 都営地下鉄 and 日暮里・舎人
+ライナー station-line of the 23 wards shows 東京都交通局's published 1日平均乗降人員
+with its 年度 beside S12's figure — in 駅一覧 only; no sum changes.
+
+| item | value |
+|---|---|
+| source | 公共交通オープンデータセンター, dataset 「東京都交通局 乗降者数情報」 https://ckan.odpt.org/dataset/r_passenger_survey-toei — `odpt:PassengerSurvey` for `odpt.Operator:Toei`; licence CC BY 4.0, 「コンテンツ等の提供者名: 東京都交通局・公共交通オープンデータ協議会」 (read directly 2026-11-09) |
+| endpoint | the public one, no access token and no registration: https://api-public.odpt.org/api/v4/odpt:PassengerSurvey?odpt:operator=odpt.Operator:Toei (plus `odpt:Station` and `odpt:Railway` for the names and coordinates). The keyed endpoint (`api.odpt.org`, which takes an access token) is not used; nothing in the code calls either at run time |
+| `odpt_PassengerSurvey_Toei.json` | the response committed whole — 105,446 B, sha256 `72ec43dae65535685e8344cacc7ab033264fa4a34267fe1f7c80d524c8cd4e63`, retrieved 2026-11-09T14:35:38Z; 119 objects (都営地下鉄 106 station-lines with 2017–2024, 日暮里・舎人ライナー 13 with 2017–2023), `odpt:includeAlighting` true (乗降人員) |
+| `odpt_toei_titles.json` | cut from the Station (142,181 B, sha256 `dcf17c03…def7bf`) and Railway (22,948 B, sha256 `2bdfb82c…c4c691`) responses: the Japanese title of every railway and station the survey names, each station's railway and its `geo:lat` / `geo:long` |
+| `odpt.meta.json` | URL, bytes, sha256 and retrieval time of each response; licence, provider, credit form |
+| matching | line: S12's 路線名 without its 「N号線」 = the センター's 路線名 (「1号線浅草線」 ↔ 「浅草線」); station: S12_001 = the センター's title (width, 「ヶ」/「ケ」 and spaces ignored). 118 of 119 objects match an S12 東京都 row; 本八幡 (新宿線) lies outside the 23 wards by its coordinates; no renamed case; 荒川線 has no object. An object inside the 23 wards that matches no row fails the build |
+| what is shown | per station-line `ownFigures[]`: `{ operator, line, year, passengers, s12 }` — the latest 年度 (都営地下鉄 2024, 日暮里・舎人ライナー 2023) and S12's own 2024 figure for the same rows (`null` where S12 writes it on another row: 押上, 目黒, 白金高輪, 白金台, 新宿, 九段下, and the second lines at 三田, 大門, 春日, 神保町, 森下). 46 S12 rows (44 subway, 2 liner) are below the 交通局 figure beside them; the notice states that as a fact and asserts no cause |
+| definition | the 交通局's figure is per line; 東京都's open-data note for the same table (https://spec.api.metro.tokyo.lg.jp/spec/t000018d0000000030-d5e3d4a98f96a77e0d2857ff3ab150fd-0?lang=ja, read 2026-11-09): 「「一日平均乗降人員」は、浅草線、三田線、新宿線、大江戸線の乗降人員の合計から、都営線相互の乗り換え客数を引いたものです。」 — so a transfer between two 都営 lines is counted on both |
+| credit | the センター's FAQ form (https://developer.odpt.org/ja/faq-info): 「このサービスは、以下の著作物を改変して利用しています。 東京都交通局・公共交通オープンデータ協議会、東京都交通局 乗降者数情報、クリエイティブ・コモンズ・ライセンス　表示4.0国際（https://creativecommons.org/licenses/by/4.0/deed.ja）」 |
+
 ## S12's own notice
 
 The dataset page (`KsjTmplt-S12-2024.html`, 「その他の情報」, second bullet,

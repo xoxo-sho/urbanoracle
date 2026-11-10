@@ -106,7 +106,11 @@ const TRANSPORT: Route = json(200, { status: "ok", data: ROWS, sources: SOURCES,
 /** The same payload with no own figures anywhere: what the page must then not say. */
 const WITHOUT_OWN_FIGURES: Route = json(200, {
   status: "ok",
-  data: ROWS.map(({ ownFigures: _own, ...r }) => r),
+  data: ROWS.map((r) => {
+    const copy = { ...r };
+    delete copy.ownFigures;
+    return copy;
+  }),
   sources: SOURCES,
   total: { code: TOTAL.code, name: TOTAL.name, trend: TOTAL.trend },
 });
@@ -276,7 +280,7 @@ describe("駅一覧 — 東京都交通局's figure with its 年度 beside S12's
       for (const station of ROWS.filter((r) => r.ward === ward.name)) {
         const want = station.ownFigures ?? [];
         const got = ownFigureRows(stationRowById(panel, station.id));
-        expect(got.map(({ text: _t, ...f }) => f), station.name).toEqual(want);
+        expect(got.map((f) => ({ operator: f.operator, line: f.line, year: f.year, passengers: f.passengers, s12: f.s12 })), station.name).toEqual(want);
         for (const f of want) expect([...SUBWAY_LINES, LINER]).toContain(f.line);
         seen += want.length;
       }
