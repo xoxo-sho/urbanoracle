@@ -8,7 +8,8 @@ describe("Chart theme", () => {
   });
 
   it("axis style has correct defaults", () => {
-    expect(AXIS_STYLE.fontSize).toBe(10);
+    // Follow-up 2: axis ticks are labels, so the caption size (12px), never below 11px.
+    expect(AXIS_STYLE.fontSize).toBe(12);
     expect(AXIS_STYLE.axisLine).toBe(false);
     expect(AXIS_STYLE.tickLine).toBe(false);
   });

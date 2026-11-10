@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * /app map basemap and credits (e2e/app-credits.spec.ts).
+ * /app map basemap and credits (e2e/app-credits.spec.ts), and the dashboard's
+ * header, text sizes and map selection (e2e/app-ui.spec.ts, follow-up 2).
  *
  *   npm run build && npm run test:credits
  *
@@ -20,7 +21,7 @@ const WEBGL = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--igno
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: /app-credits\.spec\.ts/,
+  testMatch: /app-(credits|ui)\.spec\.ts/,
   outputDir: process.env.APP_CREDITS_OUTPUT_DIR ?? "test-results/app-credits",
   fullyParallel: false,
   workers: 1,

@@ -20,6 +20,10 @@
 #                 read from the app inside the image, never hardcoded — answers
 #                 401 without a token (at least 7 routes, so an empty list
 #                 cannot pass)
+#               - HEAD answers wherever GET does (follow-up 2): /, /login and
+#                 /app 200 text/html with GET's Content-Length, one font 200
+#                 font/woff2, /api/v1/health 200, and every one of those data
+#                 routes 401 to HEAD without a token
 #               - the log has no ERROR or Traceback line
 #   snapshot  the image refuses to start when a committed snapshot is missing:
 #             STATIONS_PATH pointed at a file that does not exist — the
@@ -63,6 +67,10 @@ pass() { echo "SMOKE PASS [$current]: $*"; }
 run() { docker run --platform "$PLATFORM" "$@"; }
 # status and content type of a GET, body in $tmp/body
 get() { curl -s -o "$tmp/body" -w '%{http_code} %{content_type}' --max-time 20 "$URL$1" || true; }
+# status and content type of a HEAD (curl -I), headers in $tmp/head
+head_req() { curl -s -I -o "$tmp/head" -w '%{http_code} %{content_type}' --max-time 20 "$URL$1" || true; }
+# a header's value from $tmp/head (case-insensitive name)
+header() { tr -d '\r' < "$tmp/head" | awk -v k="$(tr '[:upper:]' '[:lower:]' <<<"$1")" -F': ' 'tolower($1) == k { print $2 }'; }
 
 step_user() {
   current=user
@@ -161,9 +169,29 @@ for r in app.routes:
     [[ $code == 401 ]] || fail "$route answered $code without a token, expected 401"
   done
 
+  # HEAD answers wherever GET does, with GET's status and headers (follow-up 2:
+  # every route was GET-only and HEAD /login answered 405 in production).
+  for page in / /login /app; do
+    out="$(get "$page")"
+    [[ $out == "200 text/html"* ]] || fail "GET $page answered '$out', expected 200 text/html"
+    n="$(wc -c < "$tmp/body" | tr -d ' ')"
+    out="$(head_req "$page")"
+    [[ $out == "200 text/html"* ]] || fail "HEAD $page answered '$out', expected 200 text/html"
+    [[ "$(header content-length)" == "$n" ]] || fail "HEAD $page says Content-Length '$(header content-length)', GET sent $n bytes"
+  done
+  font="$(head -1 <<<"$fonts")"
+  out="$(head_req "$font")"
+  [[ $out == "200 font/woff2" ]] || fail "HEAD $font answered '$out', expected '200 font/woff2'"
+  out="$(head_req /api/v1/health)"
+  [[ $out == 200* ]] || fail "HEAD /api/v1/health answered '$out', expected 200"
+  for route in $routes; do
+    out="$(head_req "$route")"
+    [[ $out == 401* ]] || fail "HEAD $route answered '$out' without a token, expected 401"
+  done
+
   out="$(docker logs "$tag-app" 2>&1 | grep -E 'ERROR|Traceback' | head -2 || true)"
   [[ -z $out ]] || fail "the log has error lines: $out"
-  pass "health 200; / 200 with one <h1>; $checked fonts 200 font/woff2; geojson application/geo+json; $n data routes 401 without a token; clean log"
+  pass "health 200; / 200 with one <h1>; $checked fonts 200 font/woff2; geojson application/geo+json; $n data routes 401 without a token; HEAD / /login /app 200 with GET's length, font and health 200, $n data routes 401; clean log"
   docker rm -f "$tag-app" "$tag-db" > /dev/null 2>&1 || true
 }
 
