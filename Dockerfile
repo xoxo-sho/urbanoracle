@@ -17,8 +17,8 @@
 #     -t urbanoracle .
 #
 # --platform linux/amd64 matters on Apple Silicon. Cloud Run runs amd64 and
-# Cloud Build produces amd64, so an arm64 local image is not the artifact that
-# ships. It also does not work: the arm64 cryptography wheel (a pyjwt[crypto]
+# CI's image job (.github/workflows/ci.yml) builds linux/amd64 — that build is
+# the one deployed — so an arm64 local image is not the artifact that ships. It also does not work: the arm64 cryptography wheel (a pyjwt[crypto]
 # dependency) dies with SIGILL the moment `import jwt` loads its Rust bindings,
 # taking the container down at startup (observed on Landcast).
 #

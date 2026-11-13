@@ -48,10 +48,31 @@ env:
   # exactly three secrets. Never the default compute SA, which carries editor.
   RUNTIME_SA: urbanoracle-run@urbanoracle.iam.gserviceaccount.com
   MIGRATE_JOB: urbanoracle-migrate
+  # Where ci.yml's image job pushes the image it built and smoked.
+  IMAGE_REPO: asia-northeast1-docker.pkg.dev/urbanoracle/urbanoracle/urbanoracle
 
 jobs:
+  # CI builds the production image ONCE, smokes it, pushes it (tag = 7-char
+  # SHA) and outputs its digest; this workflow builds nothing. push_image is
+  # the only thing that lets ci.yml push — its pull_request and standalone
+  # push runs leave it unset.
   ci:
     uses: ./.github/workflows/ci.yml
+    with:
+      push_image: true
+    # The five client config values Next inlines at build time (public
+    # identifiers, not secrets — but the wrong one ships a broken bundle).
+    secrets:
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+    # A called workflow gets at most its caller's permissions; the image job
+    # needs id-token to push through the same keyless identity as below.
+    permissions:
+      contents: read
+      id-token: write
 
   deploy:
     needs: ci
@@ -61,6 +82,10 @@ jobs:
       # Required for keyless auth: the runner mints an OIDC token that GCP
       # trusts through the workload identity pool.
       id-token: write
+    env:
+      # The digest of the image ci.yml's image job built, smoked and pushed.
+      # The migrate job and the service both run exactly this.
+      IMAGE_DIGEST: ${{ needs.ci.outputs.image_digest }}
 
     steps:
       - uses: actions/checkout@v4
@@ -76,28 +101,25 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      # Cloud Build rather than a runner-side docker build: the image needs the
-      # whole repo as context, and the NEXT_PUBLIC_* client config must be
-      # injected as build args (Next inlines them at compile time).
-      #
-      # The script submits with --async and polls `builds describe`, exiting
-      # non-zero on anything that is not a confirmed SUCCESS. A synchronous
-      # submit piped through tail/grep would report the pipeline's status
-      # instead of the build's, letting a failed build reach the deploy step.
-      #
-      # Inside the build, verify-bundle runs BEFORE the image is pushed, so a
-      # bundle carrying the wrong appId or an absolute origin never becomes a
-      # deployable artifact.
-      - name: Build image (Cloud Build, async + poll)
-        env:
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-        run: scripts/cloudbuild-submit.sh "${GITHUB_SHA::7}"
+      # No build here. ci.yml's image job built the image once with the
+      # production config, ran verify-bundle (real-config mode) and the boot
+      # and snapshot smoke against it, then pushed it and output its digest.
+      # Fail closed if that digest is missing (e.g. a workflow_dispatch on a
+      # ref other than main, where the image job does not push) or is not in
+      # the registry.
+      - name: Check the digest CI pushed
+        run: |
+          set -euo pipefail
+          if ! [[ "${IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::ci.yml did not output an image digest ('${IMAGE_DIGEST}') — nothing to deploy" >&2
+            exit 1
+          fi
+          gcloud artifacts docker images describe "${IMAGE_REPO}@${IMAGE_DIGEST}" \
+            --project "${PROJECT_ID}" --format='value(image_summary.digest)' > /dev/null
+          echo "  ok: deploying ${IMAGE_REPO}@${IMAGE_DIGEST} (tag ${GITHUB_SHA::7})"
 
-      # Migrations run as a Cloud Run JOB using the just-built image, not from
+      # Migrations run as a Cloud Run JOB using the image CI built, smoked and
+      # pushed (by digest), not from
       # the runner over a proxy. Two reasons:
       #
       #   1. The job runs as the RUNTIME service account, which already holds
@@ -119,7 +141,8 @@ jobs:
       - name: Migrate the production database (gates the deploy)
         run: |
           set -euo pipefail
-          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/urbanoracle/urbanoracle:${GITHUB_SHA::7}"
+          # By digest: the exact image the CI image job smoked and pushed.
+          IMAGE="${IMAGE_REPO}@${IMAGE_DIGEST}"
 
           gcloud run jobs deploy "${MIGRATE_JOB}" \
             --image "${IMAGE}" \
@@ -132,6 +155,14 @@ jobs:
             --args upgrade,head \
             --max-retries 0 \
             --task-timeout 300s
+
+          JOB_IMAGE=$(gcloud run jobs describe "${MIGRATE_JOB}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(spec.template.spec.template.spec.containers[0].image)')
+          if [ "${JOB_IMAGE}" != "${IMAGE}" ]; then
+            echo "::error::migrate job image is '${JOB_IMAGE}', expected '${IMAGE}'" >&2
+            exit 1
+          fi
 
           # --wait propagates the task's exit status, so a failed migration
           # fails the step rather than being reported as a successful submit.
@@ -149,7 +180,7 @@ jobs:
           set -euo pipefail
           gcloud run deploy "${SERVICE}" \
             --project "${PROJECT_ID}" \
-            --image "${REGION}-docker.pkg.dev/${PROJECT_ID}/urbanoracle/urbanoracle:${GITHUB_SHA::7}" \
+            --image "${IMAGE_REPO}@${IMAGE_DIGEST}" \
             --region "${REGION}" \
             --platform managed \
             --allow-unauthenticated \
@@ -168,6 +199,27 @@ jobs:
           # URBANORACLE_FREEMAIL_DOMAINS / _ALLOWLIST_EMAILS / _ALLOWLIST_DOMAINS
           # are deliberately absent — provisioning no longer reads them, and
           # leaving them set would imply a curation that no longer exists.
+
+      # The revision this deploy created must run the digest CI pushed — the
+      # image the smoke steps booted — and be the one that is ready.
+      - name: Verify the new revision runs the pushed digest
+        run: |
+          set -euo pipefail
+          read -r CREATED READY < <(gcloud run services describe "${SERVICE}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(status.latestCreatedRevisionName,status.latestReadyRevisionName)')
+          if [ "${CREATED}" != "${READY}" ]; then
+            echo "::error::latest created revision ${CREATED} is not the ready one (${READY})" >&2
+            exit 1
+          fi
+          GOT=$(gcloud run revisions describe "${READY}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(status.imageDigest)')
+          if [ "${GOT##*@}" != "${IMAGE_DIGEST}" ]; then
+            echo "::error::revision ${READY} runs '${GOT}', expected ${IMAGE_REPO}@${IMAGE_DIGEST}" >&2
+            exit 1
+          fi
+          echo "  ok: ${READY} runs ${GOT}"
 
       # The runtime identity is the whole point of --service-account. Asserting
       # it here means a future edit that drops the flag fails the deploy rather

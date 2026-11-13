@@ -13,7 +13,7 @@
     "audit:h": "node scripts/audit-h.mjs",
     "verify:bundle": "bash scripts/verify-bundle.sh out",
     "verify:bundle:selftest": "bash scripts/test-verify-bundle.sh",
-    "verify:guard": "bash scripts/test-cloudbuild-guard.sh",
+    "verify:guard": "bash scripts/test-build-args-guard.sh",
     "check:fonts": "node scripts/check-font-cjk.mjs",
     "check:dxa-drift": "node scripts/check-dxa-drift.mjs",
     "check:dxa-drift:source": "node scripts/check-dxa-drift.mjs --source ../dxa-ui",

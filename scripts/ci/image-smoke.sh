@@ -7,8 +7,10 @@
 #
 #   user      the image's configured user is not root, and `id -u` in a
 #             container of it is not 0
-#   bundle    scripts/verify-bundle.sh on /app/static copied out of the image
-#             (what Cloud Build's second step does), structural mode
+#   bundle    scripts/verify-bundle.sh on /app/static copied out of the image:
+#             structural mode by default; on a deploy build ci.yml sets
+#             SKIP_REAL_CONFIG=0 and EXPECT_* (the real-config assertions
+#             cloudbuild.yaml's verify-bundle step ran until 2026-11-14)
 #   boot      a throwaway postgres:16, `alembic upgrade head` through the
 #             image's own code, then the app with no production secrets:
 #               - /api/v1/health 200 {"status":"ok"}

@@ -179,9 +179,14 @@ def test_migrate_and_deploy_take_the_digest_ci_pushed():
 
 
 def test_deploy_checks_the_new_revision_runs_the_pushed_digest():
-    scripts = "\n".join(run_of(s) + str(s.get("env") or "") for s in deploy_job()["steps"])
-    assert re.search(r"imageDigest", scripts), "no step reads the new revision's status.imageDigest"
-    assert DIGEST_OUTPUT in scripts, "the revision check does not compare against the digest CI pushed"
+    job = deploy_job()
+    checks = [s for s in job["steps"] if "imageDigest" in run_of(s)]
+    assert checks, "no step reads the new revision's status.imageDigest"
+    for step in checks:
+        expanded = resolve(run_of(step), DEPLOY.get("env"), job.get("env"), step.get("env"))
+        assert DIGEST_OUTPUT in expanded, (
+            f"step {step.get('name')!r} reads imageDigest but does not compare it with {DIGEST_OUTPUT}"
+        )
 
 
 def test_push_steps_run_only_when_called_for_a_main_deploy():

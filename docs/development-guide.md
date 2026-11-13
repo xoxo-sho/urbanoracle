@@ -279,13 +279,23 @@ TypeScript 型チェック + Next.js ビルドが実行される。エラーが�
 
 パイプライン:
 
-1. `ci.yml`（lint / 型 / Vitest / pytest / H項監査）
-2. Cloud Build — 静的エクスポート + `scripts/verify-bundle.sh`（**push 前**に実行）
-3. Cloud Run ジョブ `urbanoracle-migrate` で `alembic upgrade head`
-4. Cloud Run サービス `urbanoracle` を更新
-5. デプロイ後検証（実行 SA の確認、匿名アクセスが 401 になることの確認）
+1. `ci.yml`（lint / 型 / Vitest / pytest / H項監査 / パイプラインガード）
+2. `ci.yml` の `image` ジョブ — イメージを**1回だけ**ビルド（本番の
+   `NEXT_PUBLIC_*` はリポジトリの secrets から、事前に
+   `scripts/ci/check-build-args.sh` で値の形を検査）→ `scripts/ci/image-smoke.sh`
+   （非 root、`scripts/verify-bundle.sh` を本番設定モードで、起動、スナップ
+   ショット欠落時の起動拒否）→ **スモークしたそのイメージ**をタグ（7桁 SHA）
+   付きで Artifact Registry に push し、digest を出力。push の前に追加の
+   ビルドはなく、レジストリ上の config digest がスモークしたイメージの ID と
+   一致することを確認する。push は `deploy.yml` から `push_image: true` で
+   呼ばれたときだけで、pull_request では行わない
+3. Cloud Run ジョブ `urbanoracle-migrate` で `alembic upgrade head`（2 の digest で）
+4. Cloud Run サービス `urbanoracle` を更新（2 の digest で）
+5. デプロイ後検証（新リビジョンの `status.imageDigest` が 2 の digest と一致
+   すること、実行 SA の確認、匿名アクセスが 401 になることの確認）
 
-いずれかが失敗した時点で以降は実行されない。
+いずれかが失敗した時点で以降は実行されない。Cloud Build は使わない
+（2026-11-14 まではデプロイ時に Cloud Build がイメージを2回目にビルドしていた）。
 
 **ドキュメントのみの変更はデプロイをスキップする。** `deploy.yml` の push
 トリガーに `paths-ignore: ['**.md', 'docs/**']` を設定してある。GitHub の仕様
@@ -298,7 +308,9 @@ TypeScript 型チェック + Next.js ビルドが実行される。エラーが�
   文書のみのコミットでも lint / 型 / テストは走る。
 - 無視対象のパスを含む変更を意図的にデプロイしたい場合は
   Actions → Deploy → **Run workflow**（`workflow_dispatch` には
-  `paths-ignore` が適用されない）。
+  `paths-ignore` が適用されない）。ブランチは `main` を選ぶこと。他の ref では
+  `image` ジョブが push しないため、デプロイは「Check the digest CI pushed」で
+  止まる（2026-11-14 以前は Cloud Build がそのブランチをビルドしてデプロイできた）。
 - `src/` 配下に MDX を導入する場合は `'**.md'` を狭める必要がある。文書に
   見えて実体はバンドルの中身になるため。
 
