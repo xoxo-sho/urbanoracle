@@ -242,3 +242,9 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         run: python -m pytest -q
+
+      # The image that ships is the image this workflow built and smoked:
+      # deploy.yml builds nothing, takes the digest the image job pushed, and
+      # a pull_request run never pushes (scripts/ci/test_pipeline.py).
+      - name: Pipeline guards (build once, deploy by digest)
+        run: python -m pytest -q -p no:cacheprovider scripts/ci/test_pipeline.py

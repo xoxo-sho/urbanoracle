@@ -7,3 +7,5 @@ alembic==1.16.1
 pyjwt[crypto]==2.10.1
 pytest==8.3.5
 httpx==0.28.1
+# scripts/ci/test_pipeline.py parses the workflow YAML (CI only; not in the image).
+pyyaml==6.0.2
