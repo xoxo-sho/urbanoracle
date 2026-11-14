@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+# Playwright output: every playwright*.config.ts writes under test-results/
+# (outputDir and .last-run.json); an HTML reporter writes playwright-report/.
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/

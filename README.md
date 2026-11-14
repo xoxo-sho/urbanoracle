@@ -110,10 +110,12 @@ live in Secret Manager and never reach the browser bundle.
 
 ## Deployment
 
-Push to `main` → `.github/workflows/deploy.yml` (CI → Cloud Build + bundle
-verification → Alembic migration job → Cloud Run). Documentation-only commits
-skip the deploy; see [`docs/development-guide.md`](docs/development-guide.md)
-§7.2.
+Push to `main` → `.github/workflows/deploy.yml`. CI (`ci.yml`) builds the
+image once, verifies the bundle and boots the image, then pushes it to
+Artifact Registry; the deploy job runs the Alembic migration job and deploys
+that same image to Cloud Run by digest. Nothing is built twice and Cloud Build
+is not used. Documentation-only commits skip the deploy; see
+[`docs/development-guide.md`](docs/development-guide.md) §7.2.
 
 ## Data Sources
 

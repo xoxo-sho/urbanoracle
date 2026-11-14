@@ -5,10 +5,32 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # Called by deploy.yml so nothing reaches Cloud Run without passing CI.
-  # dxa-migration is covered through that call rather than by its own push
-  # trigger, which would otherwise run the whole suite twice per push.
+  # Called by deploy.yml so nothing reaches Cloud Run without passing CI, and
+  # so the image deploy.yml ships is the one the `image` job below built and
+  # smoked. Only that call sets push_image: the standalone push/pull_request
+  # runs of this same file see it unset (false), so they never push — even on
+  # main, where both runs happen for every push.
   workflow_call:
+    inputs:
+      push_image:
+        description: "Build with the production config, then push the smoked image and output its digest (deploy.yml only)"
+        type: boolean
+        default: false
+    secrets:
+      NEXT_PUBLIC_FIREBASE_API_KEY:
+        required: false
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
+        required: false
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID:
+        required: false
+      NEXT_PUBLIC_FIREBASE_APP_ID:
+        required: false
+      NEXT_PUBLIC_SITE_URL:
+        required: false
+    outputs:
+      image_digest:
+        description: "sha256 digest of the image the image job smoked and pushed (empty unless push_image)"
+        value: ${{ jobs.image.outputs.digest }}
 
 jobs:
   lint-test-build:
@@ -60,7 +82,8 @@ jobs:
       # Structural static-export build. The config values are dummy but are
       # NOT on the placeholder deny-list, so a build that simply lost its
       # arguments stays distinguishable from this one. The real-config
-      # assertions run at image build time (Stage 5/6) with the real appId.
+      # assertions run in the image job below, on the build deploy.yml ships,
+      # with the real appId.
       #
       # It runs with NO NETWORK: scripts/build-offline.sh starts `npm run
       # build` in the Dockerfile's node:20-slim with `--network none`, after
@@ -133,51 +156,97 @@ jobs:
           path: playwright-report
           if-no-files-found: ignore
 
-  # The production image, built and booted (follow-up 4, 2026-11-10). The two
-  # other jobs test the source; nothing before this job ever built the
-  # Dockerfile, so a missing COPY or a difference between the runner and
-  # python:3.11-slim showed only at deploy, or not at all — every font went out
-  # as text/plain from the image while the suite passed (found by hand before
-  # PR 27). This builds the image the way cloudbuild.yaml does — same
-  # Dockerfile, same build args, linux/amd64 — with the structural config, and
-  # scripts/ci/image-smoke.sh boots it against a throwaway Postgres with no
-  # production secret.
+  # The production image: built ONCE here, booted, and — when deploy.yml
+  # calls this workflow for a main deploy — pushed and handed to the deploy
+  # job by digest (2026-11-14; RECON 2026-11-uo-build-once). Until then CI
+  # smoked a structural build here and Cloud Build built the shipped image a
+  # second time, so `boot` and `snapshot` never ran against what shipped.
   #
-  # It gates the deploy (deploy.yml: `needs: ci`) but does not feed it: Cloud
-  # Build still builds the image that ships, with the real config.
+  # Pull requests (and the standalone push run of this file) build and smoke
+  # with the structural config and never authenticate or push: every step that
+  # does is gated on inputs.push_image, which only deploy.yml sets, and on
+  # refs/heads/main. On a deploy the build takes the five production values
+  # from the repo secrets (after the value guard), verify-bundle runs in
+  # real-config mode as cloudbuild.yaml's verify-bundle step did, and the push
+  # checks that the registry now holds exactly the image the smoke steps ran.
   image:
     name: Image build + smoke
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Used only by the push steps on a main deploy (gated below). The WIF
+      # provider's attributeCondition checks the repository, not the ref
+      # (RECON 1d); restricting it to refs/heads/main is recommended in the PR.
+      id-token: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
     env:
       IMAGE: urbanoracle-smoke:${{ github.sha }}
+      REGISTRY_IMAGE: asia-northeast1-docker.pkg.dev/urbanoracle/urbanoracle/urbanoracle
     steps:
       - uses: actions/checkout@v4
 
+      # The image tag and NEXT_PUBLIC_BUILD_SHA (shown on /login): the 7-char
+      # SHA, as Cloud Build's _IMAGE_TAG was.
+      - id: meta
+        name: Short SHA (image tag and NEXT_PUBLIC_BUILD_SHA)
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # A present-but-nonsense secret ("-") once shipped. Checked before the
+      # build whose image is deployed; the values are never printed. If a
+      # secret were empty, the build-args below would fall back to the
+      # structural values — this step fails first, and verify-bundle's
+      # EXPECT_APP_ID check would fail after it.
+      - name: "deploy build: refuse degenerate build-arg values"
+        if: inputs.push_image && github.ref == 'refs/heads/main'
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+        run: bash scripts/ci/check-build-args.sh
+
       - uses: docker/setup-buildx-action@v3
 
-      # Layers are cached in the Actions cache (npm ci and pip install are the
-      # slow ones); `load` puts the image in the runner's docker for the smoke.
-      - name: Build image (linux/amd64, as cloudbuild.yaml builds it)
+      # One build. `load` puts it in the runner's docker for the smoke steps
+      # and the push. No provenance/SBOM: an attestation would turn the pushed
+      # artifact into an index, and every image in the registry is a single
+      # linux/amd64 manifest (RECON 1b/1e). Layers are cached in the Actions
+      # cache; a run on main restores only caches written on main.
+      - name: Build image (linux/amd64; production config on a deploy)
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
           load: true
+          push: false
+          provenance: false
+          sbom: false
           tags: ${{ env.IMAGE }}
           build-args: |
-            NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
-            NEXT_PUBLIC_FIREBASE_API_KEY=structural-check-build
-            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=dxalabs-platform.firebaseapp.com
-            NEXT_PUBLIC_FIREBASE_PROJECT_ID=dxalabs-platform
-            NEXT_PUBLIC_FIREBASE_APP_ID=structural-check-build
-            NEXT_PUBLIC_SITE_URL=https://urbanoracle.dxalabs.com
+            NEXT_PUBLIC_BUILD_SHA=${{ steps.meta.outputs.short_sha }}
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_API_KEY || 'structural-check-build' }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'dxalabs-platform.firebaseapp.com' }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'dxalabs-platform' }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_APP_ID || 'structural-check-build' }}
+            NEXT_PUBLIC_SITE_URL=${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_SITE_URL || 'https://urbanoracle.dxalabs.com' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: "smoke: runs as a non-root user"
         run: bash scripts/ci/image-smoke.sh user "$IMAGE"
 
-      - name: "smoke: verify-bundle on the image's /app/static"
+      # Structural on pull requests; on a deploy, the real-config assertions
+      # (authDomain, projectId, the exact appId, the site origin) that
+      # cloudbuild.yaml's verify-bundle step used to run before its push.
+      - name: "smoke: verify-bundle on the image's /app/static (real config on a deploy)"
+        env:
+          SKIP_REAL_CONFIG: ${{ !(inputs.push_image && github.ref == 'refs/heads/main') && '1' || '0' }}
+          EXPECT_AUTH_DOMAIN: ${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'dxalabs-platform.firebaseapp.com' }}
+          EXPECT_PROJECT_ID: ${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'dxalabs-platform' }}
+          EXPECT_APP_ID: ${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_FIREBASE_APP_ID || '' }}
+          EXPECT_SITE_ORIGIN: ${{ (inputs.push_image && github.ref == 'refs/heads/main') && secrets.NEXT_PUBLIC_SITE_URL || 'https://urbanoracle.dxalabs.com' }}
         run: bash scripts/ci/image-smoke.sh bundle "$IMAGE"
 
       - name: "smoke: boots — health, LP, fonts as font/woff2, GeoJSON, data routes 401"
@@ -185,6 +254,57 @@ jobs:
 
       - name: "smoke: refuses to start when a snapshot is missing"
         run: bash scripts/ci/image-smoke.sh snapshot "$IMAGE"
+
+      # ---- main deploy only: push the image the steps above smoked ----------
+      - id: auth
+        if: inputs.push_image && github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/89383988887/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-deploy@urbanoracle.iam.gserviceaccount.com
+
+      - if: inputs.push_image && github.ref == 'refs/heads/main'
+        uses: google-github-actions/setup-gcloud@v2
+
+      # No build here: the smoked local image is tagged and pushed as is. The
+      # digest comes from the push; the registry's manifest for it must be a
+      # single-platform image whose config digest is the smoked image's ID
+      # (with the containerd image store, the ID is the manifest digest itself).
+      - id: push
+        name: "deploy: push the smoked image (tag = 7-char SHA) and output its digest"
+        if: inputs.push_image && github.ref == 'refs/heads/main'
+        env:
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${REGISTRY_IMAGE%%/*}" --quiet
+          REF="${REGISTRY_IMAGE}:${SHORT_SHA}"
+          docker tag "$IMAGE" "$REF"
+          out="$(docker push "$REF")"
+          printf '%s\n' "$out" | tail -2
+          DIGEST="$(sed -n 's/.*digest: \(sha256:[0-9a-f]\{64\}\).*/\1/p' <<<"$out" | tail -1)"
+          if [ -z "$DIGEST" ]; then
+            DIGEST="$(docker image inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$REF" | sed -n "s#^${REGISTRY_IMAGE}@##p" | head -1)"
+          fi
+          if ! [[ $DIGEST =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::no digest for ${REF} after the push" >&2
+            exit 1
+          fi
+
+          LOCAL_ID="$(docker image inspect --format '{{.Id}}' "$IMAGE")"
+          RAW="$(docker buildx imagetools inspect --raw "${REGISTRY_IMAGE}@${DIGEST}")"
+          MEDIA="$(jq -r '.mediaType // empty' <<<"$RAW")"
+          CONFIG="$(jq -r '.config.digest // empty' <<<"$RAW")"
+          case "$MEDIA" in
+            application/vnd.docker.distribution.manifest.v2+json|application/vnd.oci.image.manifest.v1+json) ;;
+            *) echo "::error::${REGISTRY_IMAGE}@${DIGEST} is '${MEDIA}', not a single-platform image manifest" >&2; exit 1 ;;
+          esac
+          if [ "$CONFIG" != "$LOCAL_ID" ] && [ "$DIGEST" != "$LOCAL_ID" ]; then
+            echo "::error::pushed manifest config ${CONFIG} is not the smoked image ${LOCAL_ID}" >&2
+            exit 1
+          fi
+          echo "ok: pushed ${REF} as ${DIGEST}; config ${CONFIG} = smoked image ${LOCAL_ID}"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
 
   backend:
     runs-on: ubuntu-latest
@@ -242,3 +362,9 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         run: python -m pytest -q
+
+      # The image that ships is the image this workflow built and smoked:
+      # deploy.yml builds nothing, takes the digest the image job pushed, and
+      # a pull_request run never pushes (scripts/ci/test_pipeline.py).
+      - name: Pipeline guards (build once, deploy by digest)
+        run: python -m pytest -q -p no:cacheprovider scripts/ci/test_pipeline.py
